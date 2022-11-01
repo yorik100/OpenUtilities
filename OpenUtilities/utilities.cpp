@@ -248,19 +248,17 @@ namespace utilities {
 
 	void updateParticles()
 	{
+		// Checking if particles are valid, if they're not, delete them from the list
+		particlePredList.erase(std::remove_if(particlePredList.begin(), particlePredList.end(), [](particleStruct x)
+			{
+				return !x.obj->is_valid() || x.owner->is_dead() || x.time + x.castTime <= gametime->get_time();
+			}
+		),
+		particlePredList.end());
 
 		// Loop through every teleport particles
-		int key = 0;
 		for (auto& obj : particlePredList)
 		{
-			// Checking if particles are valid, if they're not, delete them from the list
-			auto currentKey = key++;
-			if (!obj.obj->is_valid() || obj.owner->is_dead() || obj.time + obj.castTime <= gametime->get_time()) {
-				particlePredList.erase(particlePredList.begin() + currentKey);
-				teleportList[obj.owner->get_handle()] = {};
-				continue;
-			};
-
 			// Getting the final teleport position
 			if (obj.isTeleport)
 			{
@@ -360,8 +358,7 @@ namespace utilities {
 				const auto positionText = vector(915, 180);
 				draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 40, "Baron is under attack!");
 			}
-
-			if (lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && gametime->get_time() - heraldAttackTime < 8)
+			else if (lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && gametime->get_time() - heraldAttackTime < 8)
 			{
 				const auto position = vector(1350, 200);
 				const auto size = vector(100.f, 100.f);
