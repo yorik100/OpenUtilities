@@ -268,6 +268,8 @@ namespace utilities {
 	{
 		// Limit ticks (for low spec mode)
 		if (settings::lowSpec->get_bool() && limitedTick(SERVER_TICKRATE)) return;
+
+		// Update particle data
 		updateParticles();
 	}
 
@@ -307,13 +309,11 @@ namespace utilities {
 			colour = teleportData.type == teleport_type::Teleport ? MAKE_COLOR(255, 0, 255, 255) : MAKE_COLOR(0, 190, 255, 255);
 			draw_manager->add_circle(target->get_position(), target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour, 2);
 		}
-
 	}
 
 	void on_create(const game_object_script obj)
 	{
-
-		// Get particles to cast on
+		// Get possible valid particles
 		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero()) return;
 		auto emitterHash = obj->get_emitter_resources_hash();
 
@@ -379,6 +379,7 @@ namespace utilities {
 			{
 				particleStruct particleData = { .obj = obj, .target = target, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 4.1, .castingPos = vector::zero, .nexusPos = nexusPos, .isTeleport = true };
 				particlePredList.push_back(particleData);
+				return;
 			}
 		}
 		else if (obj->get_name() == "global_ss_teleport_target_red.troy")
@@ -394,6 +395,7 @@ namespace utilities {
 			{
 				particleStruct particleData = { .obj = obj, .target = target, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 4.1, .castingPos = vector::zero, .nexusPos = nexusPos, .isTeleport = true };
 				particlePredList.push_back(particleData);
+				return;
 			}
 		}
 	}
@@ -409,6 +411,7 @@ namespace utilities {
 		if (!gain && sender->is_valid() && !sender->is_targetable() && buff->get_hash_name() == buff_hash("willrevive") && sender->has_item(ItemId::Guardian_Angel) != spellslot::invalid)
 		{
 			guardianReviveTime[sender->get_handle()] = gametime->get_time() + 4;
+			return;
 		}
 	}
 
