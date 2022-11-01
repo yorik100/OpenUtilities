@@ -249,7 +249,7 @@ namespace utilities {
 	void updateParticles()
 	{
 		// Checking if particles are valid, if they're not, delete them from the list
-		particlePredList.erase(std::remove_if(particlePredList.begin(), particlePredList.end(), [](particleStruct x)
+		particlePredList.erase(std::remove_if(particlePredList.begin(), particlePredList.end(), [](const particleStruct& x)
 			{
 				return !x.obj->is_valid() || x.owner->is_dead() || x.time + x.castTime <= gametime->get_time();
 			}
