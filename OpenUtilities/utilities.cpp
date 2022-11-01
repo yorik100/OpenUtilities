@@ -374,9 +374,9 @@ namespace utilities {
 	{
 		// Get if an epic monster is attacking someone
 		game_object_script epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
-		auto epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster();
+		auto epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
 		game_object_script epicOwner = obj->is_missile() ? entitylist->get_object(obj->missile_get_sender_id()) : nullptr;
-		auto epicMissile = epicOwner && !epicOwner->is_dead() && epicOwner->is_epic_monster();
+		auto epicMissile = epicOwner && !epicOwner->is_dead() && epicOwner->is_epic_monster() && !epicOwner->get_owner();
 		auto isOwnedByEpic = epicParticle || epicMissile;
 		if (isOwnedByEpic)
 		{
@@ -402,12 +402,12 @@ namespace utilities {
 		}
 
 		// Get if someone is attacking an epic monster
-		game_object_script epicAttachment = obj->get_particle_attachment_object() ? obj->get_particle_attachment_object() : nullptr;
+		game_object_script epicAttachment = obj->get_particle_attachment_object() && obj->get_particle_attachment_object()->is_epic_monster() ? obj->get_particle_attachment_object() : nullptr;
 		if (!epicAttachment)
-			epicAttachment = obj->get_particle_target_attachment_object() ? obj->get_particle_target_attachment_object() : nullptr;
-		auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster();
+			epicAttachment = obj->get_particle_target_attachment_object() && obj->get_particle_target_attachment_object()->is_epic_monster() ? obj->get_particle_target_attachment_object() : nullptr;
+		auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
 		game_object_script epicOwnerTarget = obj->is_missile() && obj->missile_get_target_id() ? entitylist->get_object(obj->missile_get_target_id()) : nullptr;
-		auto epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster();
+		auto epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster() && !epicOwnerTarget->get_owner();
 		auto isTargetByEpic = epicParticleAttachment || epicMissileTarget;
 		if (isTargetByEpic)
 		{
@@ -507,6 +507,32 @@ namespace utilities {
 		}
 	}
 
+	void on_do_cast(game_object_script sender, spell_instance_script spell)
+	{
+		auto target = entitylist->get_object(spell->get_last_target_id());
+		if (target)
+		{
+			if (target->get_name().find("Baron") != std::string::npos)
+			{
+				baronAttackTime = gametime->get_time();
+				lastBaron = target;
+				return;
+			}
+			else if (target->get_name().find("Dragon") != std::string::npos)
+			{
+				dragonAttackTime = gametime->get_time();
+				lastDragon = target;
+				return;
+			}
+			else if (target->get_name().find("Herald") != std::string::npos)
+			{
+				heraldAttackTime = gametime->get_time();
+				lastHerald = target;
+				return;
+			}
+		}
+	}
+
 	void on_delete(const game_object_script obj)
 	{
 
@@ -579,6 +605,7 @@ namespace utilities {
 		event_handler<events::on_buff_gain>::add_callback(on_buff_gain);
 		event_handler<events::on_buff_lose>::add_callback(on_buff_lose);
 		event_handler<events::on_teleport>::add_callback(on_teleport);
+		event_handler<events::on_do_cast>::add_callback(on_do_cast);
 
 	}
 
@@ -592,6 +619,7 @@ namespace utilities {
 		event_handler< events::on_buff_gain >::remove_handler(on_buff_gain);
 		event_handler< events::on_buff_lose >::remove_handler(on_buff_lose);
 		event_handler< events::on_teleport >::remove_handler(on_teleport);
+		event_handler< events::on_do_cast >::remove_handler(on_do_cast);
 	}
 
 }
