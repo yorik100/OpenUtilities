@@ -280,6 +280,16 @@ namespace utilities {
 		}
 	}
 
+	void updateEpic()
+	{
+		if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron))
+			baronAttackTime = 0;
+		if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon))
+			dragonAttackTime = 0;
+		if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad))
+			heraldAttackTime = 0;
+	}
+
 	void on_update()
 	{
 		// Limit ticks (for low spec mode)
@@ -287,6 +297,9 @@ namespace utilities {
 
 		// Update particle data
 		updateParticles();
+
+		// Update epic tracker data
+		updateEpic();
 	}
 
 	void on_draw()
