@@ -30,7 +30,6 @@ namespace utilities {
 		float time = 0;
 		float castTime = 0;
 		vector castingPos = vector::zero;
-		vector nexusPos = vector::zero;
 		bool isZed = false;
 		bool isTeleport = false;
 	};
@@ -74,6 +73,9 @@ namespace utilities {
 	static constexpr float SERVER_TICKRATE = 1000.f / 30.f;
 
 	float last_tick = 0;
+
+	vector spawnPoint;
+	vector nexusPos;
 
 	float getPing()
 	{
@@ -250,7 +252,7 @@ namespace utilities {
 				if (!obj.target)
 					obj.target = obj.obj->get_particle_target_attachment_object();
 				if (obj.target && obj.obj->get_position().distance(obj.target->get_position()) <= 0) {
-					obj.castingPos = obj.target->get_position().extend(obj.nexusPos, obj.target->get_bounding_radius() + obj.owner->get_bounding_radius());
+					obj.castingPos = obj.target->get_position().extend(nexusPos, obj.target->get_bounding_radius() + obj.owner->get_bounding_radius());
 				}
 				else
 				{
@@ -304,10 +306,21 @@ namespace utilities {
 			if (timeLeft >= 0 && teleportData.type != teleport_type::Teleport && teleportData.type != teleport_type::Recall && teleportData.type != teleport_type::SuperRecall) continue;
 
 			auto castTime = teleportData.endTime - teleportData.startTime;
-			auto colour = teleportData.type == teleport_type::Teleport ? MAKE_COLOR(138, 43, 226, 255) : MAKE_COLOR(30, 144, 255, 255);
-			draw_manager->add_circle(target->get_position(), target->get_bounding_radius(), colour, 2);
-			colour = teleportData.type == teleport_type::Teleport ? MAKE_COLOR(255, 0, 255, 255) : MAKE_COLOR(0, 190, 255, 255);
-			draw_manager->add_circle(target->get_position(), target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour, 2);
+			auto isRecall = teleportData.type == teleport_type::Recall || teleportData.type == teleport_type::SuperRecall;
+			auto colour1 = !isRecall ? MAKE_COLOR(138, 43, 226, 255) : MAKE_COLOR(30, 144, 255, 255);
+			draw_manager->add_circle(target->get_position(), target->get_bounding_radius(), colour1, 2);
+			auto colour2 = !isRecall ? MAKE_COLOR(255, 0, 255, 255) : MAKE_COLOR(0, 190, 255, 255);
+			draw_manager->add_circle(target->get_position(), target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour2, 2);
+			if (isRecall)
+			{
+				draw_manager->add_circle(spawnPoint, target->get_bounding_radius(), colour1, 2);
+				draw_manager->add_circle(spawnPoint, target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour2, 2);
+				vector screenPos;
+				renderer->world_to_screen(spawnPoint, screenPos);
+				const auto size = vector(30.f, 30.f);
+				const auto sizeMod = size / 2;
+				draw_manager->add_image(target->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size);
+			}
 		}
 	}
 
@@ -369,15 +382,9 @@ namespace utilities {
 		if (obj->get_name() == "global_ss_teleport_turret_red.troy")
 		{
 			auto target = obj->get_particle_attachment_object();
-			auto nexusPos = vector::zero;
-			for (const auto& value : entitylist->get_all_nexus())
-				if (value->is_enemy()) {
-					nexusPos = value->get_position();
-					break;
-				}
 			if (nexusPos != vector::zero)
 			{
-				particleStruct particleData = { .obj = obj, .target = target, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 4.1, .castingPos = vector::zero, .nexusPos = nexusPos, .isTeleport = true };
+				particleStruct particleData = { .obj = obj, .target = target, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 4.1, .castingPos = vector::zero, .isTeleport = true };
 				particlePredList.push_back(particleData);
 				return;
 			}
@@ -385,15 +392,9 @@ namespace utilities {
 		else if (obj->get_name() == "global_ss_teleport_target_red.troy")
 		{
 			auto target = obj->get_particle_target_attachment_object();
-			auto nexusPos = vector::zero;
-			for (const auto& value : entitylist->get_all_nexus())
-				if (value->is_enemy()) {
-					nexusPos = value->get_position();
-					break;
-				}
 			if (nexusPos != vector::zero)
 			{
-				particleStruct particleData = { .obj = obj, .target = target, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 4.1, .castingPos = vector::zero, .nexusPos = nexusPos, .isTeleport = true };
+				particleStruct particleData = { .obj = obj, .target = target, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 4.1, .castingPos = vector::zero, .isTeleport = true };
 				particlePredList.push_back(particleData);
 				return;
 			}
@@ -445,6 +446,22 @@ namespace utilities {
 
 	void load()
 	{
+		// Get enemy spawnpoint
+		auto spawnPointIt = std::find_if(entitylist->get_all_spawnpoints().begin(), entitylist->get_all_spawnpoints().end(), [](game_object_script x) {
+			return x->is_enemy();
+			}
+		);
+		auto spawnPointObj = *spawnPointIt;
+		spawnPoint = spawnPointObj->get_position();
+
+		// Get enemy Nexus pos
+		auto nexusPosIt = std::find_if(entitylist->get_all_nexus().begin(), entitylist->get_all_nexus().end(), [](game_object_script x) {
+			return x->is_enemy();
+			}
+		);
+		auto nexusEntity = *nexusPosIt;
+		nexusPos = nexusEntity->get_position();
+
 		// Call menu creation function
 		createMenu();
 
