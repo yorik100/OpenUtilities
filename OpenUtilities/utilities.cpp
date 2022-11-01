@@ -67,6 +67,10 @@ namespace utilities {
 		namespace teleport {
 			TreeEntry* teleportEnable;
 		}
+		namespace epic {
+			TreeEntry* epicTrackerEnable;
+			TreeEntry* epicTrackerVisible;
+		}
 		TreeEntry* lowSpec;
 	}
 
@@ -76,6 +80,13 @@ namespace utilities {
 
 	vector spawnPoint;
 	vector nexusPos;
+	float baronAttackTime = 0;
+	float dragonAttackTime = 0;
+	float heraldAttackTime = 0;
+
+	game_object_script lastBaron;
+	game_object_script lastDragon;
+	game_object_script lastHerald;
 
 	float getPing()
 	{
@@ -225,6 +236,11 @@ namespace utilities {
 		const auto teleportTab = mainMenu->add_tab("openutilitiesteleport", "Teleport");
 		settings::teleport::teleportEnable = teleportTab->add_checkbox("openutilitiesteleportenable", "Show teleport location", true);
 
+		// Epic monster tracker settings
+		const auto epicTab = mainMenu->add_tab("openutilitiesepictracker", "Epic monster tracker");
+		settings::epic::epicTrackerEnable = epicTab->add_checkbox("openutilitiesepictrackerenable", "Track epic monsters", true);
+		settings::epic::epicTrackerVisible = epicTab->add_checkbox("openutilitiesepictrackervisible", "Track even if visible", false);
+
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("openutilitieslowspec", "Low spec mode (tick limiter)", false);
 
@@ -322,10 +338,103 @@ namespace utilities {
 				draw_manager->add_image(target->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size);
 			}
 		}
+
+		if (settings::epic::epicTrackerEnable->get_bool())
+		{
+			if (lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && gametime->get_time() - dragonAttackTime < 8)
+			{
+				const auto position = vector(500, 150);
+				const auto size = vector(100.f, 100.f);
+				const auto sizeMod = size / 2;
+				draw_manager->add_image(lastDragon->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
+				const auto positionText = vector(575, 130);
+				draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 40, "Dragon is under attack!");
+			}
+
+			if (lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && gametime->get_time() - baronAttackTime < 8)
+			{
+				const auto position = vector(1350, 200);
+				const auto size = vector(100.f, 100.f);
+				const auto sizeMod = size / 2;
+				draw_manager->add_image(lastBaron->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
+				const auto positionText = vector(915, 180);
+				draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 40, "Baron is under attack!");
+			}
+
+			if (lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && gametime->get_time() - heraldAttackTime < 8)
+			{
+				const auto position = vector(1350, 200);
+				const auto size = vector(100.f, 100.f);
+				const auto sizeMod = size / 2;
+				draw_manager->add_image(lastHerald->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
+				const auto positionText = vector(900, 180);
+				draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 40, "Herald is under attack!");
+			}
+		}
 	}
 
 	void on_create(const game_object_script obj)
 	{
+		// Get if an epic monster is attacking someone
+		game_object_script epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
+		auto epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster();
+		game_object_script epicOwner = obj->is_missile() ? entitylist->get_object(obj->missile_get_sender_id()) : nullptr;
+		auto epicMissile = epicOwner && !epicOwner->is_dead() && epicOwner->is_epic_monster();
+		auto isOwnedByEpic = epicParticle || epicMissile;
+		if (isOwnedByEpic)
+		{
+			auto owner = epicParticle ? epicEmitter : epicOwner;
+			if (owner->get_name().find("Baron") != std::string::npos)
+			{
+				baronAttackTime = gametime->get_time();
+				lastBaron = owner;
+				return;
+			}
+			else if (owner->get_name().find("Dragon") != std::string::npos)
+			{
+				dragonAttackTime = gametime->get_time();
+				lastDragon = owner;
+				return;
+			}
+			else if (owner->get_name().find("Herald") != std::string::npos)
+			{
+				heraldAttackTime = gametime->get_time();
+				lastHerald = owner;
+				return;
+			}
+		}
+
+		// Get if someone is attacking an epic monster
+		game_object_script epicAttachment = obj->get_particle_attachment_object() ? obj->get_particle_attachment_object() : nullptr;
+		if (!epicAttachment)
+			epicAttachment = obj->get_particle_target_attachment_object() ? obj->get_particle_target_attachment_object() : nullptr;
+		auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster();
+		game_object_script epicOwnerTarget = obj->is_missile() && obj->missile_get_target_id() ? entitylist->get_object(obj->missile_get_target_id()) : nullptr;
+		auto epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster();
+		auto isTargetByEpic = epicParticleAttachment || epicMissileTarget;
+		if (isTargetByEpic)
+		{
+			auto owner = epicParticleAttachment ? epicAttachment : epicOwnerTarget;
+			if (owner->get_name().find("Baron") != std::string::npos)
+			{
+				baronAttackTime = gametime->get_time();
+				lastBaron = owner;
+				return;
+			}
+			else if (owner->get_name().find("Dragon") != std::string::npos)
+			{
+				dragonAttackTime = gametime->get_time();
+				lastDragon = owner;
+				return;
+			}
+			else if (owner->get_name().find("Herald") != std::string::npos)
+			{
+				heraldAttackTime = gametime->get_time();
+				lastHerald = owner;
+				return;
+			}
+		}
+
 		// Get possible valid particles
 		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero()) return;
 		auto emitterHash = obj->get_emitter_resources_hash();
