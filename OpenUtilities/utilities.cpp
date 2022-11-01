@@ -534,6 +534,32 @@ namespace utilities {
 		}
 	}
 
+	void on_network_packet(game_object_script sender, std::uint32_t network_id, pkttype_e type, void* args)
+	{
+		auto isEpicSender = sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
+		if (isEpicSender)
+		{
+			if (sender->get_name().find("Baron") != std::string::npos)
+			{
+				baronAttackTime = gametime->get_time();
+				lastBaron = sender;
+				return;
+			}
+			else if (sender->get_name().find("Dragon") != std::string::npos)
+			{
+				dragonAttackTime = gametime->get_time();
+				lastDragon = sender;
+				return;
+			}
+			else if (sender->get_name().find("Herald") != std::string::npos)
+			{
+				heraldAttackTime = gametime->get_time();
+				lastHerald = sender;
+				return;
+			}
+		}
+	}
+
 	void on_delete(const game_object_script obj)
 	{
 
@@ -607,6 +633,7 @@ namespace utilities {
 		event_handler<events::on_buff_lose>::add_callback(on_buff_lose);
 		event_handler<events::on_teleport>::add_callback(on_teleport);
 		event_handler<events::on_do_cast>::add_callback(on_do_cast);
+		event_handler<events::on_network_packet>::add_callback(on_network_packet);
 
 	}
 
@@ -621,6 +648,7 @@ namespace utilities {
 		event_handler< events::on_buff_lose >::remove_handler(on_buff_lose);
 		event_handler< events::on_teleport >::remove_handler(on_teleport);
 		event_handler< events::on_do_cast >::remove_handler(on_do_cast);
+		event_handler< events::on_network_packet >::remove_handler(on_network_packet);
 	}
 
 }
