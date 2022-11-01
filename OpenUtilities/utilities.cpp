@@ -339,7 +339,7 @@ namespace utilities {
 
 		if (settings::epic::epicTrackerEnable->get_bool())
 		{
-			if (lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && gametime->get_time() - dragonAttackTime < 8)
+			if (lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && gametime->get_time() - dragonAttackTime < 10)
 			{
 				const auto position = vector(500, 150);
 				const auto size = vector(100.f, 100.f);
