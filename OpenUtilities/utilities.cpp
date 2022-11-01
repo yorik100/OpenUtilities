@@ -295,11 +295,15 @@ namespace utilities {
 		// Limit ticks (for low spec mode)
 		if (settings::lowSpec->get_bool() && limitedTick(SERVER_TICKRATE)) return;
 
+		// Set last update time
+		last_tick = gametime->get_time();
+
 		// Update particle data
 		updateParticles();
 
 		// Update epic tracker data
 		updateEpic();
+
 	}
 
 	void on_draw()
