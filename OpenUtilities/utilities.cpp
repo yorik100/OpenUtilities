@@ -280,16 +280,6 @@ namespace utilities {
 		}
 	}
 
-	void updateEpic()
-	{
-		if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron))
-			baronAttackTime = 0;
-		if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon))
-			dragonAttackTime = 0;
-		if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad))
-			heraldAttackTime = 0;
-	}
-
 	void on_update()
 	{
 		// Limit ticks (for low spec mode)
@@ -300,9 +290,6 @@ namespace utilities {
 
 		// Update particle data
 		updateParticles();
-
-		// Update epic tracker data
-		updateEpic();
 
 	}
 
@@ -356,7 +343,7 @@ namespace utilities {
 
 		if (settings::epic::epicTrackerEnable->get_bool())
 		{
-			if (lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && gametime->get_time() - dragonAttackTime < 10)
+			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && gametime->get_time() - dragonAttackTime < 10)
 			{
 				const auto position = vector(500, 150);
 				const auto size = vector(100.f, 100.f);
@@ -366,7 +353,7 @@ namespace utilities {
 				draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 40, "Dragon is under attack!");
 			}
 
-			if (lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && gametime->get_time() - baronAttackTime < 8)
+			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && gametime->get_time() - baronAttackTime < 8)
 			{
 				const auto position = vector(1350, 200);
 				const auto size = vector(100.f, 100.f);
@@ -375,7 +362,7 @@ namespace utilities {
 				const auto positionText = vector(915, 180);
 				draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 40, "Baron is under attack!");
 			}
-			else if (lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && gametime->get_time() - heraldAttackTime < 8)
+			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && gametime->get_time() - heraldAttackTime < 8)
 			{
 				const auto position = vector(1350, 200);
 				const auto size = vector(100.f, 100.f);
