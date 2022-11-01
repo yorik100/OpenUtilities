@@ -510,7 +510,8 @@ namespace utilities {
 	void on_do_cast(game_object_script sender, spell_instance_script spell)
 	{
 		auto target = entitylist->get_object(spell->get_last_target_id());
-		if (target)
+		auto isEpicTarget = target && !target->is_dead() && target->is_epic_monster() && !target->get_owner();
+		if (isEpicTarget)
 		{
 			if (target->get_name().find("Baron") != std::string::npos)
 			{
