@@ -77,12 +77,14 @@ namespace utilities {
 	static constexpr float SERVER_TICKRATE = 1000.f / 30.f;
 
 	float last_tick = 0;
-
-	vector spawnPoint;
-	vector nexusPos;
 	float baronAttackTime = 0;
 	float dragonAttackTime = 0;
 	float heraldAttackTime = 0;
+
+	vector spawnPoint;
+	vector nexusPos;
+
+	bool isDragonAttacked = false;
 
 	game_object_script lastBaron;
 	game_object_script lastDragon;
@@ -343,7 +345,7 @@ namespace utilities {
 
 		if (settings::epic::epicTrackerEnable->get_bool())
 		{
-			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && gametime->get_time() - dragonAttackTime < 10)
+			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 2))
 			{
 				const auto position = vector(500, 150);
 				const auto size = vector(100.f, 100.f);
@@ -362,7 +364,7 @@ namespace utilities {
 				const auto positionText = vector(915, 180);
 				draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 40, "Baron is under attack!");
 			}
-			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && gametime->get_time() - heraldAttackTime < 8)
+			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && gametime->get_time() - heraldAttackTime < 15)
 			{
 				const auto position = vector(1350, 200);
 				const auto size = vector(100.f, 100.f);
@@ -540,9 +542,11 @@ namespace utilities {
 
 	void on_network_packet(game_object_script sender, std::uint32_t network_id, pkttype_e type, void* args)
 	{
-		auto isEpicSender = sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
+		auto isEpicSender = type == pkttype_e::PKT_S2C_PlayAnimation_s && sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 		if (isEpicSender)
 		{
+			auto data = (PKT_S2C_PlayAnimationArgs*)args;
+			myhero->print_chat(0, "%s", data->animation_name);
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
 				baronAttackTime = gametime->get_time();
@@ -551,7 +555,9 @@ namespace utilities {
 			}
 			else if (sender->get_name().find("Dragon") != std::string::npos)
 			{
+				myhero->print_chat(0, "%s", data->animation_name);
 				dragonAttackTime = gametime->get_time();
+				isDragonAttacked = strcmp(data->animation_name, "Landing") != 0;
 				lastDragon = sender;
 				return;
 			}
