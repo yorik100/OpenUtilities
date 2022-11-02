@@ -347,8 +347,8 @@ namespace utilities {
 		{
 			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 2))
 			{
-				const auto position = vector(500, 150);
-				const auto size = vector(100.f, 100.f);
+				const auto position = vector(520, 150);
+				const auto size = vector(60.f, 60.f);
 				const auto sizeMod = size / 2;
 				draw_manager->add_image(lastDragon->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
 				const auto positionText = vector(575, 130);
@@ -359,8 +359,8 @@ namespace utilities {
 
 			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && gametime->get_time() - baronAttackTime < 8)
 			{
-				const auto position = vector(1350, 200);
-				const auto size = vector(100.f, 100.f);
+				const auto position = vector(1330, 200);
+				const auto size = vector(60.f, 60.f);
 				const auto sizeMod = size / 2;
 				draw_manager->add_image(lastBaron->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
 				const auto positionText = vector(915, 180);
@@ -368,8 +368,8 @@ namespace utilities {
 			}
 			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && gametime->get_time() - heraldAttackTime < 15)
 			{
-				const auto position = vector(1350, 200);
-				const auto size = vector(100.f, 100.f);
+				const auto position = vector(1330, 200);
+				const auto size = vector(60.f, 60.f);
 				const auto sizeMod = size / 2;
 				draw_manager->add_image(lastHerald->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
 				const auto positionText = vector(900, 180);
@@ -549,19 +549,19 @@ namespace utilities {
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
 				baronAttackTime = gametime->get_time();
-				lastBaron = target;
+				lastBaron = sender;
 				return;
 			}
 			else if (sender->get_name().find("Dragon") != std::string::npos)
 			{
 				dragonAttackTime = gametime->get_time();
-				lastDragon = target;
+				lastDragon = sender;
 				return;
 			}
 			else if (sender->get_name().find("Herald") != std::string::npos)
 			{
 				heraldAttackTime = gametime->get_time();
-				lastHerald = target;
+				lastHerald = sender;
 				return;
 			}
 		}
