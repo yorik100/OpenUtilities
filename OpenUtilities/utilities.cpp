@@ -354,10 +354,8 @@ namespace utilities {
 				const auto positionText = vector(575, 130);
 				draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 40, "Dragon is under attack!");
 			}
-			else
-			{
+			else if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon))
 				isDragonAttacked = false;
-			}
 
 			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && gametime->get_time() - baronAttackTime < 8)
 			{
