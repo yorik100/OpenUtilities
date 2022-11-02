@@ -239,6 +239,7 @@ namespace utilities {
 
 	std::vector<vector> circlePoints(vector from, float distance, int quality)
 	{
+		// Get points around a position
 		std::vector<vector> points;
 		for (int i = 1; i <= quality; i++) {
 			auto angle = i * 2 * 3.141592653589793238462643383279502884L / quality;
