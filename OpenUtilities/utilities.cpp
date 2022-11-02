@@ -351,7 +351,8 @@ namespace utilities {
 		{
 			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 3))
 			{
-				if (settings::epic::epicTrackerNotifications->get_bool()) {
+				auto isAggroed = isDragonAttacked || gametime->get_time() - dragonAttackTime < 1;
+				if (settings::epic::epicTrackerNotifications->get_bool() && isAggroed) {
 					const auto position = vector(520, 150);
 					const auto size = vector(60.f, 60.f);
 					const auto sizeMod = size / 2;
@@ -361,7 +362,7 @@ namespace utilities {
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
 				{
-					auto circleColour = isDragonAttacked || gametime->get_time() - dragonAttackTime < 1 ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
+					auto circleColour = isAggroed ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
 					draw_manager->draw_circle_on_minimap(dragonPos, 550, circleColour, 2);
 				}
 			}
@@ -676,9 +677,10 @@ namespace utilities {
 		nexusPos = nexusEntity->get_position();
 
 		// Get epic monster camp positions
-		auto tempBaronPos = camp_manager->get_camp_position((int)neutral_camp_id::Baron);
-		baronPos = vector(tempBaronPos.x - 50, tempBaronPos.y + 100);
-		dragonPos = camp_manager->get_camp_position((int)neutral_camp_id::Dragon);
+		auto tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Baron);
+		baronPos = vector(tempPos.x - 50, tempPos.y + 100);
+		tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Dragon);
+		dragonPos = vector(tempPos.x + 50, tempPos.y);
 
 		// Call menu creation function
 		createMenu();
