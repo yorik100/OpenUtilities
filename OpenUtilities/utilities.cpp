@@ -548,7 +548,6 @@ namespace utilities {
 		if (isEpicSender)
 		{
 			auto data = (PKT_S2C_PlayAnimationArgs*)args;
-			myhero->print_chat(0, "%s", data->animation_name);
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
 				baronAttackTime = gametime->get_time();
@@ -557,7 +556,6 @@ namespace utilities {
 			}
 			else if (sender->get_name().find("Dragon") != std::string::npos)
 			{
-				myhero->print_chat(0, "%s", data->animation_name);
 				dragonAttackTime = gametime->get_time();
 				isDragonAttacked = strcmp(data->animation_name, "Landing") != 0;
 				lastDragon = sender;
