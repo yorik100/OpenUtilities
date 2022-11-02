@@ -484,7 +484,7 @@ namespace utilities {
 				return;
 			}
 			case buff_hash("Zed_R_tar_TargetMarker"):
-			if (obj->get_particle_attachment_object() && obj->get_particle_attachment_object()->get_handle() == myhero->get_handle()) {
+			if (obj->get_particle_attachment_object()) {
 				particleStruct particleData = { .obj = obj, .target = obj->get_particle_attachment_object(), .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 0.95, .castingPos = vector::zero, .isZed = true };
 				particlePredList.push_back(particleData);
 				return;
