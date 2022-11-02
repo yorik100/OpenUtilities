@@ -237,6 +237,17 @@ namespace utilities {
 		return false;
 	}
 
+	std::vector<vector> circlePoints(vector from, float distance, int quality)
+	{
+		std::vector<vector> points;
+		for (int i = 1; i <= quality; i++) {
+			auto angle = i * 2 * 3.141592653589793238462643383279502884L / quality;
+			auto point = vector(from.x + distance * std::cos(angle), from.y + distance * std::sin(angle), from.z);
+			points.push_back(point);
+		}
+		return points;
+	}
+
 	void createMenu()
 	{
 		// Main tab
@@ -545,6 +556,11 @@ namespace utilities {
 		}
 	}
 
+	void on_delete(const game_object_script obj)
+	{
+
+	}
+
 	void on_do_cast(game_object_script sender, spell_instance_script spell)
 	{
 		// Detect if someone casted something towards an Epic Monster
@@ -625,11 +641,6 @@ namespace utilities {
 		}
 	}
 
-	void on_delete(const game_object_script obj)
-	{
-
-	}
-
 	void on_buff(game_object_script& sender, buff_instance_script& buff, bool gain)
 	{
 		// Detect if someone is reviving from Guardian Angel
@@ -666,17 +677,6 @@ namespace utilities {
 			teleportStruct teleportData = {.duration = duration, .startTime = gametime->get_time(), .endTime = gametime->get_time() + duration, .type = type};
 			teleportList[sender->get_handle()] = teleportData;
 		}
-	}
-
-	std::vector<vector> circlePoints(vector from, float distance, int quality)
-	{
-		std::vector<vector> points;
-		for (int i = 1; i <= quality; i++) {
-			auto angle = i * 2 * 3.141592653589793238462643383279502884L / quality;
-			auto point = vector(from.x + distance * std::cos(angle), from.y + distance * std::sin(angle), from.z);
-			points.push_back(point);
-		}
-		return points;
 	}
 
 	void on_cast_spell(spellslot spellSlot, game_object_script target, vector& pos, vector& pos2, bool isCharge, bool* process)
