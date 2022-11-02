@@ -243,7 +243,7 @@ namespace utilities {
 
 		// Epic monster tracker settings
 		const auto epicTab = mainMenu->add_tab("openutilitiesepictracker", "Epic monster tracker");
-		settings::epic::epicTrackerNotifications = epicTab->add_checkbox("openutilitiesepictrackernotifications", "Show attacked notifications", true);
+		settings::epic::epicTrackerNotifications = epicTab->add_checkbox("openutilitiesepictrackernotifications", "Show attacked epic monsters notifications", true);
 		settings::epic::epicTrackerMap = epicTab->add_checkbox("openutilitiesepictrackermap", "Show attacked epic monsters on minimap", true);
 		settings::epic::epicTrackerVisible = epicTab->add_checkbox("openutilitiesepictrackervisible", "Track even if visible", false);
 
