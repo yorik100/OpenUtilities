@@ -678,7 +678,7 @@ namespace utilities {
 
 		// Get epic monster camp positions
 		auto tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Baron);
-		baronPos = vector(tempPos.x - 50, tempPos.y + 100);
+		baronPos = vector(tempPos.x - 25, tempPos.y + 100);
 		tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Dragon);
 		dragonPos = vector(tempPos.x + 50, tempPos.y);
 
