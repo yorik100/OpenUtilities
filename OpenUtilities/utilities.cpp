@@ -517,6 +517,7 @@ namespace utilities {
 
 	void on_do_cast(game_object_script sender, spell_instance_script spell)
 	{
+		// Detect if someone casted something towards an Epic Monster
 		auto target = entitylist->get_object(spell->get_last_target_id());
 		auto isEpicTarget = target && !target->is_dead() && target->is_epic_monster() && !target->get_owner();
 		if (isEpicTarget)
@@ -534,6 +535,30 @@ namespace utilities {
 				return;
 			}
 			else if (target->get_name().find("Herald") != std::string::npos)
+			{
+				heraldAttackTime = gametime->get_time();
+				lastHerald = target;
+				return;
+			}
+		}
+
+		// Detect if an Epic Monster casted something
+		auto isEpicSender = sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
+		if (isEpicSender)
+		{
+			if (sender->get_name().find("Baron") != std::string::npos)
+			{
+				baronAttackTime = gametime->get_time();
+				lastBaron = target;
+				return;
+			}
+			else if (sender->get_name().find("Dragon") != std::string::npos)
+			{
+				dragonAttackTime = gametime->get_time();
+				lastDragon = target;
+				return;
+			}
+			else if (sender->get_name().find("Herald") != std::string::npos)
 			{
 				heraldAttackTime = gametime->get_time();
 				lastHerald = target;
