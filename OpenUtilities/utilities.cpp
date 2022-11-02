@@ -354,6 +354,10 @@ namespace utilities {
 				const auto positionText = vector(575, 130);
 				draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 40, "Dragon is under attack!");
 			}
+			else
+			{
+				isDragonAttacked = false;
+			}
 
 			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && gametime->get_time() - baronAttackTime < 8)
 			{
@@ -546,6 +550,7 @@ namespace utilities {
 		if (isEpicSender)
 		{
 			auto data = (PKT_S2C_PlayAnimationArgs*)args;
+			myhero->print_chat(0, "%s", data->animation_name);
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
 				baronAttackTime = gametime->get_time();
@@ -554,6 +559,7 @@ namespace utilities {
 			}
 			else if (sender->get_name().find("Dragon") != std::string::npos)
 			{
+				myhero->print_chat(0, "%s", data->animation_name);
 				dragonAttackTime = gametime->get_time();
 				isDragonAttacked = strcmp(data->animation_name, "Landing") != 0;
 				lastDragon = sender;
