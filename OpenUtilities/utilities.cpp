@@ -72,6 +72,10 @@ namespace utilities {
 			TreeEntry* epicTrackerMap;
 			TreeEntry* epicTrackerVisible;
 		}
+		namespace flash {
+			TreeEntry* antiFlashGlitch;
+			TreeEntry* flashExtend;
+		}
 		TreeEntry* lowSpec;
 	}
 
@@ -88,6 +92,7 @@ namespace utilities {
 	vector dragonPos;
 
 	bool isDragonAttacked = false;
+	bool dontCancel = false;
 
 	game_object_script lastBaron;
 	game_object_script lastDragon;
@@ -246,6 +251,11 @@ namespace utilities {
 		settings::epic::epicTrackerNotifications = epicTab->add_checkbox("openutilitiesepictrackernotifications", "Show attacked epic monsters notifications", true);
 		settings::epic::epicTrackerMap = epicTab->add_checkbox("openutilitiesepictrackermap", "Show attacked epic monsters on minimap", true);
 		settings::epic::epicTrackerVisible = epicTab->add_checkbox("openutilitiesepictrackervisible", "Track even if visible", false);
+
+		// Flash settings
+		const auto flashTab = mainMenu->add_tab("openutilitiesflash", "Flash utility");
+		settings::flash::antiFlashGlitch = flashTab->add_checkbox("openutilitiesantiflashglitch", "Prevent glitching flash in wall", true);
+		settings::flash::flashExtend = flashTab->add_checkbox("openutilitiesflashextend", "Auto extend flash", true);
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("openutilitieslowspec", "Low spec mode (tick limiter)", false);
@@ -658,6 +668,87 @@ namespace utilities {
 		}
 	}
 
+	std::vector<vector> circlePoints(vector from, float distance, int quality)
+	{
+		std::vector<vector> points;
+		for (int i = 1; i <= quality; i++) {
+			auto angle = i * 2 * 3.141592653589793238462643383279502884L / quality;
+			auto point = vector(from.x + distance * std::cos(angle), from.y + distance * std::sin(angle), from.z);
+			points.push_back(point);
+		}
+		return points;
+	}
+
+	void on_cast_spell(spellslot spellSlot, game_object_script target, vector& pos, vector& pos2, bool isCharge, bool* process)
+	{
+		// Check if it's flash input
+		if (dontCancel || myhero->get_spell(spellSlot)->get_spell_data()->get_name_hash() != spell_hash("SummonerFlash")) return;
+
+		auto distance = std::min(400.f, myhero->get_position().distance(pos));
+		auto endPos = myhero->get_position().extend(pos, distance);
+		auto flashGlitch = (settings::flash::antiFlashGlitch->get_bool() && (endPos.is_wall() || endPos.is_building()));
+
+		// Extend flash
+		if ((settings::flash::flashExtend->get_bool() || flashGlitch) && distance <= 399.f)
+		{
+			*process = false;
+			myhero->cast_spell(spellSlot, myhero->get_position().extend(endPos, 500.f));
+			return;
+		}
+			// Check if end position is in a wall
+		if (flashGlitch) {
+			auto isInWall = true;
+			auto shouldBreak = false;
+			float closestDist = FLT_MAX;
+			vector pointToGo;
+			vector pointToFlash;
+			// Loop from 40 to 400
+			for (int i = 40; 400 >= i; i += 40)
+			{
+				// Get 360 points around the end position from end position to i
+				auto points = circlePoints(endPos, i, 360);
+				// Check every if a point that is out of wall is found
+				for (const auto& point : points) {
+					if (!point.is_wall() && !point.is_building())
+					{
+						shouldBreak = true;
+						auto pointDist = myhero->get_position().distance(point);
+						// Get closest valid non-wall position
+						if (pointToGo == vector::zero && endPos.distance(point) < closestDist)
+						{
+							closestDist = endPos.distance(point);
+							isInWall = false;
+							pointToFlash = point;
+						}
+						// Get closest invalid non-wall position
+						if (pointDist < distance && (pointToGo == vector::zero || myhero->get_position().distance(pointToGo) > myhero->get_position().distance(point)))
+						{
+							isInWall = true;
+							pointToGo = point;
+						}
+					}
+				}
+				if (shouldBreak) break;
+			}
+			// If the final flash position is deemed to be too risky or a flash glitch is detected then replace flash order with move order
+			if (isInWall && pointToGo != vector::zero)
+			{
+				*process = false;
+				myhero->issue_order(pointToGo);
+				return;
+			}
+			else if (pointToFlash != vector::zero)
+			{
+				*process = false;
+				// Don't cancel own flash order, I don't make it not trigger in case another module wants to cancel the cast
+				dontCancel = true;
+				myhero->cast_spell(spellSlot, pointToFlash);
+				dontCancel = false;
+				return;
+			}
+		}
+	}
+
 	void load()
 	{
 		// Get enemy spawnpoint
@@ -695,6 +786,7 @@ namespace utilities {
 		event_handler<events::on_teleport>::add_callback(on_teleport);
 		event_handler<events::on_do_cast>::add_callback(on_do_cast);
 		event_handler<events::on_network_packet>::add_callback(on_network_packet);
+		event_handler<events::on_cast_spell>::add_callback(on_cast_spell);
 
 	}
 
@@ -710,6 +802,7 @@ namespace utilities {
 		event_handler< events::on_teleport >::remove_handler(on_teleport);
 		event_handler< events::on_do_cast >::remove_handler(on_do_cast);
 		event_handler< events::on_network_packet >::remove_handler(on_network_packet);
+		event_handler< events::on_cast_spell >::remove_handler(on_cast_spell);
 	}
 
 }
