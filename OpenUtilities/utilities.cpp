@@ -546,7 +546,6 @@ namespace utilities {
 		if (isEpicSender)
 		{
 			auto data = (PKT_S2C_PlayAnimationArgs*)args;
-			myhero->print_chat(0, "%s", data->animation_name);
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
 				baronAttackTime = gametime->get_time();
