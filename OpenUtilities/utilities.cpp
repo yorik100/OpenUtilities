@@ -349,9 +349,9 @@ namespace utilities {
 
 		if (settings::epic::epicTrackerNotifications->get_bool() || settings::epic::epicTrackerMap->get_bool())
 		{
-			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 3))
+			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 4))
 			{
-				auto isAggroed = isDragonAttacked || gametime->get_time() - dragonAttackTime < 1;
+				auto isAggroed = isDragonAttacked || gametime->get_time() - dragonAttackTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && isAggroed) {
 					const auto position = vector(520, 150);
 					const auto size = vector(60.f, 60.f);
