@@ -726,6 +726,7 @@ namespace utilities {
 			pos = myhero->get_position().extend(endPos, 500.f);
 			distance = std::min(400.f, myhero->get_position().distance(pos));
 			endPos = myhero->get_position().extend(pos, distance);
+			flashGlitch = (settings::flash::antiFlashGlitch->get_bool() && (endPos.is_wall() || endPos.is_building()));
 		}
 			// Check if end position is in a wall
 		if (flashGlitch) {
