@@ -88,11 +88,13 @@ namespace utilities {
 	float baronAttackTime = 0;
 	float dragonAttackTime = 0;
 	float heraldAttackTime = 0;
+	float turretRange;
 
 	vector spawnPoint;
 	vector nexusPos;
 	vector baronPos;
 	vector dragonPos;
+	vector turretPos;
 
 	bool isDragonAttacked = false;
 	bool dontCancel = false;
@@ -100,7 +102,6 @@ namespace utilities {
 	game_object_script lastBaron;
 	game_object_script lastDragon;
 	game_object_script lastHerald;
-	game_object_script nexusTurret;
 
 	float getPing()
 	{
@@ -781,8 +782,6 @@ namespace utilities {
 	{
 		if (settings::safe::antiNexusRange->get_bool() && type == MoveTo)
 		{
-			auto turretRange = nexusTurret->get_attackRange();
-			auto turretPos = nexusTurret->get_position();
 			if (myhero->get_position().distance(turretPos) < turretRange + myhero->get_bounding_radius()) return;
 			auto path = myhero->get_path(pos);
 			for (int i = 0; i < static_cast<int>(path.size()) - 1; i++)
@@ -801,7 +800,7 @@ namespace utilities {
 					const auto point = getClosestPoint(polytree);
 					const auto position = vector(point.X, point.Y, 0);
 					*process = false;
-					auto clickPosition = position.extend(nexusTurret->get_position(), -75);
+					auto clickPosition = position.extend(turretPos, -75);
 					if (myhero->get_real_path().size() > 1 || clickPosition.distance(myhero->get_position()) > 85)
 						myhero->issue_order(clickPosition, true, false);
 					return;
@@ -833,7 +832,9 @@ namespace utilities {
 			return x->get_name().find("Shrine") != std::string::npos;
 			}
 		);
-		nexusTurret = *nexusTurretPosIt;
+		auto nexusTurret = *nexusTurretPosIt;
+		turretRange = nexusTurret->get_attackRange();
+		turretPos = nexusTurret->get_position();
 
 		// Get epic monster camp positions
 		auto tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Baron);
