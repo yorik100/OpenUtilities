@@ -799,7 +799,8 @@ namespace utilities {
 				{
 					const auto point = getClosestPoint(polytree);
 					const auto position = vector(point.X, point.Y, 0);
-					pos = position.extend(nexusTurret->get_position(), -75);
+					*process = false;
+					myhero->issue_order(position.extend(nexusTurret->get_position(), -75), true, false);
 					return;
 				}
 			}
