@@ -10,6 +10,7 @@ namespace utilities
 	bool isRecalling(const game_object_script& target);
 	bool limitedTick(int msTime);
 	std::vector<vector> circlePoints(vector from, float distance, int quality);
+	ClipperLib::IntPoint getClosestPoint(const ClipperLib::PolyTree& polytree);
 	void createMenu();
 	void updateParticles();
 	void on_update();

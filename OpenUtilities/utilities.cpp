@@ -253,9 +253,9 @@ namespace utilities {
 		return points;
 	}
 
-	ClipperLib::IntPoint get_closest_point(const ClipperLib::PolyTree& polytree)
+	ClipperLib::IntPoint getClosestPoint(const ClipperLib::PolyTree& polytree)
 	{
-		// Get cloests valid point to path
+		// Get cloests valid point in clipperlib result to you
 		auto min_distance = FLT_MAX;
 		ClipperLib::IntPoint point;
 		for (const auto& child : polytree.Childs)
@@ -798,7 +798,7 @@ namespace utilities {
 				clipper.Execute(ClipperLib::ctIntersection, polytree);
 				if (polytree.Total() > 0)
 				{
-					const auto point = get_closest_point(polytree);
+					const auto point = getClosestPoint(polytree);
 					const auto position = vector(point.X, point.Y, 0);
 					pos = position.extend(nexusTurret->get_position(), -75);
 					return;
