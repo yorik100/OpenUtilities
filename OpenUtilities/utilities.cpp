@@ -76,6 +76,9 @@ namespace utilities {
 			TreeEntry* antiFlashGlitch;
 			TreeEntry* flashExtend;
 		}
+		namespace safe {
+			TreeEntry* antiNexusRange;
+		}
 		TreeEntry* lowSpec;
 	}
 
@@ -97,6 +100,7 @@ namespace utilities {
 	game_object_script lastBaron;
 	game_object_script lastDragon;
 	game_object_script lastHerald;
+	game_object_script nexusTurret;
 
 	float getPing()
 	{
@@ -249,6 +253,28 @@ namespace utilities {
 		return points;
 	}
 
+	ClipperLib::IntPoint get_closest_point(const ClipperLib::PolyTree& polytree)
+	{
+		// Get cloests valid point to path
+		auto min_distance = FLT_MAX;
+		ClipperLib::IntPoint point;
+		for (const auto& child : polytree.Childs)
+		{
+			for (const auto& contour : child->Contour)
+			{
+				const auto position = vector(contour.X, contour.Y, 0);
+				const auto distance = myhero->get_distance(position);
+				if (distance < min_distance)
+				{
+					min_distance = distance;
+					point = contour;
+				}
+			}
+		}
+
+		return point;
+	}
+
 	void createMenu()
 	{
 		// Main tab
@@ -268,6 +294,10 @@ namespace utilities {
 		const auto flashTab = mainMenu->add_tab("openutilitiesflash", "Flash utility");
 		settings::flash::antiFlashGlitch = flashTab->add_checkbox("openutilitiesantiflashglitch", "Prevent glitching flash in wall", true);
 		settings::flash::flashExtend = flashTab->add_checkbox("openutilitiesflashextend", "Auto extend flash", true);
+
+		// Safe settings
+		const auto safeTab = mainMenu->add_tab("openutilitiessafe", "Anti nexus turret");
+		settings::safe::antiNexusRange = safeTab->add_checkbox("openutilitiesantinexusrange", "Avoid going under Nexus turret", true);
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("openutilitieslowspec", "Low spec mode (tick limiter)", false);
@@ -692,9 +722,9 @@ namespace utilities {
 		// Extend flash
 		if ((settings::flash::flashExtend->get_bool() || flashGlitch) && distance <= 399.f)
 		{
-			*process = false;
-			myhero->cast_spell(spellSlot, myhero->get_position().extend(endPos, 500.f));
-			return;
+			pos = myhero->get_position().extend(endPos, 500.f);
+			distance = std::min(400.f, myhero->get_position().distance(pos));
+			endPos = myhero->get_position().extend(pos, distance);
 		}
 			// Check if end position is in a wall
 		if (flashGlitch) {
@@ -740,12 +770,39 @@ namespace utilities {
 			}
 			else if (pointToFlash != vector::zero)
 			{
-				*process = false;
-				// Don't cancel own flash order, I don't make it not trigger in case another module wants to cancel the cast
-				dontCancel = true;
-				myhero->cast_spell(spellSlot, pointToFlash);
-				dontCancel = false;
+				pos = pointToFlash;
 				return;
+			}
+		}
+	}
+
+	void on_issue_order(game_object_script& target, vector& pos, _issue_order_type& type, bool* process)
+	{
+		if (type == MoveTo)
+		{
+			if (myhero->get_position().distance(nexusTurret->get_position()) < nexusTurret->get_attackRange() + myhero->get_bounding_radius()) return;
+			auto path = myhero->get_path(pos);
+			auto distance = pos.distance(nexusTurret->get_position());
+			auto distanceToHero = pos.distance(myhero->get_position());
+			auto turretRange = nexusTurret->get_attackRange();
+			for (int i = 0; i < static_cast<int>(path.size()) - 1; i++)
+			{
+				auto start_position = path[i];
+				const auto end_position = path[i + 1];
+				const auto rectanglePath = geometry::rectangle(start_position, end_position, myhero->get_bounding_radius()).to_polygon().to_clipper_path();
+				const auto circlePath = geometry::circle(nexusTurret->get_position(), turretRange).to_polygon().to_clipper_path();
+				ClipperLib::Clipper clipper;
+				ClipperLib::PolyTree polytree;
+				clipper.AddPath(rectanglePath, ClipperLib::PolyType::ptSubject, true);
+				clipper.AddPath(circlePath, ClipperLib::PolyType::ptClip, true);
+				clipper.Execute(ClipperLib::ctIntersection, polytree);
+				if (polytree.Total() > 0)
+				{
+					const auto point = get_closest_point(polytree);
+					const auto position = vector(point.X, point.Y, 0);
+					pos = position.extend(nexusTurret->get_position(), -75);
+					return;
+				}
 			}
 		}
 	}
@@ -768,6 +825,13 @@ namespace utilities {
 		auto nexusEntity = *nexusPosIt;
 		nexusPos = nexusEntity->get_position();
 
+		// Get enemy Nexus turret pos
+		auto nexusTurretPosIt = std::find_if(entitylist->get_enemy_turrets().begin(), entitylist->get_enemy_turrets().end(), [](game_object_script x) {
+			return x->get_name().find("Shrine") != std::string::npos;
+			}
+		);
+		nexusTurret = *nexusTurretPosIt;
+
 		// Get epic monster camp positions
 		auto tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Baron);
 		baronPos = vector(tempPos.x - 25, tempPos.y + 100);
@@ -788,6 +852,7 @@ namespace utilities {
 		event_handler<events::on_do_cast>::add_callback(on_do_cast);
 		event_handler<events::on_network_packet>::add_callback(on_network_packet);
 		event_handler<events::on_cast_spell>::add_callback(on_cast_spell);
+		event_handler<events::on_issue_order>::add_callback(on_issue_order);
 
 	}
 
@@ -804,6 +869,7 @@ namespace utilities {
 		event_handler< events::on_do_cast >::remove_handler(on_do_cast);
 		event_handler< events::on_network_packet >::remove_handler(on_network_packet);
 		event_handler< events::on_cast_spell >::remove_handler(on_cast_spell);
+		event_handler< events::on_issue_order >::remove_handler(on_issue_order);
 	}
 
 }
