@@ -765,9 +765,10 @@ namespace utilities {
 			if (isInWall && pointToGo != vector::zero)
 			{
 				*process = false;
-				myhero->issue_order(pointToGo);
+				myhero->issue_order(pointToGo, true, false);
 				return;
 			}
+			// If flash posible then flash where it should flash
 			else if (pointToFlash != vector::zero)
 			{
 				pos = pointToFlash;
@@ -800,7 +801,9 @@ namespace utilities {
 					const auto point = getClosestPoint(polytree);
 					const auto position = vector(point.X, point.Y, 0);
 					*process = false;
-					myhero->issue_order(position.extend(nexusTurret->get_position(), -75), true, false);
+					auto clickPosition = position.extend(nexusTurret->get_position(), -75);
+					if (myhero->get_real_path().size() > 1 || clickPosition.distance(myhero->get_position()) > 85)
+						myhero->issue_order(clickPosition, true, false);
 					return;
 				}
 			}
