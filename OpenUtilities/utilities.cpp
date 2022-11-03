@@ -780,17 +780,16 @@ namespace utilities {
 	{
 		if (type == MoveTo)
 		{
-			if (myhero->get_position().distance(nexusTurret->get_position()) < nexusTurret->get_attackRange() + myhero->get_bounding_radius()) return;
-			auto path = myhero->get_path(pos);
-			auto distance = pos.distance(nexusTurret->get_position());
-			auto distanceToHero = pos.distance(myhero->get_position());
 			auto turretRange = nexusTurret->get_attackRange();
+			auto turretPos = nexusTurret->get_position();
+			if (myhero->get_position().distance(turretPos) < turretRange + myhero->get_bounding_radius()) return;
+			auto path = myhero->get_path(pos);
 			for (int i = 0; i < static_cast<int>(path.size()) - 1; i++)
 			{
 				auto start_position = path[i];
 				const auto end_position = path[i + 1];
 				const auto rectanglePath = geometry::rectangle(start_position, end_position, myhero->get_bounding_radius()).to_polygon().to_clipper_path();
-				const auto circlePath = geometry::circle(nexusTurret->get_position(), turretRange).to_polygon().to_clipper_path();
+				const auto circlePath = geometry::circle(turretPos, turretRange).to_polygon().to_clipper_path();
 				ClipperLib::Clipper clipper;
 				ClipperLib::PolyTree polytree;
 				clipper.AddPath(rectanglePath, ClipperLib::PolyType::ptSubject, true);
