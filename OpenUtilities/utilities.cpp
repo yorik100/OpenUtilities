@@ -501,7 +501,7 @@ namespace utilities {
 		if (isTargetEpic)
 		{
 			auto owner = epicParticleAttachment ? epicAttachment : epicOwnerTarget;
-			if (owner->get_name().find("Baron") != std::string::npos)
+			if (owner->get_name().find("Baron") != std::string::npos && obj->get_name() != "SRU_Plant_Vision_Pollen_Debuff.troy")
 			{
 				console->print("Object on Baron : %s", obj->get_name().c_str());
 				baronAttackTime = gametime->get_time();
