@@ -725,6 +725,7 @@ namespace utilities {
 		if ((settings::flash::flashExtend->get_bool() || flashGlitch) && distance <= 399.f)
 		{
 			pos = myhero->get_position().extend(endPos, 500.f);
+			// Recalculate based off new endPos
 			distance = std::min(400.f, myhero->get_position().distance(pos));
 			endPos = myhero->get_position().extend(pos, distance);
 			flashGlitch = (settings::flash::antiFlashGlitch->get_bool() && (endPos.is_wall() || endPos.is_building()));
