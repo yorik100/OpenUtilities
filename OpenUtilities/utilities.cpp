@@ -88,6 +88,7 @@ namespace utilities {
 	float baronAttackTime = 0;
 	float dragonAttackTime = 0;
 	float heraldAttackTime = 0;
+	float baronIdleTime = 0;
 	float turretRange;
 
 	vector spawnPoint;
@@ -422,9 +423,11 @@ namespace utilities {
 			else if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon))
 				isDragonAttacked = false;
 
-			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && gametime->get_time() - baronAttackTime < 8)
+			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && (gametime->get_time() - baronAttackTime < 8 || gametime->get_time() - baronIdleTime < 2))
 			{
-				if (settings::epic::epicTrackerNotifications->get_bool()) {
+				auto isIdle = gametime->get_time() - baronIdleTime < 2;
+				if (gametime->get_time() - baronIdleTime < 1) baronAttackTime = 0;
+				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
 					const auto position = vector(1330, 150);
 					const auto size = vector(60.f, 60.f);
 					const auto sizeMod = size / 2;
@@ -433,7 +436,10 @@ namespace utilities {
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Baron is under attack!");
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
-					draw_manager->draw_circle_on_minimap(baronPos, 550, MAKE_COLOR(255, 0, 0, 255), 2);
+				{
+					auto circleColour = !isIdle ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
+					draw_manager->draw_circle_on_minimap(baronPos, 550, circleColour, 2);
+				}
 			}
 			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && gametime->get_time() - heraldAttackTime < 15)
 			{
@@ -471,6 +477,7 @@ namespace utilities {
 			else if (owner->get_name().find("Dragon") != std::string::npos)
 			{
 				dragonAttackTime = gametime->get_time();
+				isDragonAttacked = true;
 				lastDragon = owner;
 				return;
 			}
@@ -489,8 +496,8 @@ namespace utilities {
 		auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
 		game_object_script epicOwnerTarget = obj->is_missile() && obj->missile_get_target_id() ? entitylist->get_object(obj->missile_get_target_id()) : nullptr;
 		auto epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster() && !epicOwnerTarget->get_owner();
-		auto isTargetByEpic = epicParticleAttachment || epicMissileTarget;
-		if (isTargetByEpic)
+		auto isTargetEpic = epicParticleAttachment || epicMissileTarget;
+		if (isTargetEpic)
 		{
 			auto owner = epicParticleAttachment ? epicAttachment : epicOwnerTarget;
 			if (owner->get_name().find("Baron") != std::string::npos)
@@ -502,6 +509,7 @@ namespace utilities {
 			else if (owner->get_name().find("Dragon") != std::string::npos)
 			{
 				dragonAttackTime = gametime->get_time();
+				isDragonAttacked = true;
 				lastDragon = owner;
 				return;
 			}
@@ -633,6 +641,7 @@ namespace utilities {
 			else if (sender->get_name().find("Dragon") != std::string::npos)
 			{
 				dragonAttackTime = gametime->get_time();
+				isDragonAttacked = true;
 				lastDragon = sender;
 				return;
 			}
@@ -653,7 +662,9 @@ namespace utilities {
 			auto data = (PKT_S2C_PlayAnimationArgs*)args;
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
-				baronAttackTime = gametime->get_time();
+				auto isIdle = strcmp(data->animation_name, "Idle1_a2n_PAR") == 0;
+				baronAttackTime = !isIdle ? gametime->get_time() : 0;
+				baronIdleTime = isIdle ? gametime->get_time() : 0;
 				lastBaron = sender;
 				return;
 			}
@@ -663,8 +674,8 @@ namespace utilities {
 				isDragonAttacked = strcmp(data->animation_name, "Landing") != 0;
 				lastDragon = sender;
 				return;
-			}
-			else if (sender->get_name().find("Herald") != std::string::npos)
+			}	
+			else if (sender->get_name().find("Herald") != std::string::npos && strcmp(data->animation_name, "Dance") != 0)
 			{
 				heraldAttackTime = gametime->get_time();
 				lastHerald = sender;
