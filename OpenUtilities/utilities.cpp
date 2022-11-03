@@ -778,7 +778,7 @@ namespace utilities {
 
 	void on_issue_order(game_object_script& target, vector& pos, _issue_order_type& type, bool* process)
 	{
-		if (type == MoveTo)
+		if (settings::safe::antiNexusRange->get_bool() && type == MoveTo)
 		{
 			auto turretRange = nexusTurret->get_attackRange();
 			auto turretPos = nexusTurret->get_position();
