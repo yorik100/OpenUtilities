@@ -498,10 +498,10 @@ namespace utilities {
 		game_object_script epicOwnerTarget = obj->is_missile() && obj->missile_get_target_id() ? entitylist->get_object(obj->missile_get_target_id()) : nullptr;
 		auto epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster() && !epicOwnerTarget->get_owner();
 		auto isTargetEpic = epicParticleAttachment || epicMissileTarget;
-		if (isTargetEpic)
+		if (isTargetEpic && obj->get_name() != "SRU_Plant_Vision_Pollen_Debuff.troy")
 		{
 			auto owner = epicParticleAttachment ? epicAttachment : epicOwnerTarget;
-			if (owner->get_name().find("Baron") != std::string::npos && obj->get_name() != "SRU_Plant_Vision_Pollen_Debuff.troy")
+			if (owner->get_name().find("Baron") != std::string::npos)
 			{
 				console->print("Object on Baron : %s", obj->get_name().c_str());
 				baronAttackTime = gametime->get_time();
