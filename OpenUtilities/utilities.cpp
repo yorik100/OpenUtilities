@@ -108,6 +108,7 @@ namespace utilities {
 
 	void debugPrint(const std::string& str, ...)
 	{
+		// Thanks seidhr
 		if (settings::debugPrint->get_bool())
 		{
 			va_list                     list;

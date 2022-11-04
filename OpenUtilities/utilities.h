@@ -3,6 +3,7 @@
 
 namespace utilities
 {
+	void debugPrint(const std::string& str, ...);
 	float getPing();
 	float getGodBuffTime(const game_object_script& target);
 	float getNoKillBuffTime(const game_object_script& target);
