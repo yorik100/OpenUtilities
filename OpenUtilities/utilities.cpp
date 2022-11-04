@@ -38,7 +38,6 @@ namespace utilities {
 
 	std::vector<particleStruct> particlePredList;
 	std::unordered_map<uint32_t, teleportStruct> teleportList;
-
 	std::unordered_map<uint32_t, float> guardianReviveTime;
 
 	static std::unordered_set godBuffList{
@@ -101,6 +100,7 @@ namespace utilities {
 	vector turretPos;
 
 	bool isDragonAttacked = false;
+	bool dontCancel = false;
 
 	game_object_script lastBaron;
 	game_object_script lastDragon;
@@ -845,14 +845,14 @@ namespace utilities {
 
 	void on_issue_order(game_object_script& target, vector& pos, _issue_order_type& type, bool* process)
 	{
-		if (settings::safe::antiNexusRange->get_bool() && type == MoveTo)
+		if (settings::safe::antiNexusRange->get_bool() && !dontCancel && type == MoveTo)
 		{
 			if (myhero->get_position().distance(turretPos) < turretRange + myhero->get_bounding_radius()) return;
 			auto path = myhero->get_path(pos);
 			for (int i = 0; i < static_cast<int>(path.size()) - 1; i++)
 			{
-				auto start_position = path[i];
 				const auto end_position = path[i + 1];
+				auto start_position = path[i];
 				const auto rectanglePath = geometry::rectangle(start_position, end_position, myhero->get_bounding_radius()).to_polygon().to_clipper_path();
 				const auto circlePath = geometry::circle(turretPos, turretRange).to_polygon().to_clipper_path();
 				ClipperLib::Clipper clipper;
@@ -863,11 +863,20 @@ namespace utilities {
 				if (polytree.Total() > 0)
 				{
 					const auto point = getClosestPoint(polytree);
-					const auto position = vector(point.X, point.Y, 0);
+					auto position = vector(point.X, point.Y, 0);
 					*process = false;
-					auto clickPosition = position.extend(turretPos, -75);
-					if (myhero->get_real_path().size() > 1 || clickPosition.distance(myhero->get_position()) > 85)
-						myhero->issue_order(clickPosition, true, false);
+					position = position.extend(turretPos, -30);
+					auto top_left = position + (position - turretPos).normalized().perpendicular() * 300;
+					auto top_right = position - (position - turretPos).normalized().perpendicular() * 300;
+					const auto projection = pos.project_on(top_left, top_right);
+					const auto result = projection.line_point;
+					if (myhero->get_real_path().size() > 1 || result.distance(myhero->get_position()) > 85)
+					{
+						// Preventing non-sense infinite loops and allowing other modules like Evade to cancel this event (note that it should never ever issue an order inside of turret range but still does)
+						dontCancel = true;
+						myhero->issue_order(result, true, false);
+						dontCancel = false;
+					}
 					return;
 				}
 			}
