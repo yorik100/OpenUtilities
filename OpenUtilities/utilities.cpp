@@ -865,12 +865,12 @@ namespace utilities {
 				if (polytree.Total() > 0)
 				{
 					const auto point = getClosestPoint(polytree);
-					const auto position = vector(point.X, point.Y, 0).extend(turretPos, -30);
+					const auto position = vector(point.X, point.Y, 0).extend(turretPos, -80);
 					*process = false;
 					const auto top_left = position + (position - turretPos).normalized().perpendicular() * 300;
 					const auto top_right = position - (position - turretPos).normalized().perpendicular() * 300;
 					const auto projection = pos.project_on(top_left, top_right);
-					const auto result = projection.line_point;
+					const auto result = !projection.line_point.is_wall() ? projection.line_point : position.extend(projection.line_point, 85);
 					if (myhero->get_real_path().size() > 1 || result.distance(myhero->get_position()) > 85)
 					{
 						// Preventing non-sense infinite loops and allowing other modules like Evade to cancel this event (note that it should never ever issue an order inside of turret range but still does)
