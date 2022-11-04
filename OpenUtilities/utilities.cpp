@@ -738,7 +738,7 @@ namespace utilities {
 	void on_cast_spell(spellslot spellSlot, game_object_script target, vector& pos, vector& pos2, bool isCharge, bool* process)
 	{
 		// Check if it's flash input
-		if (!pos.is_valid() || !myhero->get_spell(spellSlot) || myhero->get_spell(spellSlot)->get_spell_data()->get_name_hash() != spell_hash("SummonerFlash")) return;
+		if (!pos.is_valid() || !myhero->get_spell(spellSlot) || !myhero->get_spell(spellSlot)->get_spell_data() || myhero->get_spell(spellSlot)->get_spell_data()->get_name_hash() != spell_hash("SummonerFlash")) return;
 
 		auto distance = std::min(400.f, myhero->get_position().distance(pos));
 		auto endPos = myhero->get_position().extend(pos, distance);
