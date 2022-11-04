@@ -497,11 +497,11 @@ namespace utilities {
 	void on_create(const game_object_script obj)
 	{
 		// Get if an epic monster is attacking someone
-		game_object_script epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
-		auto epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
-		game_object_script epicOwner = obj->is_missile() ? entitylist->get_object(obj->missile_get_sender_id()) : nullptr;
-		auto epicMissile = epicOwner && !epicOwner->is_dead() && epicOwner->is_epic_monster() && !epicOwner->get_owner();
-		auto isOwnedByEpic = epicParticle || epicMissile;
+		const game_object_script epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
+		const auto epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
+		const game_object_script epicOwner = obj->is_missile() ? entitylist->get_object(obj->missile_get_sender_id()) : nullptr;
+		const auto epicMissile = epicOwner && !epicOwner->is_dead() && epicOwner->is_epic_monster() && !epicOwner->get_owner();
+		const auto isOwnedByEpic = epicParticle || epicMissile;
 		if (isOwnedByEpic)
 		{
 			auto owner = epicParticle ? epicEmitter : epicOwner;
@@ -532,10 +532,10 @@ namespace utilities {
 		game_object_script epicAttachment = obj->get_particle_attachment_object() && obj->get_particle_attachment_object()->is_epic_monster() ? obj->get_particle_attachment_object() : nullptr;
 		if (!epicAttachment)
 			epicAttachment = obj->get_particle_target_attachment_object() && obj->get_particle_target_attachment_object()->is_epic_monster() ? obj->get_particle_target_attachment_object() : nullptr;
-		auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
-		game_object_script epicOwnerTarget = obj->is_missile() && obj->missile_get_target_id() ? entitylist->get_object(obj->missile_get_target_id()) : nullptr;
-		auto epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster() && !epicOwnerTarget->get_owner();
-		auto isTargetEpic = epicParticleAttachment || epicMissileTarget;
+		const auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
+		const game_object_script epicOwnerTarget = obj->is_missile() && obj->missile_get_target_id() ? entitylist->get_object(obj->missile_get_target_id()) : nullptr;
+		const auto epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster() && !epicOwnerTarget->get_owner();
+		const auto isTargetEpic = epicParticleAttachment || epicMissileTarget;
 		if (isTargetEpic && obj->get_name() != "SRU_Plant_Vision_Pollen_Debuff.troy")
 		{
 			auto owner = epicParticleAttachment ? epicAttachment : epicOwnerTarget;
@@ -565,7 +565,7 @@ namespace utilities {
 
 		// Get possible valid particles
 		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero()) return;
-		auto emitterHash = obj->get_emitter_resources_hash();
+		const auto emitterHash = obj->get_emitter_resources_hash();
 
 		switch (emitterHash)
 		{
@@ -647,7 +647,7 @@ namespace utilities {
 	{
 		// Detect if someone casted something towards an Epic Monster
 		auto target = entitylist->get_object(spell->get_last_target_id());
-		auto isEpicTarget = target && !target->is_dead() && target->is_epic_monster() && !target->get_owner();
+		const auto isEpicTarget = target && !target->is_dead() && target->is_epic_monster() && !target->get_owner();
 		if (isEpicTarget)
 		{
 			if (target->get_name().find("Baron") != std::string::npos)
@@ -674,7 +674,7 @@ namespace utilities {
 		}
 
 		// Detect if an Epic Monster casted something
-		auto isEpicSender = sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
+		const auto isEpicSender = sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 		if (isEpicSender)
 		{
 			if (sender->get_name().find("Baron") != std::string::npos)
@@ -704,10 +704,12 @@ namespace utilities {
 
 	void on_network_packet(game_object_script sender, std::uint32_t network_id, pkttype_e type, void* args)
 	{
-		auto isEpicSender = type == pkttype_e::PKT_S2C_PlayAnimation_s && sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
+		const auto isEpicSender = type == pkttype_e::PKT_S2C_PlayAnimation_s && sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 		if (isEpicSender)
 		{
-			auto data = (PKT_S2C_PlayAnimationArgs*)args;
+			const auto data = (PKT_S2C_PlayAnimationArgs*)args;
+			if (!data) return;
+
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
 				debugPrint("Animation from Baron : %s", data->animation_name);
@@ -852,7 +854,7 @@ namespace utilities {
 			for (int i = 0; i < static_cast<int>(path.size()) - 1; i++)
 			{
 				const auto end_position = path[i + 1];
-				auto start_position = path[i];
+				const auto start_position = path[i];
 				const auto rectanglePath = geometry::rectangle(start_position, end_position, myhero->get_bounding_radius()).to_polygon().to_clipper_path();
 				const auto circlePath = geometry::circle(turretPos, turretRange).to_polygon().to_clipper_path();
 				ClipperLib::Clipper clipper;
@@ -863,11 +865,10 @@ namespace utilities {
 				if (polytree.Total() > 0)
 				{
 					const auto point = getClosestPoint(polytree);
-					auto position = vector(point.X, point.Y, 0);
+					const auto position = vector(point.X, point.Y, 0).extend(turretPos, -30);
 					*process = false;
-					position = position.extend(turretPos, -30);
-					auto top_left = position + (position - turretPos).normalized().perpendicular() * 300;
-					auto top_right = position - (position - turretPos).normalized().perpendicular() * 300;
+					const auto top_left = position + (position - turretPos).normalized().perpendicular() * 300;
+					const auto top_right = position - (position - turretPos).normalized().perpendicular() * 300;
 					const auto projection = pos.project_on(top_left, top_right);
 					const auto result = projection.line_point;
 					if (myhero->get_real_path().size() > 1 || result.distance(myhero->get_position()) > 85)
@@ -886,27 +887,27 @@ namespace utilities {
 	void load()
 	{
 		// Get enemy spawnpoint
-		auto spawnPointIt = std::find_if(entitylist->get_all_spawnpoints().begin(), entitylist->get_all_spawnpoints().end(), [](game_object_script x) {
+		const auto spawnPointIt = std::find_if(entitylist->get_all_spawnpoints().begin(), entitylist->get_all_spawnpoints().end(), [](game_object_script x) {
 			return x->is_enemy();
 			}
 		);
-		auto spawnPointObj = *spawnPointIt;
+		const auto spawnPointObj = *spawnPointIt;
 		spawnPoint = spawnPointObj->get_position();
 
 		// Get enemy Nexus pos
-		auto nexusPosIt = std::find_if(entitylist->get_all_nexus().begin(), entitylist->get_all_nexus().end(), [](game_object_script x) {
+		const auto nexusPosIt = std::find_if(entitylist->get_all_nexus().begin(), entitylist->get_all_nexus().end(), [](game_object_script x) {
 			return x->is_enemy();
 			}
 		);
-		auto nexusEntity = *nexusPosIt;
+		const auto nexusEntity = *nexusPosIt;
 		nexusPos = nexusEntity->get_position();
 
 		// Get enemy Nexus turret pos
-		auto nexusTurretPosIt = std::find_if(entitylist->get_enemy_turrets().begin(), entitylist->get_enemy_turrets().end(), [](game_object_script x) {
+		const auto nexusTurretPosIt = std::find_if(entitylist->get_enemy_turrets().begin(), entitylist->get_enemy_turrets().end(), [](game_object_script x) {
 			return x->get_name().find("Shrine") != std::string::npos;
 			}
 		);
-		auto nexusTurret = *nexusTurretPosIt;
+		const auto nexusTurret = *nexusTurretPosIt;
 		turretRange = nexusTurret->get_attackRange();
 		turretPos = nexusTurret->get_position();
 
