@@ -1,6 +1,8 @@
 #include "utilities.h"
 #include <unordered_set>
 #include <unordered_map>
+#include <stdio.h>
+#include <stdarg.h>
 
 namespace utilities {
 
@@ -80,6 +82,7 @@ namespace utilities {
 			TreeEntry* antiNexusRange;
 		}
 		TreeEntry* lowSpec;
+		TreeEntry* debugPrint;
 	}
 
 	static constexpr float SERVER_TICKRATE = 1000.f / 30.f;
@@ -102,6 +105,39 @@ namespace utilities {
 	game_object_script lastBaron;
 	game_object_script lastDragon;
 	game_object_script lastHerald;
+
+	void debugPrint(const std::string& str, ...)
+	{
+		if (settings::debugPrint->get_bool())
+		{
+			va_list                     list;
+			int                         size;
+			std::unique_ptr< char[] >   buf;
+
+			if (str.empty())
+				return;
+
+			va_start(list, str);
+
+			// count needed size.
+			size = std::vsnprintf(0, 0, str.c_str(), list) + 1;
+
+			// allocate.
+			buf = std::make_unique< char[] >(size);
+			if (!buf) {
+				va_end(list);
+				return;
+			}
+
+			// print to buffer.
+			std::vsnprintf(buf.get(), size, str.c_str(), list);
+
+			va_end(list);
+
+			// print to console.
+			console->print("%.*s", size - 1, buf.get());
+		}
+	}
 
 	float getPing()
 	{
@@ -302,6 +338,7 @@ namespace utilities {
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("openutilitieslowspec", "Low spec mode (tick limiter)", false);
+		settings::debugPrint = mainMenu->add_checkbox("openutilitiesdebugprint", "Debug print in console (dev)", false);
 
 	}
 
@@ -469,21 +506,21 @@ namespace utilities {
 			auto owner = epicParticle ? epicEmitter : epicOwner;
 			if (owner->get_name().find("Baron") != std::string::npos)
 			{
-				console->print("Object by Baron : %s", obj->get_name().c_str());
+				debugPrint("Object by Baron : %s", obj->get_name().c_str());
 				baronAttackTime = gametime->get_time();
 				lastBaron = owner;
 				return;
 			}
 			else if (owner->get_name().find("Dragon") != std::string::npos)
 			{
-				console->print("Object by Dragon : %s", obj->get_name().c_str());
+				debugPrint("Object by Dragon : %s", obj->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
 				lastDragon = owner;
 				return;
 			}
 			else if (owner->get_name().find("Herald") != std::string::npos)
 			{
-				console->print("Object by Herald : %s", obj->get_name().c_str());
+				debugPrint("Object by Herald : %s", obj->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = owner;
 				return;
@@ -503,14 +540,14 @@ namespace utilities {
 			auto owner = epicParticleAttachment ? epicAttachment : epicOwnerTarget;
 			if (owner->get_name().find("Baron") != std::string::npos)
 			{
-				console->print("Object on Baron : %s", obj->get_name().c_str());
+				debugPrint("Object on Baron : %s", obj->get_name().c_str());
 				baronAttackTime = gametime->get_time();
 				lastBaron = owner;
 				return;
 			}
 			else if (owner->get_name().find("Dragon") != std::string::npos)
 			{
-				console->print("Object on Dragon : %s", obj->get_name().c_str());
+				debugPrint("Object on Dragon : %s", obj->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
 				isDragonAttacked = true;
 				lastDragon = owner;
@@ -518,7 +555,7 @@ namespace utilities {
 			}
 			else if (owner->get_name().find("Herald") != std::string::npos)
 			{
-				console->print("Object on Herald : %s", obj->get_name().c_str());
+				debugPrint("Object on Herald : %s", obj->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = owner;
 				return;
@@ -614,21 +651,21 @@ namespace utilities {
 		{
 			if (target->get_name().find("Baron") != std::string::npos)
 			{
-				console->print("Cast on Baron");
+				debugPrint("Cast on Baron");
 				baronAttackTime = gametime->get_time();
 				lastBaron = target;
 				return;
 			}
 			else if (target->get_name().find("Dragon") != std::string::npos)
 			{
-				console->print("Cast on Dragon");
+				debugPrint("Cast on Dragon");
 				dragonAttackTime = gametime->get_time();
 				lastDragon = target;
 				return;
 			}
 			else if (target->get_name().find("Herald") != std::string::npos)
 			{
-				console->print("Cast on Herald");
+				debugPrint("Cast on Herald");
 				heraldAttackTime = gametime->get_time();
 				lastHerald = target;
 				return;
@@ -641,14 +678,14 @@ namespace utilities {
 		{
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
-				console->print("Cast from Baron");
+				debugPrint("Cast from Baron");
 				baronAttackTime = gametime->get_time();
 				lastBaron = sender;
 				return;
 			}
 			else if (sender->get_name().find("Dragon") != std::string::npos)
 			{
-				console->print("Cast from Dragon");
+				debugPrint("Cast from Dragon");
 				dragonAttackTime = gametime->get_time();
 				isDragonAttacked = true;
 				lastDragon = sender;
@@ -656,7 +693,7 @@ namespace utilities {
 			}
 			else if (sender->get_name().find("Herald") != std::string::npos)
 			{
-				console->print("Cast from Herald");
+				debugPrint("Cast from Herald");
 				heraldAttackTime = gametime->get_time();
 				lastHerald = sender;
 				return;
@@ -672,7 +709,7 @@ namespace utilities {
 			auto data = (PKT_S2C_PlayAnimationArgs*)args;
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
-				console->print("Animation from Baron : %s", data->animation_name);
+				debugPrint("Animation from Baron : %s", data->animation_name);
 				auto isIdle = strcmp(data->animation_name, "Idle1_a2n_PAR") == 0;
 				baronAttackTime = !isIdle ? gametime->get_time() : 0;
 				baronIdleTime = isIdle ? gametime->get_time() : 0;
@@ -681,7 +718,7 @@ namespace utilities {
 			}
 			else if (sender->get_name().find("Dragon") != std::string::npos)
 			{
-				console->print("Animation from Dragon : %s", data->animation_name);
+				debugPrint("Animation from Dragon : %s", data->animation_name);
 				dragonAttackTime = gametime->get_time();
 				isDragonAttacked = strcmp(data->animation_name, "Landing") != 0;
 				lastDragon = sender;
@@ -689,7 +726,7 @@ namespace utilities {
 			}	
 			else if (sender->get_name().find("Herald") != std::string::npos && strcmp(data->animation_name, "Dance") != 0)
 			{
-				console->print("Animation from Herald : %s", data->animation_name);
+				debugPrint("Animation from Herald : %s", data->animation_name);
 				heraldAttackTime = gametime->get_time();
 				lastHerald = sender;
 				return;
