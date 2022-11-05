@@ -377,6 +377,20 @@ namespace utilities {
 		}
 	}
 
+	void castNoTrigger(spellslot spellSlot, vector pos)
+	{
+		dontCancel = true;
+		myhero->cast_spell(spellSlot, pos);
+		dontCancel = false;
+	}
+
+	void orderNoTrigger(vector pos)
+	{
+		dontCancel = true;
+		myhero->issue_order(pos, true, false);
+		dontCancel = false;
+	}
+
 	void on_update()
 	{
 		// Limit ticks (for low spec mode)
@@ -778,7 +792,7 @@ namespace utilities {
 	void on_cast_spell(spellslot spellSlot, game_object_script target, vector& pos, vector& pos2, bool isCharge, bool* process)
 	{
 		// Check if it's flash input
-		if (!pos.is_valid() || !myhero->get_spell(spellSlot) || !myhero->get_spell(spellSlot)->get_spell_data() || myhero->get_spell(spellSlot)->get_spell_data()->get_name_hash() != spell_hash("SummonerFlash")) return;
+		if (dontCancel || !pos.is_valid() || !myhero->get_spell(spellSlot) || !myhero->get_spell(spellSlot)->get_spell_data() || myhero->get_spell(spellSlot)->get_spell_data()->get_name_hash() != spell_hash("SummonerFlash")) return;
 
 		auto distance = std::min(400.f, myhero->get_position().distance(pos));
 		auto endPos = myhero->get_position().extend(pos, distance);
@@ -788,11 +802,8 @@ namespace utilities {
 		// Extend flash
 		if ((settings::flash::flashExtend->get_bool() || flashGlitch) && distance <= 399.f)
 		{
-			pos = myhero->get_position().extend(endPos, 500.f);
-			// Recalculate based off new endPos
-			distance = std::min(400.f, myhero->get_position().distance(pos));
-			endPos = myhero->get_position().extend(pos, distance);
-			flashGlitch = (settings::flash::antiFlashGlitch->get_bool() && (endPos.is_wall() || endPos.is_building()));
+			myhero->cast_spell(spellSlot, myhero->get_position().extend(endPos, 500.f));
+			return;
 		}
 
 		if (flashGlitch) {
@@ -839,7 +850,9 @@ namespace utilities {
 			// If flash posible then flash where it should flash
 			else if (pointToFlash != vector::zero)
 			{
-				pos = pointToFlash;
+				*process = false;
+				// A way of updating the pos given by the cast for other modules as they dont get the updated pos if we modify the pos
+				castNoTrigger(spellSlot, pointToFlash);
 				return;
 			}
 		}
@@ -847,39 +860,37 @@ namespace utilities {
 
 	void on_issue_order(game_object_script& target, vector& pos, _issue_order_type& type, bool* process)
 	{
-		if (settings::safe::antiNexusRange->get_bool() && !dontCancel && type == MoveTo)
+		// Check if a move order is sent and if it should be processed
+		if (dontCancel || !settings::safe::antiNexusRange->get_bool() || type != MoveTo) return;
+
+		if (myhero->get_position().distance(turretPos) < turretRange + myhero->get_bounding_radius()) return;
+		auto path = myhero->get_path(pos);
+		for (int i = 0; i < static_cast<int>(path.size()) - 1; i++)
 		{
-			if (myhero->get_position().distance(turretPos) < turretRange + myhero->get_bounding_radius()) return;
-			auto path = myhero->get_path(pos);
-			for (int i = 0; i < static_cast<int>(path.size()) - 1; i++)
+			const auto end_position = path[i + 1];
+			const auto start_position = path[i];
+			const auto rectanglePath = geometry::rectangle(start_position, end_position, myhero->get_bounding_radius()).to_polygon().to_clipper_path();
+			const auto circlePath = geometry::circle(turretPos, turretRange).to_polygon().to_clipper_path();
+			ClipperLib::Clipper clipper;
+			ClipperLib::PolyTree polytree;
+			clipper.AddPath(rectanglePath, ClipperLib::PolyType::ptSubject, true);
+			clipper.AddPath(circlePath, ClipperLib::PolyType::ptClip, true);
+			clipper.Execute(ClipperLib::ctIntersection, polytree);
+			if (polytree.Total() > 0)
 			{
-				const auto end_position = path[i + 1];
-				const auto start_position = path[i];
-				const auto rectanglePath = geometry::rectangle(start_position, end_position, myhero->get_bounding_radius()).to_polygon().to_clipper_path();
-				const auto circlePath = geometry::circle(turretPos, turretRange).to_polygon().to_clipper_path();
-				ClipperLib::Clipper clipper;
-				ClipperLib::PolyTree polytree;
-				clipper.AddPath(rectanglePath, ClipperLib::PolyType::ptSubject, true);
-				clipper.AddPath(circlePath, ClipperLib::PolyType::ptClip, true);
-				clipper.Execute(ClipperLib::ctIntersection, polytree);
-				if (polytree.Total() > 0)
+				const auto point = getClosestPoint(polytree);
+				const auto position = vector(point.X, point.Y, 0).extend(turretPos, -30);
+				*process = false;
+				const auto top_left = position + (position - turretPos).normalized().perpendicular() * 300;
+				const auto top_right = position - (position - turretPos).normalized().perpendicular() * 300;
+				const auto projection = pos.project_on(top_left, top_right);
+				const auto result = !projection.line_point.is_wall() ? projection.line_point : position.extend(projection.line_point, 70);
+				if (myhero->get_real_path().size() > 1 || result.distance(myhero->get_position()) > 85)
 				{
-					const auto point = getClosestPoint(polytree);
-					const auto position = vector(point.X, point.Y, 0).extend(turretPos, -30);
-					*process = false;
-					const auto top_left = position + (position - turretPos).normalized().perpendicular() * 300;
-					const auto top_right = position - (position - turretPos).normalized().perpendicular() * 300;
-					const auto projection = pos.project_on(top_left, top_right);
-					const auto result = !projection.line_point.is_wall() ? projection.line_point : position.extend(projection.line_point, 70);
-					if (myhero->get_real_path().size() > 1 || result.distance(myhero->get_position()) > 85)
-					{
-						// Preventing non-sense infinite loops and allowing other modules like Evade to cancel this event (note that it should never ever issue an order inside of turret range but still does)
-						dontCancel = true;
-						myhero->issue_order(result, true, false);
-						dontCancel = false;
-					}
-					return;
+					// Preventing non-sense infinite loops and allowing other modules like Evade to cancel this event (note that it should never ever issue an order inside of turret range but still does)
+					orderNoTrigger(result);
 				}
+				return;
 			}
 		}
 	}

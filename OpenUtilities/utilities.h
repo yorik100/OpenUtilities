@@ -14,6 +14,8 @@ namespace utilities
 	ClipperLib::IntPoint getClosestPoint(const ClipperLib::PolyTree& polytree);
 	void createMenu();
 	void updateParticles();
+	void castNoTrigger(spellslot spellSlot, vector pos);
+	void orderNoTrigger(vector pos);
 	void on_update();
 	void on_draw();
 	void on_create(const game_object_script obj);
