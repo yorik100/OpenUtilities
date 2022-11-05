@@ -727,7 +727,7 @@ namespace utilities {
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
 				debugPrint("Animation from Baron : %s", data->animation_name);
-				auto isIdle = strcmp(data->animation_name, "Idle1_a2n_PAR") == 0;
+				const auto isIdle = strcmp(data->animation_name, "Idle1_a2n_PAR") == 0;
 				baronAttackTime = !isIdle ? gametime->get_time() : 0;
 				baronIdleTime = isIdle ? gametime->get_time() : 0;
 				lastBaron = sender;
@@ -735,9 +735,11 @@ namespace utilities {
 			}
 			else if (sender->get_name().find("Dragon") != std::string::npos)
 			{
+				const auto isLanding = strcmp(data->animation_name, "Landing") == 0;
+				if (isLanding && !isDragonAttacked) return;
 				debugPrint("Animation from Dragon : %s", data->animation_name);
 				dragonAttackTime = gametime->get_time();
-				isDragonAttacked = strcmp(data->animation_name, "Landing") != 0;
+				isDragonAttacked = !isLanding;
 				lastDragon = sender;
 				return;
 			}	
@@ -895,6 +897,25 @@ namespace utilities {
 		}
 	}
 
+	void on_play_animation(game_object_script sender, const char* name)
+	{
+		const std::string strName = name;
+		const auto isEpicSender = sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
+		if (isEpicSender)
+		{
+			if (strName.find("Idle") == std::string::npos) return;
+			if (sender->get_name().find("Baron") != std::string::npos)
+			{
+				debugPrint("Animation from Baron : %s", name);
+				baronIdleTime = gametime->get_time() - baronAttackTime < 8 ? gametime->get_time() : 0;
+				baronAttackTime = 0;
+				lastBaron = sender;
+				return;
+			}
+		}
+
+	}
+
 	void load()
 	{
 		// Get enemy spawnpoint
@@ -943,7 +964,8 @@ namespace utilities {
 		event_handler<events::on_network_packet>::add_callback(on_network_packet);
 		event_handler<events::on_cast_spell>::add_callback(on_cast_spell);
 		event_handler<events::on_issue_order>::add_callback(on_issue_order);
-
+		event_handler<events::on_play_animation>::add_callback(on_play_animation);
+		
 	}
 
 	void unload()
@@ -960,6 +982,7 @@ namespace utilities {
 		event_handler< events::on_network_packet >::remove_handler(on_network_packet);
 		event_handler< events::on_cast_spell >::remove_handler(on_cast_spell);
 		event_handler< events::on_issue_order >::remove_handler(on_issue_order);
+		event_handler< events::on_play_animation >::remove_handler(on_play_animation);
 	}
 
 }
