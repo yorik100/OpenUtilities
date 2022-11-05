@@ -899,20 +899,6 @@ namespace utilities {
 
 	void on_play_animation(game_object_script sender, const char* name)
 	{
-		const std::string strName = name;
-		const auto isEpicSender = sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
-		if (isEpicSender)
-		{
-			if (strName.find("Idle") == std::string::npos) return;
-			if (sender->get_name().find("Baron") != std::string::npos)
-			{
-				debugPrint("Animation from Baron : %s", name);
-				baronIdleTime = gametime->get_time() - baronAttackTime < 8 ? gametime->get_time() : 0;
-				baronAttackTime = 0;
-				lastBaron = sender;
-				return;
-			}
-		}
 
 	}
 
