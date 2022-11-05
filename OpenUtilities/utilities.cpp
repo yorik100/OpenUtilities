@@ -521,21 +521,21 @@ namespace utilities {
 			auto owner = epicParticle ? epicEmitter : epicOwner;
 			if (owner->get_name().find("Baron") != std::string::npos)
 			{
-				debugPrint("Object by Baron : %s", obj->get_name().c_str());
+				debugPrint("Object from Baron : %s", obj->get_name().c_str());
 				baronAttackTime = gametime->get_time();
 				lastBaron = owner;
 				return;
 			}
 			else if (owner->get_name().find("Dragon") != std::string::npos)
 			{
-				debugPrint("Object by Dragon : %s", obj->get_name().c_str());
+				debugPrint("Object from Dragon : %s", obj->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
 				lastDragon = owner;
 				return;
 			}
 			else if (owner->get_name().find("Herald") != std::string::npos)
 			{
-				debugPrint("Object by Herald : %s", obj->get_name().c_str());
+				debugPrint("Object from Herald : %s", obj->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = owner;
 				return;
