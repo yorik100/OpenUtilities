@@ -726,8 +726,9 @@ namespace utilities {
 
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
-				debugPrint("Animation from Baron : %s", data->animation_name);
 				const auto isIdle = strcmp(data->animation_name, "Idle1_a2n_PAR") == 0;
+				if (isIdle && gametime->get_time() - baronAttackTime >= 8) return;
+				debugPrint("Animation from Baron : %s", data->animation_name);
 				baronAttackTime = !isIdle ? gametime->get_time() : 0;
 				baronIdleTime = isIdle ? gametime->get_time() : 0;
 				lastBaron = sender;
