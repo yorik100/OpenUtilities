@@ -98,6 +98,7 @@ namespace utilities {
 	vector baronPos;
 	vector dragonPos;
 	vector turretPos;
+	vector urfCanon;
 
 	bool isDragonAttacked = false;
 	bool dontCancel = false;
@@ -626,6 +627,12 @@ namespace utilities {
 				particlePredList.push_back(particleData);
 				return;
 			}
+			case 1882371666:
+			{
+				particleStruct particleData = { .obj = obj, .target = obj->get_particle_attachment_object(), .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = obj->get_position().distance(urfCanon)/2800, .castingPos = obj->get_position() };
+				particlePredList.push_back(particleData);
+				return;
+			}
 		}
 
 		if (obj->get_emitter()->get_teleport_state() != "SummonerTeleport") return;
@@ -935,6 +942,9 @@ namespace utilities {
 		baronPos = vector(tempPos.x - 25, tempPos.y + 100);
 		tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Dragon);
 		dragonPos = vector(tempPos.x + 50, tempPos.y);
+
+		// Get URF cannon pos
+		urfCanon = myhero->get_team() == game_object_team::order ? vector(13018.f, 14026.f) : vector(1506.f, 676.f);
 
 		// Call menu creation function
 		createMenu();
