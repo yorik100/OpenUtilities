@@ -418,17 +418,17 @@ namespace utilities {
 				draw_manager->add_circle(obj.castingPos, obj.owner->get_bounding_radius() * std::min(1.f, (1 / (obj.castTime / (gametime->get_time() - obj.time)))), MAKE_COLOR(255, 0, 255, 255), 2);
 				vector screenPos;
 				renderer->world_to_screen(obj.castingPos, screenPos);
-				const auto size = vector(30.f, 30.f);
+				const auto size = vector(40.f, 40.f);
 				const auto sizeMod = size / 2;
-				draw_manager->add_image(obj.owner->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f);
+				draw_manager->add_image(obj.owner->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
 				vector minimapPos;
 				vector castPos = obj.castingPos;
 				gui->get_tactical_map()->to_map_coord(castPos, minimapPos);
 				draw_manager->add_image(obj.owner->get_square_icon_portrait(), minimapPos - vector(12, 12), { 24,24 }, 90.f, { 0,0 }, { 1,1 }, { 0.4f,0.4f,0.4f,1 });
-				const auto timeElapsed = gametime->get_time() - obj.time;
-				const auto percentage = timeElapsed / obj.castTime;
-				const auto radius = 12 - (12 * percentage);
-				draw_manager->add_filled_circle_on_screen(minimapPos, radius, MAKE_COLOR(138, 43, 226, 50));
+				//const auto timeElapsed = gametime->get_time() - obj.time;
+				//const auto percentage = timeElapsed / obj.castTime;
+				//const auto radius = 12 - (12 * percentage);
+				draw_manager->add_circle_on_screen(minimapPos, 13, MAKE_COLOR(255, 0, 255, 255));
 			}
 		}
 
@@ -455,9 +455,9 @@ namespace utilities {
 				draw_manager->add_circle(spawnPoint, target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour2, 2);
 				vector screenPos;
 				renderer->world_to_screen(spawnPoint, screenPos);
-				const auto size = vector(30.f, 30.f);
+				const auto size = vector(40.f, 40.f);
 				const auto sizeMod = size / 2;
-				draw_manager->add_image(target->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size);
+				draw_manager->add_image(target->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
 			}
 		}
 
