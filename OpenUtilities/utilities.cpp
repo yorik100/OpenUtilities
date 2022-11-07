@@ -420,7 +420,15 @@ namespace utilities {
 				renderer->world_to_screen(obj.castingPos, screenPos);
 				const auto size = vector(30.f, 30.f);
 				const auto sizeMod = size / 2;
-				draw_manager->add_image(obj.owner->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size);
+				draw_manager->add_image(obj.owner->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f);
+				vector minimapPos;
+				vector castPos = obj.castingPos;
+				gui->get_tactical_map()->to_map_coord(castPos, minimapPos);
+				draw_manager->add_image(obj.owner->get_square_icon_portrait(), minimapPos - vector(12, 12), { 24,24 }, 90.f, { 0,0 }, { 1,1 }, { 0.4f,0.4f,0.4f,1 });
+				const auto timeElapsed = gametime->get_time() - obj.time;
+				const auto percentage = timeElapsed / obj.castTime;
+				const auto radius = 12 - (12 * percentage);
+				draw_manager->add_filled_circle_on_screen(minimapPos, radius, MAKE_COLOR(138, 43, 226, 50));
 			}
 		}
 
