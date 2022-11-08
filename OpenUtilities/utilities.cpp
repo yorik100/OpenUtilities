@@ -462,7 +462,6 @@ namespace utilities {
 				draw_manager->add_image(target->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
 				const int alpha = round(255 * 0.4);
 				draw_manager->add_circle_on_screen(screenPos, 22, MAKE_COLOR(255, 0, 0, alpha), 2.f);
-
 			}
 		}
 
@@ -578,7 +577,6 @@ namespace utilities {
 			{
 				debugPrint("Object on Dragon : %s", obj->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
-				isDragonAttacked = true;
 				lastDragon = owner;
 				return;
 			}
