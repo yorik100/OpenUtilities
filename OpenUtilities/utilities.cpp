@@ -430,7 +430,7 @@ namespace utilities {
 				//const auto timeElapsed = gametime->get_time() - obj.time;
 				//const auto percentage = timeElapsed / obj.castTime;
 				//const auto radius = 12 - (12 * percentage);
-				draw_manager->add_circle_on_screen(minimapPos, 13, MAKE_COLOR(255, 0, 255, 255));
+				draw_manager->add_circle_on_screen(minimapPos, 13, MAKE_COLOR(138, 43, 226, 255));
 			}
 		}
 
