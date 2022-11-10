@@ -543,6 +543,7 @@ namespace utilities {
 			{
 				debugPrint("Object from Dragon : %s", obj->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
+				isDragonAttacked = true;
 				lastDragon = owner;
 				return;
 			}
