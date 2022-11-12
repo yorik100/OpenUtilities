@@ -303,7 +303,7 @@ namespace utilities {
 				const auto& size = vector(40.f, 40.f);
 				const auto& sizeMod = size / 2;
 				draw_manager->add_image(obj.owner->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
-				const int& alpha = round(255*0.4);
+				const int& alpha = round(255*0.5);
 				draw_manager->add_circle_on_screen(screenPos, 22, MAKE_COLOR(255, 0, 0, alpha), 2.f);
 				vector minimapPos;
 				vector castPos = obj.castingPos;
