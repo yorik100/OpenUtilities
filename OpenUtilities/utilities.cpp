@@ -147,128 +147,10 @@ namespace utilities {
 		return ping->get_ping() / 1000;
 	}
 
-	float getGodBuffTime(const game_object_script& target)
-	{
-		// This function gets the god buff time (godmode && spellshield buffs) on a target, it's no use to attack them while they are immortal
-		float buffTime = 0;
-		for (auto&& buff : target->get_bufflist())
-		{
-			if (buff == nullptr || !buff->is_valid() || !buff->is_alive()) continue;
-
-			auto buffHash = buff->get_hash_name();
-			if (godBuffList.contains(buffHash))
-			{
-				auto isPantheonE = buffHash == buff_hash("PantheonE");
-				auto realRemainingTime = !isPantheonE ? buff->get_remaining_time() : buff->get_remaining_time() + 0.2;
-				if (buffTime < realRemainingTime && (!isPantheonE || target->is_facing(myhero)) && (buffHash != buff_hash("XinZhaoRRangedImmunity") || myhero->get_position().distance(target->get_position()) > 450))
-				{
-					buffTime = realRemainingTime;
-				}
-			}
-		}
-		return buffTime;
-	}
-
-	float getNoKillBuffTime(const game_object_script& target)
-	{
-		// This function gets the no kill buff time on a target, you don't want to try killing people with these buffs
-		float buffTime = 0;
-		for (auto&& buff : target->get_bufflist())
-		{
-			if (buff == nullptr || !buff->is_valid() || !buff->is_alive()) continue;
-			auto buffHash = buff->get_hash_name();
-			if (noKillBuffList.contains(buffHash))
-			{
-				if (buffTime < buff->get_remaining_time())
-				{
-					buffTime = buff->get_remaining_time();
-				}
-			}
-		}
-		return buffTime;
-	}
-
-	float getStasisTime(const game_object_script& target)
-	{
-		// This function gets the stasis time of a target
-		float buffTime = 0;
-		for (auto&& buff : target->get_bufflist())
-		{
-			if (buff == nullptr || !buff->is_valid() || !buff->is_alive()) continue;
-			auto buffHash = buff->get_hash_name();
-			if (stasisBuffList.contains(buffHash))
-			{
-				if (buffTime < buff->get_remaining_time())
-				{
-					buffTime = buff->get_remaining_time();
-				}
-			}
-		}
-		// Get guardian angel revive time if there is one
-		float GATime = (!target->is_targetable() && guardianReviveTime[target->get_handle()] ? guardianReviveTime[target->get_handle()] - gametime->get_time() : 0);
-		if (buffTime < GATime)
-		{
-			buffTime = GATime;
-		}
-		return buffTime;
-	}
-
-	buffList combinedBuffChecks(const game_object_script& target)
-	{
-		// This function gets every single buffs that are needed making the 3 functions above completely useless!
-		float godBuffTime = 0;
-		float noKillBuffTime = 0;
-		float stasisTime = 0;
-		float stasisStart = 0;
-		float stasisEnd = 0;
-		for (auto&& buff : target->get_bufflist())
-		{
-			if (buff == nullptr || !buff->is_valid() || !buff->is_alive()) continue;
-
-			auto buffHash = buff->get_hash_name();
-			if (godBuffList.contains(buffHash))
-			{
-				auto isPantheonE = buffHash == buff_hash("PantheonE");
-				auto realRemainingTime = !isPantheonE ? buff->get_remaining_time() : buff->get_remaining_time() + 0.2;
-				if (godBuffTime < realRemainingTime && (!isPantheonE || target->is_facing(myhero)) && (buffHash != buff_hash("XinZhaoRRangedImmunity") || myhero->get_position().distance(target->get_position()) > 450))
-				{
-					godBuffTime = realRemainingTime;
-				}
-			}
-			else if (noKillBuffList.contains(buffHash))
-			{
-				if (noKillBuffTime < buff->get_remaining_time())
-				{
-					noKillBuffTime = buff->get_remaining_time();
-				}
-			}
-			else if (stasisBuffList.contains(buffHash))
-			{
-				if (stasisTime < buff->get_remaining_time())
-				{
-					stasisTime = buff->get_remaining_time();
-					stasisStart = buff->get_start();
-					stasisEnd = buff->get_end();
-				}
-			}
-		}
-		// Get guardian angel revive time if there is one
-		float GATime = (!target->is_targetable() && guardianReviveTime[target->get_handle()] ? guardianReviveTime[target->get_handle()] - gametime->get_time() : 0);
-		if (stasisTime < GATime)
-		{
-			stasisTime = GATime;
-			stasisStart = guardianReviveTime[target->get_handle()] - 4;
-			stasisEnd = guardianReviveTime[target->get_handle()];
-		}
-		stasisStruct stasisInfo = { .stasisTime = stasisTime, .stasisStart = stasisStart, .stasisEnd = stasisEnd };
-		buffList buffStruct = { .godBuff = godBuffTime, .noKillBuff = noKillBuffTime, .stasis = stasisInfo };
-		return buffStruct;
-	}
-
 	bool isRecalling(const game_object_script& target)
 	{
 		// Get if target is recalling
-		auto isRecalling = target->is_teleporting() && (target->get_teleport_state() == "recall" || target->get_teleport_state() == "SuperRecall" || target->get_teleport_state() == "SummonerTeleport");
+		const auto& isRecalling = target->is_teleporting() && (target->get_teleport_state() == "recall" || target->get_teleport_state() == "SuperRecall" || target->get_teleport_state() == "SummonerTeleport");
 		return isRecalling;
 	}
 
@@ -285,8 +167,8 @@ namespace utilities {
 		// Get points around a position
 		std::vector<vector> points;
 		for (int i = 1; i <= quality; i++) {
-			auto angle = i * 2 * 3.141592653589793238462643383279502884L / quality;
-			auto point = vector(from.x + distance * std::cos(angle), from.y + distance * std::sin(angle), from.z);
+			const auto& angle = i * 2 * 3.141592653589793238462643383279502884L / quality;
+			const auto& point = vector(from.x + distance * std::cos(angle), from.y + distance * std::sin(angle), from.z);
 			points.push_back(point);
 		}
 		return points;
@@ -301,8 +183,8 @@ namespace utilities {
 		{
 			for (const auto& contour : child->Contour)
 			{
-				const auto position = vector(contour.X, contour.Y, 0);
-				const auto distance = myhero->get_distance(position);
+				const auto& position = vector(contour.X, contour.Y, 0);
+				const auto& distance = myhero->get_distance(position);
 				if (distance < min_distance)
 				{
 					min_distance = distance;
@@ -317,30 +199,30 @@ namespace utilities {
 	void createMenu()
 	{
 		// Main tab
-		mainMenu = menu->create_tab("openutilities", "OpenUtilities");
+		mainMenu = menu->create_tab("open.utilities", "OpenUtilities");
 
 		// Teleport settings
-		const auto teleportTab = mainMenu->add_tab("openutilitiesteleport", "Teleport");
-		settings::teleport::teleportEnable = teleportTab->add_checkbox("openutilitiesteleportenable", "Show teleport location", true);
+		const auto teleportTab = mainMenu->add_tab("open.utilities.teleport", "Teleport");
+		settings::teleport::teleportEnable = teleportTab->add_checkbox("open.utilities.teleport.teleportenable", "Show teleport location", true);
 
 		// Epic monster tracker settings
-		const auto epicTab = mainMenu->add_tab("openutilitiesepictracker", "Epic monster tracker");
-		settings::epic::epicTrackerNotifications = epicTab->add_checkbox("openutilitiesepictrackernotifications", "Show attacked epic monsters notifications", true);
-		settings::epic::epicTrackerMap = epicTab->add_checkbox("openutilitiesepictrackermap", "Show attacked epic monsters on minimap", true);
-		settings::epic::epicTrackerVisible = epicTab->add_checkbox("openutilitiesepictrackervisible", "Track even if visible", false);
+		const auto epicTab = mainMenu->add_tab("open.utilities.epictracker", "Epic monster tracker");
+		settings::epic::epicTrackerNotifications = epicTab->add_checkbox("open.utilities.epictracker.epictrackernotifications", "Show attacked epic monsters notifications", true);
+		settings::epic::epicTrackerMap = epicTab->add_checkbox("open.utilities.epictracker.epictrackermap", "Show attacked epic monsters on minimap", true);
+		settings::epic::epicTrackerVisible = epicTab->add_checkbox("open.utilities.epictracker.epictrackervisible", "Track even if visible", false);
 
 		// Flash settings
-		const auto flashTab = mainMenu->add_tab("openutilitiesflash", "Flash utility");
-		settings::flash::antiFlashGlitch = flashTab->add_checkbox("openutilitiesantiflashglitch", "Prevent glitching flash in wall", true);
-		settings::flash::flashExtend = flashTab->add_checkbox("openutilitiesflashextend", "Auto extend flash", true);
+		const auto flashTab = mainMenu->add_tab("open.utilities.flash", "Flash utility");
+		settings::flash::antiFlashGlitch = flashTab->add_checkbox("open.utilities.flash.antiflashglitch", "Prevent glitching flash in wall", true);
+		settings::flash::flashExtend = flashTab->add_checkbox("open.utilities.flash.flashextend", "Auto extend flash", true);
 
 		// Safe settings
-		const auto safeTab = mainMenu->add_tab("openutilitiessafe", "Anti nexus turret");
-		settings::safe::antiNexusRange = safeTab->add_checkbox("openutilitiesantinexusrange", "Avoid going under Nexus turret", true);
+		const auto safeTab = mainMenu->add_tab("open.utilities.safe", "Anti nexus turret");
+		settings::safe::antiNexusRange = safeTab->add_checkbox("open.utilities.safe.antinexusrange", "Avoid going under Nexus turret", true);
 
 		// Misc
-		settings::lowSpec = mainMenu->add_checkbox("openutilitieslowspec", "Low spec mode (tick limiter)", false);
-		settings::debugPrint = mainMenu->add_checkbox("openutilitiesdebugprint", "Debug print in console (dev)", false);
+		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
+		settings::debugPrint = mainMenu->add_checkbox("open.utilities.debugprint", "Debug print in console (dev)", false);
 
 	}
 
@@ -418,10 +300,10 @@ namespace utilities {
 				draw_manager->add_circle(obj.castingPos, obj.owner->get_bounding_radius() * std::min(1.f, (1 / (obj.castTime / (gametime->get_time() - obj.time)))), MAKE_COLOR(255, 0, 255, 255), 2);
 				vector screenPos;
 				renderer->world_to_screen(obj.castingPos, screenPos);
-				const auto size = vector(40.f, 40.f);
-				const auto sizeMod = size / 2;
+				const auto& size = vector(40.f, 40.f);
+				const auto& sizeMod = size / 2;
 				draw_manager->add_image(obj.owner->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
-				const int alpha = round(255*0.4);
+				const int& alpha = round(255*0.4);
 				draw_manager->add_circle_on_screen(screenPos, 22, MAKE_COLOR(255, 0, 0, alpha), 2.f);
 				vector minimapPos;
 				vector castPos = obj.castingPos;
@@ -442,7 +324,7 @@ namespace utilities {
 			teleportStruct teleportData = teleportList[target->get_handle()];
 			if (teleportData.endTime == 0) continue;
 
-			auto timeLeft = teleportData.endTime - gametime->get_time();
+			const auto& timeLeft = teleportData.endTime - gametime->get_time();
 			if (timeLeft >= 0 && teleportData.type != teleport_type::Teleport && teleportData.type != teleport_type::Recall && teleportData.type != teleport_type::SuperRecall) continue;
 
 			auto castTime = teleportData.endTime - teleportData.startTime;
@@ -457,10 +339,10 @@ namespace utilities {
 				draw_manager->add_circle(spawnPoint, target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour2, 2);
 				vector screenPos;
 				renderer->world_to_screen(spawnPoint, screenPos);
-				const auto size = vector(40.f, 40.f);
-				const auto sizeMod = size / 2;
+				const auto& size = vector(40.f, 40.f);
+				const auto& sizeMod = size / 2;
 				draw_manager->add_image(target->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
-				const int alpha = round(255 * 0.4);
+				const int& alpha = round(255 * 0.4);
 				draw_manager->add_circle_on_screen(screenPos, 22, MAKE_COLOR(255, 0, 0, alpha), 2.f);
 			}
 		}
@@ -469,18 +351,18 @@ namespace utilities {
 		{
 			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 4))
 			{
-				auto isAggroed = isDragonAttacked || gametime->get_time() - dragonAttackTime < 2;
+				const auto& isAggroed = isDragonAttacked || gametime->get_time() - dragonAttackTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && isAggroed) {
-					const auto position = vector(520, 150);
-					const auto size = vector(60.f, 60.f);
-					const auto sizeMod = size / 2;
+					const auto& position = vector(520, 150);
+					const auto& size = vector(60.f, 60.f);
+					const auto& sizeMod = size / 2;
 					draw_manager->add_image(lastDragon->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto positionText = vector(575, 140);
+					const auto& positionText = vector(575, 140);
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Dragon is under attack!");
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
 				{
-					auto circleColour = isAggroed ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
+					const auto& circleColour = isAggroed ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
 					draw_manager->draw_circle_on_minimap(dragonPos, 550, circleColour, 2);
 				}
 			}
@@ -489,30 +371,30 @@ namespace utilities {
 
 			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && (gametime->get_time() - baronAttackTime < 8 || gametime->get_time() - baronIdleTime < 2))
 			{
-				auto isIdle = gametime->get_time() - baronIdleTime < 2;
+				const auto& isIdle = gametime->get_time() - baronIdleTime < 2;
 				if (gametime->get_time() - baronIdleTime < 1) baronAttackTime = 0;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
-					const auto position = vector(1330, 150);
-					const auto size = vector(60.f, 60.f);
-					const auto sizeMod = size / 2;
+					const auto& position = vector(1330, 150);
+					const auto& size = vector(60.f, 60.f);
+					const auto& sizeMod = size / 2;
 					draw_manager->add_image(lastBaron->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto positionText = vector(1050, 140);
+					const auto& positionText = vector(1050, 140);
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Baron is under attack!");
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
 				{
-					auto circleColour = !isIdle ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
+					const auto& circleColour = !isIdle ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
 					draw_manager->draw_circle_on_minimap(baronPos, 550, circleColour, 2);
 				}
 			}
 			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && gametime->get_time() - heraldAttackTime < 15)
 			{
 				if (settings::epic::epicTrackerNotifications->get_bool()) {
-					const auto position = vector(1330, 150);
-					const auto size = vector(60.f, 60.f);
-					const auto sizeMod = size / 2;
+					const auto& position = vector(1330, 150);
+					const auto& size = vector(60.f, 60.f);
+					const auto& sizeMod = size / 2;
 					draw_manager->add_image(lastHerald->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto positionText = vector(1040, 140);
+					const auto& positionText = vector(1040, 140);
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Herald is under attack!");
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
@@ -524,11 +406,11 @@ namespace utilities {
 	void on_create(const game_object_script obj)
 	{
 		// Get if an epic monster is attacking someone
-		const game_object_script epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
-		const auto epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
-		const game_object_script epicOwner = obj->is_missile() ? entitylist->get_object(obj->missile_get_sender_id()) : nullptr;
-		const auto epicMissile = epicOwner && !epicOwner->is_dead() && epicOwner->is_epic_monster() && !epicOwner->get_owner();
-		const auto isOwnedByEpic = epicParticle || epicMissile;
+		const game_object_script& epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
+		const auto& epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
+		const game_object_script& epicOwner = obj->is_missile() ? entitylist->get_object(obj->missile_get_sender_id()) : nullptr;
+		const auto& epicMissile = epicOwner && !epicOwner->is_dead() && epicOwner->is_epic_monster() && !epicOwner->get_owner();
+		const auto& isOwnedByEpic = epicParticle || epicMissile;
 		if (isOwnedByEpic)
 		{
 			auto owner = epicParticle ? epicEmitter : epicOwner;
@@ -560,10 +442,10 @@ namespace utilities {
 		game_object_script epicAttachment = obj->get_particle_attachment_object() && obj->get_particle_attachment_object()->is_epic_monster() ? obj->get_particle_attachment_object() : nullptr;
 		if (!epicAttachment)
 			epicAttachment = obj->get_particle_target_attachment_object() && obj->get_particle_target_attachment_object()->is_epic_monster() ? obj->get_particle_target_attachment_object() : nullptr;
-		const auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
-		const game_object_script epicOwnerTarget = obj->is_missile() && obj->missile_get_target_id() ? entitylist->get_object(obj->missile_get_target_id()) : nullptr;
-		const auto epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster() && !epicOwnerTarget->get_owner();
-		const auto isTargetEpic = epicParticleAttachment || epicMissileTarget;
+		const auto& epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
+		const game_object_script& epicOwnerTarget = obj->is_missile() && obj->missile_get_target_id() ? entitylist->get_object(obj->missile_get_target_id()) : nullptr;
+		const auto& epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster() && !epicOwnerTarget->get_owner();
+		const auto& isTargetEpic = epicParticleAttachment || epicMissileTarget;
 		if (isTargetEpic && obj->get_name() != "SRU_Plant_Vision_Pollen_Debuff.troy")
 		{
 			auto owner = epicParticleAttachment ? epicAttachment : epicOwnerTarget;
@@ -592,7 +474,7 @@ namespace utilities {
 
 		// Get possible valid particles
 		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero()) return;
-		const auto emitterHash = obj->get_emitter_resources_hash();
+		const auto& emitterHash = obj->get_emitter_resources_hash();
 
 		switch (emitterHash)
 		{
@@ -651,7 +533,7 @@ namespace utilities {
 
 		if (obj->get_name() == "global_ss_teleport_turret_red.troy")
 		{
-			auto target = obj->get_particle_attachment_object();
+			const auto& target = obj->get_particle_attachment_object();
 			if (nexusPos != vector::zero)
 			{
 				particleStruct particleData = { .obj = obj, .target = target, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 4.1, .castingPos = vector::zero, .isTeleport = true };
@@ -661,10 +543,10 @@ namespace utilities {
 		}
 		else if (obj->get_name() == "global_ss_teleport_target_red.troy")
 		{
-			auto target = obj->get_particle_target_attachment_object();
+			const auto& target = obj->get_particle_target_attachment_object();
 			if (nexusPos != vector::zero)
 			{
-				particleStruct particleData = { .obj = obj, .target = target, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 4.1, .castingPos = vector::zero, .isTeleport = true };
+				const particleStruct& particleData = { .obj = obj, .target = target, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 4.1, .castingPos = vector::zero, .isTeleport = true };
 				particlePredList.push_back(particleData);
 				return;
 			}
@@ -679,8 +561,8 @@ namespace utilities {
 	void on_do_cast(game_object_script sender, spell_instance_script spell)
 	{
 		// Detect if someone casted something towards an Epic Monster
-		auto target = entitylist->get_object(spell->get_last_target_id());
-		const auto isEpicTarget = target && !target->is_dead() && target->is_epic_monster() && !target->get_owner();
+		const auto& target = entitylist->get_object(spell->get_last_target_id());
+		const auto& isEpicTarget = target && !target->is_dead() && target->is_epic_monster() && !target->get_owner();
 		if (isEpicTarget)
 		{
 			if (target->get_name().find("Baron") != std::string::npos)
@@ -737,10 +619,10 @@ namespace utilities {
 
 	void on_network_packet(game_object_script sender, std::uint32_t network_id, pkttype_e type, void* args)
 	{
-		const auto isEpicSender = type == pkttype_e::PKT_S2C_PlayAnimation_s && sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
+		const auto& isEpicSender = type == pkttype_e::PKT_S2C_PlayAnimation_s && sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 		if (isEpicSender)
 		{
-			const auto data = (PKT_S2C_PlayAnimationArgs*)args;
+			const auto& data = (PKT_S2C_PlayAnimationArgs*)args;
 			if (!data) return;
 
 			if (sender->get_name().find("Baron") != std::string::npos)
@@ -802,11 +684,11 @@ namespace utilities {
 
 		if (status == teleport_status::Abort || status == teleport_status::Finish)
 		{
-			teleportList[sender->get_handle()] = {};
+			teleportList[sender->get_handle()] = teleportStruct{};
 		}
 		else
 		{
-			teleportStruct teleportData = {.duration = duration, .startTime = gametime->get_time(), .endTime = gametime->get_time() + duration, .type = type};
+			const teleportStruct& teleportData = {.duration = duration, .startTime = gametime->get_time(), .endTime = gametime->get_time() + duration, .type = type};
 			teleportList[sender->get_handle()] = teleportData;
 		}
 	}
@@ -816,8 +698,8 @@ namespace utilities {
 		// Check if it's flash input
 		if (dontCancel || !pos.is_valid() || !myhero->get_spell(spellSlot) || !myhero->get_spell(spellSlot)->get_spell_data() || myhero->get_spell(spellSlot)->get_spell_data()->get_name_hash() != spell_hash("SummonerFlash")) return;
 
-		auto distance = std::min(400.f, myhero->get_position().distance(pos));
-		auto endPos = myhero->get_position().extend(pos, distance);
+		const auto& distance = std::min(400.f, myhero->get_position().distance(pos));
+		const auto& endPos = myhero->get_position().extend(pos, distance);
 		// Check if end position is in a wall
 		auto flashGlitch = (settings::flash::antiFlashGlitch->get_bool() && (endPos.is_wall() || endPos.is_building()));
 
@@ -886,13 +768,13 @@ namespace utilities {
 		if (dontCancel || !settings::safe::antiNexusRange->get_bool() || type != MoveTo) return;
 
 		if (myhero->get_position().distance(turretPos) < turretRange + myhero->get_bounding_radius()) return;
-		auto path = myhero->get_path(pos);
+		const auto& path = myhero->get_path(pos);
 		for (int i = 0; i < static_cast<int>(path.size()) - 1; i++)
 		{
-			const auto end_position = path[i + 1];
-			const auto start_position = path[i];
-			const auto rectanglePath = geometry::rectangle(start_position, end_position, myhero->get_bounding_radius()).to_polygon().to_clipper_path();
-			const auto circlePath = geometry::circle(turretPos, turretRange).to_polygon().to_clipper_path();
+			const auto& end_position = path[i + 1];
+			const auto& start_position = path[i];
+			const auto& rectanglePath = geometry::rectangle(start_position, end_position, myhero->get_bounding_radius()).to_polygon().to_clipper_path();
+			const auto& circlePath = geometry::circle(turretPos, turretRange).to_polygon().to_clipper_path();
 			ClipperLib::Clipper clipper;
 			ClipperLib::PolyTree polytree;
 			clipper.AddPath(rectanglePath, ClipperLib::PolyType::ptSubject, true);
@@ -900,13 +782,13 @@ namespace utilities {
 			clipper.Execute(ClipperLib::ctIntersection, polytree);
 			if (polytree.Total() > 0)
 			{
-				const auto point = getClosestPoint(polytree);
-				const auto position = vector(point.X, point.Y, 0).extend(turretPos, -30);
+				const auto& point = getClosestPoint(polytree);
+				const auto& position = vector(point.X, point.Y, 0).extend(turretPos, -30);
 				*process = false;
-				const auto top_left = position + (position - turretPos).normalized().perpendicular() * 300;
-				const auto top_right = position - (position - turretPos).normalized().perpendicular() * 300;
-				const auto projection = pos.project_on(top_left, top_right);
-				const auto result = !projection.line_point.is_wall() ? projection.line_point : position.extend(projection.line_point, 70);
+				const auto& top_left = position + (position - turretPos).normalized().perpendicular() * 300;
+				const auto& top_right = position - (position - turretPos).normalized().perpendicular() * 300;
+				const auto& projection = pos.project_on(top_left, top_right);
+				const auto& result = !projection.line_point.is_wall() ? projection.line_point : position.extend(projection.line_point, 70);
 				if (myhero->get_real_path().size() > 1 || result.distance(myhero->get_position()) > 85)
 				{
 					// Preventing non-sense infinite loops and allowing other modules like Evade to cancel this event (note that it should never ever issue an order inside of turret range but still does)
@@ -925,27 +807,27 @@ namespace utilities {
 	void load()
 	{
 		// Get enemy spawnpoint
-		const auto spawnPointIt = std::find_if(entitylist->get_all_spawnpoints().begin(), entitylist->get_all_spawnpoints().end(), [](game_object_script x) {
+		const auto& spawnPointIt = std::find_if(entitylist->get_all_spawnpoints().begin(), entitylist->get_all_spawnpoints().end(), [](game_object_script x) {
 			return x->is_enemy();
 			}
 		);
-		const auto spawnPointObj = *spawnPointIt;
+		const auto& spawnPointObj = *spawnPointIt;
 		spawnPoint = spawnPointObj->get_position();
 
 		// Get enemy Nexus pos
-		const auto nexusPosIt = std::find_if(entitylist->get_all_nexus().begin(), entitylist->get_all_nexus().end(), [](game_object_script x) {
+		const auto& nexusPosIt = std::find_if(entitylist->get_all_nexus().begin(), entitylist->get_all_nexus().end(), [](game_object_script x) {
 			return x->is_enemy();
 			}
 		);
-		const auto nexusEntity = *nexusPosIt;
+		const auto& nexusEntity = *nexusPosIt;
 		nexusPos = nexusEntity->get_position();
 
 		// Get enemy Nexus turret pos
-		const auto nexusTurretPosIt = std::find_if(entitylist->get_enemy_turrets().begin(), entitylist->get_enemy_turrets().end(), [](game_object_script x) {
+		const auto& nexusTurretPosIt = std::find_if(entitylist->get_enemy_turrets().begin(), entitylist->get_enemy_turrets().end(), [](game_object_script x) {
 			return x->get_name().find("Shrine") != std::string::npos;
 			}
 		);
-		const auto nexusTurret = *nexusTurretPosIt;
+		const auto& nexusTurret = *nexusTurretPosIt;
 		turretRange = nexusTurret->get_attackRange();
 		turretPos = nexusTurret->get_position();
 

@@ -5,9 +5,6 @@ namespace utilities
 {
 	void debugPrint(const std::string& str, ...);
 	float getPing();
-	float getGodBuffTime(const game_object_script& target);
-	float getNoKillBuffTime(const game_object_script& target);
-	float getStasisTime(const game_object_script& target);
 	bool isRecalling(const game_object_script& target);
 	bool limitedTick(int msTime);
 	std::vector<vector> circlePoints(vector from, float distance, int quality);
