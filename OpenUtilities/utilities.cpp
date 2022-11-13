@@ -25,6 +25,13 @@ namespace utilities {
 		stasisStruct stasis = {};
 	};
 
+	struct trapInfo {
+		float remainingTime = 0;
+		game_object_script owner;
+		game_object_script obj;
+		int trapType = 0;
+	};
+
 	struct particleStruct {
 		game_object_script obj = {};
 		game_object_script target = {};
@@ -37,6 +44,8 @@ namespace utilities {
 	};
 
 	std::vector<particleStruct> particlePredList;
+	std::vector<game_object_script> unknownTraps;
+	std::vector<trapInfo> traps;
 	std::unordered_map<uint32_t, teleportStruct> teleportList;
 	std::unordered_map<uint32_t, float> guardianReviveTime;
 
@@ -79,6 +88,13 @@ namespace utilities {
 		}
 		namespace safe {
 			TreeEntry* antiNexusRange;
+		}
+		namespace traps {
+			TreeEntry* enable;
+			TreeEntry* drawCircle;
+			TreeEntry* drawRemaining;
+			TreeEntry* drawOwner;
+			TreeEntry* glow;
 		}
 		TreeEntry* lowSpec;
 		TreeEntry* debugPrint;
@@ -220,13 +236,22 @@ namespace utilities {
 		const auto safeTab = mainMenu->add_tab("open.utilities.safe", "Anti nexus turret");
 		settings::safe::antiNexusRange = safeTab->add_checkbox("open.utilities.safe.antinexusrange", "Avoid going under Nexus turret", true);
 
+		// Traps settings
+		const auto trapsTab = mainMenu->add_tab("open.utilities.traps", "Traps");
+		settings::traps::enable = trapsTab->add_checkbox("open.utilities.traps.enable", "Enabled", true);
+		trapsTab->add_separator("", "");
+		settings::traps::drawCircle = trapsTab->add_checkbox("open.utilities.traps.drawcircle", "Draw circle", true);
+		settings::traps::drawRemaining = trapsTab->add_checkbox("open.utilities.traps.drawremaining", "Draw remaining time", true);
+		settings::traps::drawOwner = trapsTab->add_checkbox("open.utilities.traps.drawowner", "Draw owner name", true);
+		settings::traps::glow = trapsTab->add_checkbox("open.utilities.traps.glow", "Use glow", true);
+
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
 		settings::debugPrint = mainMenu->add_checkbox("open.utilities.debugprint", "Debug print in console (dev)", false);
 
 	}
 
-	void updateParticles()
+	void updateObjects()
 	{
 		// Checking if particles are valid, if they're not, delete them from the list
 		particlePredList.erase(std::remove_if(particlePredList.begin(), particlePredList.end(), [](const particleStruct& x)
@@ -235,6 +260,45 @@ namespace utilities {
 			}
 		),
 		particlePredList.end());
+		// Unknown traps filtering
+		unknownTraps.erase(std::remove_if(unknownTraps.begin(), unknownTraps.end(), [](const game_object_script& x)
+			{
+				return !x->is_valid();
+			}
+		),
+		unknownTraps.end());
+		// Traps filtering
+		traps.erase(std::remove_if(traps.begin(), traps.end(), [](const trapInfo& x)
+			{
+				return !x.obj->is_valid();
+			}
+		),
+		traps.end());
+
+		// Loop through unknown traps
+		for (const auto& trap : unknownTraps)
+		{
+			const auto& trapBuff = trap->get_buff(buff_hash("JhinETrap"));
+			if (trap->get_owner() && trap->get_owner()->is_enemy() && trapBuff)
+			{
+				const trapInfo& trapData = { .remainingTime = gametime->get_time() + trapBuff->get_remaining_time(), .owner = trap->get_owner(), .obj = trap, .trapType = 0 };
+				traps.push_back(trapData);
+			}
+			const auto& trapBuff2 = trap->get_buff(buff_hash("Bushwhack"));
+			if (trap->get_owner() && trap->get_owner()->is_enemy() && trapBuff2)
+			{
+				const trapInfo& trapData = { .remainingTime = gametime->get_time() + trapBuff2->get_remaining_time(), .owner = trap->get_owner(), .obj = trap, .trapType = 1 };
+				traps.push_back(trapData);
+			}
+		}
+
+		// Unknown traps filtering 2
+		unknownTraps.erase(std::remove_if(unknownTraps.begin(), unknownTraps.end(), [](const game_object_script& x)
+			{
+				return x->get_owner() && x->get_bufflist().size() > 0;
+			}
+		),
+		unknownTraps.end());
 
 		// Loop through every teleport particles
 		for (auto& obj : particlePredList)
@@ -283,7 +347,7 @@ namespace utilities {
 		last_tick = gametime->get_time();
 
 		// Update particle data
-		updateParticles();
+		updateObjects();
 
 	}
 
@@ -347,6 +411,7 @@ namespace utilities {
 			}
 		}
 
+		// Epic monster indicators
 		if (settings::epic::epicTrackerNotifications->get_bool() || settings::epic::epicTrackerMap->get_bool())
 		{
 			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 4))
@@ -401,10 +466,47 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(baronPos, 500, MAKE_COLOR(255, 0, 0, 255), 2);
 			}
 		}
+
+		// Traps manager
+		if (settings::traps::enable->get_bool())
+		{
+			for (const auto& trap : traps)
+			{
+				if (!trap.obj->is_visible())
+				{
+					const auto& colour = trap.trapType == 0 ? MAKE_COLOR(255, 127, 0, 255) : MAKE_COLOR(0, 127, 0, 255);
+					const auto& size = trap.trapType == 0 ? 160 : 75;
+					if (settings::traps::glow->get_bool())
+					{
+						glow->apply_glow(trap.obj, colour, 3, 0);
+					}
+					else
+						glow->remove_glow(trap.obj);
+					if (settings::traps::drawCircle->get_bool())
+						draw_manager->add_circle(trap.obj->get_position(), size, colour, 2);
+					const auto& timeLeft = (int)std::ceil(trap.remainingTime - gametime->get_time());
+					const auto& remainingTimePos = vector(trap.obj->get_hpbar_pos().x + 15, trap.obj->get_hpbar_pos().y + 55, trap.obj->get_hpbar_pos().z);
+					if (timeLeft > 0 && settings::traps::drawRemaining->get_bool())
+						draw_manager->add_text_on_screen(remainingTimePos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
+				}
+				else
+					glow->remove_glow(trap.obj);
+				const auto& ownerPos = vector(trap.obj->get_hpbar_pos().x + 15, trap.obj->get_hpbar_pos().y + 80, trap.obj->get_hpbar_pos().z);
+				if (settings::traps::drawOwner->get_bool())
+					draw_manager->add_text_on_screen(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_base_skin_name().c_str());
+			}
+		}
+
 	}
 
 	void on_create(const game_object_script obj)
 	{
+		// Register traps
+		if (obj->get_name() == "Noxious Trap")
+		{
+			unknownTraps.push_back(obj);
+		}
+
 		// Get if an epic monster is attacking someone
 		const game_object_script& epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
 		const auto& epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
@@ -567,21 +669,21 @@ namespace utilities {
 		{
 			if (target->get_name().find("Baron") != std::string::npos)
 			{
-				debugPrint("Cast on Baron");
+				debugPrint("Cast on Baron : %s", spell->get_spell_data()->get_name().c_str());
 				baronAttackTime = gametime->get_time();
 				lastBaron = target;
 				return;
 			}
 			else if (target->get_name().find("Dragon") != std::string::npos)
 			{
-				debugPrint("Cast on Dragon");
+				debugPrint("Cast on Dragon : %s", spell->get_spell_data()->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
 				lastDragon = target;
 				return;
 			}
 			else if (target->get_name().find("Herald") != std::string::npos)
 			{
-				debugPrint("Cast on Herald");
+				debugPrint("Cast on Herald : %s", spell->get_spell_data()->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = target;
 				return;
@@ -594,14 +696,14 @@ namespace utilities {
 		{
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
-				debugPrint("Cast from Baron");
+				debugPrint("Cast from Baron : %s", spell->get_spell_data()->get_name().c_str());
 				baronAttackTime = gametime->get_time();
 				lastBaron = sender;
 				return;
 			}
 			else if (sender->get_name().find("Dragon") != std::string::npos)
 			{
-				debugPrint("Cast from Dragon");
+				debugPrint("Cast from Dragon : %s", spell->get_spell_data()->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
 				isDragonAttacked = true;
 				lastDragon = sender;
@@ -609,7 +711,7 @@ namespace utilities {
 			}
 			else if (sender->get_name().find("Herald") != std::string::npos)
 			{
-				debugPrint("Cast from Herald");
+				debugPrint("Cast from Herald : %s", spell->get_spell_data()->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = sender;
 				return;
@@ -840,6 +942,15 @@ namespace utilities {
 		// Get URF cannon pos
 		urfCannon = myhero->get_team() == game_object_team::order ? vector(13018.f, 14026.f) : vector(1506.f, 676.f);
 
+		// Get Jhin traps
+		for (const auto& entity : entitylist->get_other_minion_objects())
+		{
+			if (entity->get_name() == "Noxious Trap")
+			{
+				unknownTraps.push_back(entity);
+			}
+		}
+
 		// Call menu creation function
 		createMenu();
 
@@ -861,6 +972,12 @@ namespace utilities {
 
 	void unload()
 	{
+		// Remove glow from traps
+		for (const auto& trap : traps)
+		{
+			glow->remove_glow(trap.obj);
+		}
+
 		// Remove events
 		event_handler< events::on_update >::remove_handler(on_update);
 		event_handler< events::on_draw >::remove_handler(on_draw);
