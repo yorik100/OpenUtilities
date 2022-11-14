@@ -170,7 +170,7 @@ namespace utilities {
 		return isRecalling;
 	}
 
-	bool limitedTick(int msTime)
+	bool limitedTick(float msTime)
 	{
 		// Only execute once per msTime
 		if (gametime->get_time() - last_tick <= msTime / 1000) return true;
