@@ -885,7 +885,7 @@ namespace utilities {
 			if (polytree.Total() > 0)
 			{
 				const auto& point = getClosestPoint(polytree);
-				const auto& position = vector(point.X, point.Y, 0).extend(turretPos, -30);
+				const auto& position = vector(point.X, point.Y, 0).extend(turretPos, -60);
 				*process = false;
 				const auto& top_left = position + (position - turretPos).normalized().perpendicular() * 300;
 				const auto& top_right = position - (position - turretPos).normalized().perpendicular() * 300;
