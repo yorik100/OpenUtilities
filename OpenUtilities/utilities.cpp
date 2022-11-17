@@ -570,17 +570,6 @@ namespace utilities {
 				wards.end());
 		}
 
-		// Register blue wards
-		if (obj->get_emitter() && obj->get_emitter()->is_enemy() && object_hash == spell_hash("Global_Trinket_Blue_ward.troy"))
-		{
-			const auto& pos = obj->get_position();
-			if (!pos.is_building() && !pos.is_wall())
-			{
-				const wardInfo wardData = { .remainingTime = 0, .owner = obj->get_emitter(), .position = obj->get_position(), .wardType = 1 };
-				wards.push_back(wardData);
-			}
-		}
-
 		// Get if an epic monster is attacking someone
 		const game_object_script& epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
 		const auto& epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
@@ -651,6 +640,17 @@ namespace utilities {
 		// Get possible valid particles
 		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero()) return;
 		const auto& emitterHash = obj->get_emitter_resources_hash();
+
+		// Register blue wards
+		if (object_hash == spell_hash("Global_Trinket_Blue_ward.troy"))
+		{
+			const auto& pos = obj->get_position();
+			if (!pos.is_building() && !pos.is_wall())
+			{
+				const wardInfo wardData = { .remainingTime = 0, .owner = obj->get_emitter(), .position = obj->get_position(), .wardType = 1 };
+				wards.push_back(wardData);
+			}
+		}
 
 		switch (emitterHash)
 		{
