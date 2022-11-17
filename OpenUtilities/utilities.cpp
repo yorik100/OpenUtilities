@@ -642,7 +642,7 @@ namespace utilities {
 		const auto& emitterHash = obj->get_emitter_resources_hash();
 
 		// Register blue wards
-		if (object_hash == spell_hash("Global_Trinket_Blue_ward.troy"))
+		if (object_hash == spell_hash("Global_Trinket_ItemClairvoyance_Red.troy"))
 		{
 			const auto& pos = obj->get_position();
 			if (!pos.is_building() && !pos.is_wall())
