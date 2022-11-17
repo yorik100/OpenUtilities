@@ -32,6 +32,13 @@ namespace utilities {
 		int trapType = 0;
 	};
 
+	struct wardInfo {
+		float remainingTime = 0;
+		game_object_script owner;
+		vector position;
+		int wardType = 0;
+	};
+
 	struct particleStruct {
 		game_object_script obj = {};
 		game_object_script target = {};
@@ -46,6 +53,7 @@ namespace utilities {
 	std::vector<particleStruct> particlePredList;
 	std::vector<game_object_script> unknownTraps;
 	std::vector<trapInfo> traps;
+	std::vector<wardInfo> wards;
 	std::unordered_map<uint32_t, teleportStruct> teleportList;
 	std::unordered_map<uint32_t, float> guardianReviveTime;
 
@@ -89,7 +97,7 @@ namespace utilities {
 		namespace safe {
 			TreeEntry* antiNexusRange;
 		}
-		namespace traps {
+		namespace hidden {
 			TreeEntry* enable;
 			TreeEntry* drawCircle;
 			TreeEntry* drawRemaining;
@@ -237,13 +245,13 @@ namespace utilities {
 		settings::safe::antiNexusRange = safeTab->add_checkbox("open.utilities.safe.antinexusrange", "Avoid going under Nexus turret", true);
 
 		// Traps settings
-		const auto trapsTab = mainMenu->add_tab("open.utilities.traps", "Traps");
-		settings::traps::enable = trapsTab->add_checkbox("open.utilities.traps.enable", "Enabled", true);
-		trapsTab->add_separator("", "");
-		settings::traps::drawCircle = trapsTab->add_checkbox("open.utilities.traps.drawcircle", "Draw circle", true);
-		settings::traps::drawRemaining = trapsTab->add_checkbox("open.utilities.traps.drawremaining", "Draw remaining time", true);
-		settings::traps::drawOwner = trapsTab->add_checkbox("open.utilities.traps.drawowner", "Draw owner name", true);
-		settings::traps::glow = trapsTab->add_checkbox("open.utilities.traps.glow", "Use glow", true);
+		const auto hiddenTab = mainMenu->add_tab("open.utilities.hidden", "Hidden objects");
+		settings::hidden::enable = hiddenTab->add_checkbox("open.utilities.hidden.enable", "Enabled", true);
+		hiddenTab->add_separator("", "");
+		settings::hidden::drawCircle = hiddenTab->add_checkbox("open.utilities.hidden.drawcircle", "Draw circle", true);
+		settings::hidden::drawRemaining = hiddenTab->add_checkbox("open.utilities.hidden.drawremaining", "Draw remaining time", true);
+		settings::hidden::drawOwner = hiddenTab->add_checkbox("open.utilities.hidden.drawowner", "Draw owner name", true);
+		settings::hidden::glow = hiddenTab->add_checkbox("open.utilities.hidden.glow", "Use glow", true);
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
@@ -260,6 +268,13 @@ namespace utilities {
 			}
 		),
 		particlePredList.end());
+		// Wards removal
+		wards.erase(std::remove_if(wards.begin(), wards.end(), [](const wardInfo& x)
+			{
+				return (x.wardType == 0 && x.remainingTime < gametime->get_time()) || (x.wardType == 1 && !x.position.is_in_fow());
+			}
+		),
+			wards.end());
 		// Unknown traps filtering
 		unknownTraps.erase(std::remove_if(unknownTraps.begin(), unknownTraps.end(), [](const game_object_script& x)
 			{
@@ -338,6 +353,18 @@ namespace utilities {
 		dontCancel = false;
 	}
 
+	float getGlobalLvl()
+	{
+		float lvl = 0;
+		int amount = 0;
+		for (const auto& hero : entitylist->get_all_heroes())
+		{
+			lvl += hero->get_level();
+			amount++;
+		}
+		return (lvl/amount);
+	}
+
 	void on_update()
 	{
 		// Limit ticks (for low spec mode)
@@ -367,7 +394,7 @@ namespace utilities {
 				const auto& size = vector(40.f, 40.f);
 				const auto& sizeMod = size / 2;
 				draw_manager->add_image(obj.owner->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
-				const int& alpha = round(255*0.5);
+				const int& alpha = round(255 * 0.5);
 				draw_manager->add_circle_on_screen(screenPos, 22, MAKE_COLOR(255, 0, 0, alpha), 2.f);
 				vector minimapPos;
 				vector castPos = obj.castingPos;
@@ -468,7 +495,7 @@ namespace utilities {
 		}
 
 		// Traps manager
-		if (settings::traps::enable->get_bool())
+		if (settings::hidden::enable->get_bool())
 		{
 			for (const auto& trap : traps)
 			{
@@ -476,24 +503,46 @@ namespace utilities {
 				{
 					const auto& colour = trap.trapType == 0 ? MAKE_COLOR(255, 127, 0, 255) : MAKE_COLOR(0, 127, 0, 255);
 					const auto& size = trap.trapType == 0 ? 160 : 75;
-					if (settings::traps::glow->get_bool())
+					if (settings::hidden::glow->get_bool())
 					{
 						glow->apply_glow(trap.obj, colour, 3, 0);
 					}
 					else
 						glow->remove_glow(trap.obj);
-					if (settings::traps::drawCircle->get_bool())
+					if (settings::hidden::drawCircle->get_bool())
 						draw_manager->add_circle(trap.obj->get_position(), size, colour, 2);
 					const auto& timeLeft = (int)std::ceil(trap.remainingTime - gametime->get_time());
 					const auto& remainingTimePos = vector(trap.obj->get_hpbar_pos().x + 15, trap.obj->get_hpbar_pos().y + 55, trap.obj->get_hpbar_pos().z);
-					if (timeLeft > 0 && settings::traps::drawRemaining->get_bool())
+					if (timeLeft > 0 && settings::hidden::drawRemaining->get_bool())
 						draw_manager->add_text_on_screen(remainingTimePos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
 				}
 				else
 					glow->remove_glow(trap.obj);
 				const auto& ownerPos = vector(trap.obj->get_hpbar_pos().x + 15, trap.obj->get_hpbar_pos().y + 80, trap.obj->get_hpbar_pos().z);
-				if (settings::traps::drawOwner->get_bool())
+				if (settings::hidden::drawOwner->get_bool())
 					draw_manager->add_text_on_screen(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_base_skin_name().c_str());
+			}
+		}
+
+		// Wards manager
+		if (settings::hidden::enable->get_bool())
+		{
+			for (const auto& ward : wards)
+			{
+				const auto& colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 255) : MAKE_COLOR(0, 255, 255, 255);
+				if (settings::hidden::drawCircle->get_bool())
+					draw_manager->add_circle(ward.position, 40, colour, 2);
+				const auto& timeLeft = (int)std::ceil(ward.remainingTime - gametime->get_time());
+				if (ward.wardType == 0 && timeLeft > 0 && settings::hidden::drawRemaining->get_bool())
+				{
+					const auto& timeLeftPos = vector(ward.position.x - 10, ward.position.y, ward.position.z);
+					draw_manager->add_text(timeLeftPos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
+				}
+				if (settings::hidden::drawOwner->get_bool())
+				{
+					const auto& ownerPos = vector(ward.position.x - 50, ward.position.y - 50, ward.position.z);
+					draw_manager->add_text(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", ward.owner->get_base_skin_name().c_str());
+				}
 			}
 		}
 
@@ -501,10 +550,35 @@ namespace utilities {
 
 	void on_create(const game_object_script obj)
 	{
+		// Object name hash
+		const auto& object_hash = spell_hash_real(obj->get_name_cstr());
+
 		// Register traps
-		if (obj->get_name() == "Noxious Trap")
+		if (obj->is_enemy() && obj->get_name() == "Noxious Trap")
 		{
 			unknownTraps.push_back(obj);
+		}
+
+		// Filter wards
+		if (obj->is_enemy() && (obj->get_name() == "VisionWard" || obj->get_name() == "SightWard"))
+		{
+			wards.erase(std::remove_if(wards.begin(), wards.end(), [obj](const wardInfo& x)
+				{
+					return obj->get_position().distance(x.position) < 50;
+				}
+			),
+				wards.end());
+		}
+
+		// Register blue wards
+		if (obj->get_emitter() && obj->get_emitter()->is_enemy() && obj->get_name() == "Global_Trinket_Blue_ward.troy")
+		{
+			const auto& pos = obj->get_position();
+			if (!pos.is_building() && !pos.is_wall())
+			{
+				const wardInfo wardData = { .remainingTime = 0, .owner = obj->get_emitter(), .position = obj->get_position(), .wardType = 1 };
+				wards.push_back(wardData);
+			}
 		}
 
 		// Get if an epic monster is attacking someone
@@ -715,6 +789,39 @@ namespace utilities {
 				heraldAttackTime = gametime->get_time();
 				lastHerald = sender;
 				return;
+			}
+		}
+	}
+
+	void on_process_spell_cast(game_object_script sender, spell_instance_script spell)
+	{
+		// Get ward casts
+		if (sender && spell && sender->is_ai_hero() && sender->is_enemy())
+		{
+			switch (spell->get_spell_data()->get_name_hash())
+			{
+			case spell_hash("TrinketTotemLvl1"):
+			{
+				const auto& pos = spell->get_end_position();
+				if (!pos.is_building() && !pos.is_wall())
+				{
+					const float& time = 90.f + (30.f / 17.f) * (getGlobalLvl() - 1.f);
+					const wardInfo wardData = { .remainingTime = gametime->get_time() + time, .owner = sender, .position = pos, .wardType = 0 };
+					wards.push_back(wardData);
+				}
+				break;
+			}
+			case spell_hash("ItemGhostWard"):
+			{
+				const auto& pos = spell->get_end_position();
+				if (!pos.is_building() && !pos.is_wall())
+				{
+					const float& time = 150;
+					const wardInfo wardData = { .remainingTime = gametime->get_time() + time, .owner = sender, .position = pos, .wardType = 0 };
+					wards.push_back(wardData);
+				}
+				break;
+			}
 			}
 		}
 	}
@@ -963,6 +1070,7 @@ namespace utilities {
 		event_handler<events::on_buff_lose>::add_callback(on_buff_lose);
 		event_handler<events::on_teleport>::add_callback(on_teleport);
 		event_handler<events::on_do_cast>::add_callback(on_do_cast);
+		event_handler<events::on_process_spell_cast>::add_callback(on_process_spell_cast);
 		event_handler<events::on_network_packet>::add_callback(on_network_packet);
 		event_handler<events::on_cast_spell>::add_callback(on_cast_spell);
 		event_handler<events::on_issue_order>::add_callback(on_issue_order);
@@ -987,6 +1095,7 @@ namespace utilities {
 		event_handler< events::on_buff_lose >::remove_handler(on_buff_lose);
 		event_handler< events::on_teleport >::remove_handler(on_teleport);
 		event_handler< events::on_do_cast >::remove_handler(on_do_cast);
+		event_handler< events::on_process_spell_cast >::remove_handler(on_process_spell_cast);
 		event_handler< events::on_network_packet >::remove_handler(on_network_packet);
 		event_handler< events::on_cast_spell >::remove_handler(on_cast_spell);
 		event_handler< events::on_issue_order >::remove_handler(on_issue_order);
