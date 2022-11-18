@@ -271,7 +271,7 @@ namespace utilities {
 		// Wards removal
 		wards.erase(std::remove_if(wards.begin(), wards.end(), [](const wardInfo& x)
 			{
-				return (x.wardType == 0 && x.remainingTime < gametime->get_time()) || (x.wardType == 1 && !x.position.is_in_fow());
+				return (x.wardType == 0 && x.remainingTime < gametime->get_time());
 			}
 		),
 			wards.end());
