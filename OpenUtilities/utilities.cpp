@@ -54,6 +54,7 @@ namespace utilities {
 	std::vector<game_object_script> unknownTraps;
 	std::vector<trapInfo> traps;
 	std::vector<wardInfo> wards;
+	std::vector<game_object_script> realWards;
 	std::unordered_map<uint32_t, teleportStruct> teleportList;
 	std::unordered_map<uint32_t, float> guardianReviveTime;
 
@@ -289,6 +290,23 @@ namespace utilities {
 			}
 		),
 		traps.end());
+		// Wards filtering
+		realWards.erase(std::remove_if(realWards.begin(), realWards.end(), [](const game_object_script& x)
+			{
+				return !x->is_valid();
+			}
+		),
+			realWards.end());
+		
+		for (const auto& ward : realWards)
+		{
+			wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
+				{
+					return ward->get_position().distance(x.position) < 50;
+				}
+			),
+				wards.end());
+		}
 
 		// Loop through unknown traps
 		for (const auto& trap : unknownTraps)
@@ -562,6 +580,7 @@ namespace utilities {
 		// Filter wards
 		if (obj->is_enemy() && (object_hash == spell_hash("VisionWard") || object_hash == spell_hash("SightWard")))
 		{
+			realWards.push_back(obj);
 			wards.erase(std::remove_if(wards.begin(), wards.end(), [obj](const wardInfo& x)
 				{
 					return obj->get_position().distance(x.position) < 50;
