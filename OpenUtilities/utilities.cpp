@@ -290,7 +290,7 @@ namespace utilities {
 			}
 		),
 		traps.end());
-		// Wards filtering
+		// Real wards filtering
 		realWards.erase(std::remove_if(realWards.begin(), realWards.end(), [](const game_object_script& x)
 			{
 				return !x->is_valid();
@@ -298,6 +298,7 @@ namespace utilities {
 		),
 			realWards.end());
 		
+		// Wards filtering
 		for (const auto& ward : realWards)
 		{
 			wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
