@@ -309,6 +309,15 @@ namespace utilities {
 				wards.end());
 		}
 
+		// Removing now unneeded wards
+		realWards.erase(std::remove_if(realWards.begin(), realWards.end(), [](const game_object_script& x)
+			{
+				return true;
+			}
+		),
+			realWards.end());
+
+
 		// Loop through unknown traps
 		for (const auto& trap : unknownTraps)
 		{
