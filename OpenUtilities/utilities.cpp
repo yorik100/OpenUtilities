@@ -286,7 +286,7 @@ namespace utilities {
 		// Traps filtering
 		traps.erase(std::remove_if(traps.begin(), traps.end(), [](const trapInfo& x)
 			{
-				return !x.obj->is_valid();
+				return !x.obj->is_valid() || x.obj->get_mana() <= 0 || x.obj->get_health() <= 0;
 			}
 		),
 		traps.end());
@@ -310,13 +310,7 @@ namespace utilities {
 		}
 
 		// Removing now unneeded wards
-		realWards.erase(std::remove_if(realWards.begin(), realWards.end(), [](const game_object_script& x)
-			{
-				return true;
-			}
-		),
-			realWards.end());
-
+		realWards.clear();
 
 		// Loop through unknown traps
 		for (const auto& trap : unknownTraps)
@@ -548,7 +542,7 @@ namespace utilities {
 					glow->remove_glow(trap.obj);
 				const auto& ownerPos = vector(trap.obj->get_hpbar_pos().x + 15, trap.obj->get_hpbar_pos().y + 80, trap.obj->get_hpbar_pos().z);
 				if (settings::hidden::drawOwner->get_bool())
-					draw_manager->add_text_on_screen(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_base_skin_name().c_str());
+					draw_manager->add_text_on_screen(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_model_cstr());
 			}
 		}
 
@@ -569,7 +563,7 @@ namespace utilities {
 				if (settings::hidden::drawOwner->get_bool())
 				{
 					const auto& ownerPos = vector(ward.position.x - 50, ward.position.y - 50, ward.position.z);
-					draw_manager->add_text(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", ward.owner->get_base_skin_name().c_str());
+					draw_manager->add_text(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", ward.owner->get_model_cstr());
 				}
 			}
 		}
