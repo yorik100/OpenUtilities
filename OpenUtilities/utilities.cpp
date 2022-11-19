@@ -510,11 +510,11 @@ namespace utilities {
 			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && gametime->get_time() - heraldAttackTime < 15)
 			{
 				if (settings::epic::epicTrackerNotifications->get_bool()) {
-					const auto& position = vector(1330, 150);
+					const auto& position = vector(1330 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 150 + settings::epic::yOffset->get_int());
 					const auto& size = vector(60.f, 60.f);
 					const auto& sizeMod = size / 2;
 					draw_manager->add_image(lastHerald->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto& positionText = vector(1040, 140);
+					const auto& positionText = vector(1040 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Herald is under attack!");
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
