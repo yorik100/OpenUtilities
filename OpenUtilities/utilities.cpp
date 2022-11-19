@@ -90,6 +90,9 @@ namespace utilities {
 			TreeEntry* epicTrackerNotifications;
 			TreeEntry* epicTrackerMap;
 			TreeEntry* epicTrackerVisible;
+			TreeEntry* xOffset;
+			TreeEntry* yOffset;
+			TreeEntry* distanceBetween;
 		}
 		namespace flash {
 			TreeEntry* antiFlashGlitch;
@@ -235,6 +238,9 @@ namespace utilities {
 		settings::epic::epicTrackerNotifications = epicTab->add_checkbox("open.utilities.epictracker.epictrackernotifications", "Show attacked epic monsters notifications", true);
 		settings::epic::epicTrackerMap = epicTab->add_checkbox("open.utilities.epictracker.epictrackermap", "Show attacked epic monsters on minimap", true);
 		settings::epic::epicTrackerVisible = epicTab->add_checkbox("open.utilities.epictracker.epictrackervisible", "Track even if visible", false);
+		settings::epic::xOffset = epicTab->add_slider("open.utilities.epictracker.xoffset", "Notifications horizontal position", 0, -2000, 2000);
+		settings::epic::yOffset = epicTab->add_slider("open.utilities.epictracker.yoffset", "Notifications vertical position", 0, -2000, 2000);
+		settings::epic::distanceBetween = epicTab->add_slider("open.utilities.epictracker.distancebetween", "Distance between notifications", 0, 0, 2000);
 
 		// Flash settings
 		const auto flashTab = mainMenu->add_tab("open.utilities.flash", "Flash utility");
@@ -467,11 +473,11 @@ namespace utilities {
 			{
 				const auto& isAggroed = isDragonAttacked || gametime->get_time() - dragonAttackTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && isAggroed) {
-					const auto& position = vector(520, 150);
+					const auto& position = vector(520 + settings::epic::xOffset->get_int() - settings::epic::distanceBetween->get_int(), 150 + settings::epic::yOffset->get_int());
 					const auto& size = vector(60.f, 60.f);
 					const auto& sizeMod = size / 2;
 					draw_manager->add_image(lastDragon->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto& positionText = vector(575, 140);
+					const auto& positionText = vector(575 + settings::epic::xOffset->get_int() - settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Dragon is under attack!");
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
@@ -488,11 +494,11 @@ namespace utilities {
 				const auto& isIdle = gametime->get_time() - baronIdleTime < 2;
 				if (gametime->get_time() - baronIdleTime < 1) baronAttackTime = 0;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
-					const auto& position = vector(1330, 150);
+					const auto& position = vector(1330 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 150 + settings::epic::yOffset->get_int());
 					const auto& size = vector(60.f, 60.f);
 					const auto& sizeMod = size / 2;
 					draw_manager->add_image(lastBaron->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto& positionText = vector(1050, 140);
+					const auto& positionText = vector(1050 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Baron is under attack!");
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
@@ -552,6 +558,12 @@ namespace utilities {
 			for (const auto& ward : wards)
 			{
 				const auto& colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 255) : MAKE_COLOR(0, 255, 255, 255);
+				const auto& insideColour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 127) : MAKE_COLOR(0, 255, 255, 127);
+				vector minimapPos;
+				vector wardPos = ward.position;
+				gui->get_tactical_map()->to_map_coord(wardPos, minimapPos);
+				draw_manager->add_filled_circle_on_screen(minimapPos, 5, insideColour);
+				draw_manager->add_circle_on_screen(minimapPos, 6, colour);
 				if (settings::hidden::drawCircle->get_bool())
 					draw_manager->add_circle(ward.position, 40, colour, 2);
 				const auto& timeLeft = (int)std::ceil(ward.remainingTime - gametime->get_time());
