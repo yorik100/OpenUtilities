@@ -751,11 +751,14 @@ namespace utilities {
 			//Ping utility
 			case buff_hash("SharedWardTracker_Pingable"):
 			{
-			const auto position = obj->get_position();
-			scheduler->delay_action((float)(rand() % 5)/10.f + 0.25, [position]()
+				const auto position = obj->get_position();
+			scheduler->delay_action((float)(rand() % 5)/10.f + 0.25, [position, obj]()
 				{
-					const auto pos = vector(position.x - -100 + rand() % (100 - (-100) + 1), position.y + -100 + rand() % (100 - (-100) + 1), position.z);
-					myhero->cast_ping(pos, nullptr, _player_ping_type::area_is_warded);
+					if (obj && obj->is_valid())
+					{
+						const auto pos = vector(position.x - -100 + rand() % (100 - (-100) + 1), position.y + -100 + rand() % (100 - (-100) + 1), position.z);
+						myhero->cast_ping(pos, nullptr, _player_ping_type::area_is_warded);
+					}
 				});
 			break;
 			}
