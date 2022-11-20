@@ -108,6 +108,9 @@ namespace utilities {
 			TreeEntry* drawOwner;
 			TreeEntry* glow;
 		}
+		namespace ping {
+			TreeEntry* enable;
+		}
 		TreeEntry* lowSpec;
 		TreeEntry* debugPrint;
 	}
@@ -259,6 +262,10 @@ namespace utilities {
 		settings::hidden::drawRemaining = hiddenTab->add_checkbox("open.utilities.hidden.drawremaining", "Draw remaining time", true);
 		settings::hidden::drawOwner = hiddenTab->add_checkbox("open.utilities.hidden.drawowner", "Draw owner name", true);
 		settings::hidden::glow = hiddenTab->add_checkbox("open.utilities.hidden.glow", "Use glow", true);
+
+		// Ping settings
+		const auto pingTab = mainMenu->add_tab("open.utilities.ping", "Ping");
+		settings::ping::enable = pingTab->add_checkbox("open.utilities.ping.enable", "Auto ping wards", false);
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
@@ -689,6 +696,7 @@ namespace utilities {
 
 		switch (emitterHash)
 		{
+			// Teleport particles
 			case buff_hash("TwistedFate_R_Gatemarker_Red"):
 			{
 				const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 1.5, .castingPos = obj->get_position() };
@@ -737,6 +745,19 @@ namespace utilities {
 				const particleStruct& particleData = { .obj = obj, .target = obj->get_particle_attachment_object(), .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = obj->get_position().distance(urfCannon)/2800, .castingPos = obj->get_position() };
 				particlePredList.push_back(particleData);
 				return;
+			}
+
+
+			//Ping utility
+			case buff_hash("SharedWardTracker_Pingable"):
+			{
+			const auto position = obj->get_position();
+			scheduler->delay_action((float)(rand() % 5)/10.f + 0.25, [position]()
+				{
+					const auto pos = vector(position.x - -100 + rand() % (100 - (-100) + 1), position.y + -100 + rand() % (100 - (-100) + 1), position.z);
+					myhero->cast_ping(pos, nullptr, _player_ping_type::area_is_warded);
+				});
+			break;
 			}
 		}
 
@@ -1050,6 +1071,9 @@ namespace utilities {
 
 	void load()
 	{
+		//Initialize random
+		srand(time(NULL));
+
 		// Get enemy spawnpoint
 		const auto& spawnPointIt = std::find_if(entitylist->get_all_spawnpoints().begin(), entitylist->get_all_spawnpoints().end(), [](game_object_script x) {
 			return x->is_enemy();
