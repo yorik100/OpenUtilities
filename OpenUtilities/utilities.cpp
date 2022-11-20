@@ -292,7 +292,7 @@ namespace utilities {
 		// Traps filtering
 		traps.erase(std::remove_if(traps.begin(), traps.end(), [](const trapInfo& x)
 			{
-				return !x.obj->is_valid() || x.obj->get_mana() <= 0 || x.obj->get_health() <= 0;
+				return !x.obj->is_valid() || x.obj->get_health() <= 0;
 			}
 		),
 		traps.end());
