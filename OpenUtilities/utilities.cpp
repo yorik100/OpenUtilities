@@ -30,6 +30,7 @@ namespace utilities {
 		game_object_script owner;
 		game_object_script obj;
 		int trapType = 0;
+		buff_instance_script buff;
 	};
 
 	struct wardInfo {
@@ -299,7 +300,7 @@ namespace utilities {
 		// Traps filtering
 		traps.erase(std::remove_if(traps.begin(), traps.end(), [](const trapInfo& x)
 			{
-				return !x.obj->is_valid() || x.obj->get_health() <= 0;
+				return !x.obj->is_valid() || x.obj->get_health() <= 0 || !x.buff->is_valid();
 			}
 		),
 		traps.end());
@@ -331,13 +332,13 @@ namespace utilities {
 			const auto& trapBuff = trap->get_buff(buff_hash("JhinETrap"));
 			if (trap->get_owner() && trap->get_owner()->is_enemy() && trapBuff)
 			{
-				const trapInfo& trapData = { .remainingTime = gametime->get_time() + trapBuff->get_remaining_time(), .owner = trap->get_owner(), .obj = trap, .trapType = 0 };
+				const trapInfo& trapData = { .remainingTime = gametime->get_time() + trapBuff->get_remaining_time(), .owner = trap->get_owner(), .obj = trap, .trapType = 0, .buff = trapBuff };
 				traps.push_back(trapData);
 			}
 			const auto& trapBuff2 = trap->get_buff(buff_hash("Bushwhack"));
 			if (trap->get_owner() && trap->get_owner()->is_enemy() && trapBuff2)
 			{
-				const trapInfo& trapData = { .remainingTime = gametime->get_time() + trapBuff2->get_remaining_time(), .owner = trap->get_owner(), .obj = trap, .trapType = 1 };
+				const trapInfo& trapData = { .remainingTime = gametime->get_time() + trapBuff2->get_remaining_time(), .owner = trap->get_owner(), .obj = trap, .trapType = 1, .buff = trapBuff2 };
 				traps.push_back(trapData);
 			}
 		}
