@@ -111,6 +111,7 @@ namespace utilities {
 		}
 		namespace ping {
 			TreeEntry* enable;
+			TreeEntry* onlyvisible;
 		}
 		TreeEntry* lowSpec;
 		TreeEntry* debugPrint;
@@ -267,6 +268,7 @@ namespace utilities {
 		// Ping settings
 		const auto pingTab = mainMenu->add_tab("open.utilities.ping", "Ping");
 		settings::ping::enable = pingTab->add_checkbox("open.utilities.ping.enable", "Auto ping wards", false);
+		settings::ping::onlyvisible = pingTab->add_checkbox("open.utilities.ping.onlyvisible", "Only ping if visible", false);
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
@@ -757,7 +759,7 @@ namespace utilities {
 					const auto position = obj->get_position();
 					scheduler->delay_action((float)(rand() % 5) / 10.f + 0.25, [position, obj]()
 						{
-							if (obj && obj->is_valid())
+							if (obj && obj->is_valid() && (!settings::ping::onlyvisible->get_bool() || obj->is_visible_on_screen()))
 							{
 								const auto pos = vector(position.x - -100 + rand() % (100 - (-100) + 1), position.y + -100 + rand() % (100 - (-100) + 1), position.z);
 								myhero->cast_ping(pos, nullptr, _player_ping_type::area_is_warded);
