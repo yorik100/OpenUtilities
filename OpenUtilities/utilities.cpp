@@ -580,12 +580,16 @@ namespace utilities {
 				if (ward.wardType == 0 && timeLeft > 0 && settings::hidden::drawRemaining->get_bool())
 				{
 					const auto& timeLeftPos = vector(ward.position.x - 10, ward.position.y, ward.position.z);
-					draw_manager->add_text(timeLeftPos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
+					vector screenPos;
+					renderer->world_to_screen(timeLeftPos, screenPos);
+					draw_manager->add_text_on_screen(screenPos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
 				}
 				if (settings::hidden::drawOwner->get_bool())
 				{
 					const auto& ownerPos = vector(ward.position.x - 50, ward.position.y - 50, ward.position.z);
-					draw_manager->add_text(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", ward.owner->get_model_cstr());
+					vector screenPos;
+					renderer->world_to_screen(ownerPos, screenPos);
+					draw_manager->add_text_on_screen(screenPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", ward.owner->get_model_cstr());
 				}
 			}
 		}
