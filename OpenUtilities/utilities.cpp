@@ -51,6 +51,21 @@ namespace utilities {
 		bool isTeleport = false;
 	};
 
+	struct pingableParticle
+	{
+		game_object_script ward;
+		vector position;
+		float creationTime;
+		float delayToWait;
+	};
+
+	struct pingableParticles
+	{
+		std::vector<pingableParticle> wards;
+		float lastPingTime = 0.f;
+	};
+
+	pingableParticles pingableWards;
 	std::vector<particleStruct> particlePredList;
 	std::vector<game_object_script> unknownTraps;
 	std::vector<trapInfo> traps;
@@ -112,6 +127,7 @@ namespace utilities {
 		namespace ping {
 			TreeEntry* enable;
 			TreeEntry* onlyvisible;
+			TreeEntry* onlyvalid;
 		}
 		TreeEntry* lowSpec;
 		TreeEntry* debugPrint;
@@ -269,6 +285,7 @@ namespace utilities {
 		const auto pingTab = mainMenu->add_tab("open.utilities.ping", "Ping");
 		settings::ping::enable = pingTab->add_checkbox("open.utilities.ping.enable", "Auto ping wards", false);
 		settings::ping::onlyvisible = pingTab->add_checkbox("open.utilities.ping.onlyvisible", "Only ping if visible", false);
+		settings::ping::onlyvalid = pingTab->add_checkbox("open.utilities.ping.onlyvalid", "Only ping if valid", true);
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
@@ -284,7 +301,7 @@ namespace utilities {
 				return !x.obj->is_valid() || x.owner->is_dead() || x.time + x.castTime <= gametime->get_time();
 			}
 		),
-		particlePredList.end());
+			particlePredList.end());
 		// Wards removal
 		wards.erase(std::remove_if(wards.begin(), wards.end(), [](const wardInfo& x)
 			{
@@ -298,14 +315,14 @@ namespace utilities {
 				return !x->is_valid();
 			}
 		),
-		unknownTraps.end());
+			unknownTraps.end());
 		// Traps filtering
 		traps.erase(std::remove_if(traps.begin(), traps.end(), [](const trapInfo& x)
 			{
 				return !x.obj->is_valid() || x.obj->get_health() <= 0 || !x.buff->is_valid();
 			}
 		),
-		traps.end());
+			traps.end());
 		// Real wards filtering
 		realWards.erase(std::remove_if(realWards.begin(), realWards.end(), [](const game_object_script& x)
 			{
@@ -313,7 +330,7 @@ namespace utilities {
 			}
 		),
 			realWards.end());
-		
+
 		// Wards filtering
 		for (const auto& ward : realWards)
 		{
@@ -351,7 +368,7 @@ namespace utilities {
 				return x->get_owner() && x->get_bufflist().size() > 0;
 			}
 		),
-		unknownTraps.end());
+			unknownTraps.end());
 
 		// Loop through every teleport particles
 		for (auto& obj : particlePredList)
@@ -400,7 +417,45 @@ namespace utilities {
 			lvl += hero->get_level();
 			amount++;
 		}
-		return (lvl/amount);
+		return (lvl / amount);
+	}
+
+	void pingWards()
+	{
+		// If no wards to ping then return
+		if (pingableWards.wards.empty())
+		{
+			return;
+		}
+
+		// If ward to ping is invalid then return
+		const auto pingableWard = pingableWards.wards[0];
+		if (!pingableWard.ward || (!pingableWard.ward->is_valid() && settings::ping::onlyvalid->get_bool()))
+		{
+			pingableWards.wards.erase(pingableWards.wards.begin());
+			return;
+		}
+
+		// Avoid spamming pings
+		const auto delaySinceLastPing = gametime->get_time() - pingableWards.lastPingTime;
+		if (delaySinceLastPing < 0.3f)
+		{
+			return;
+		}
+
+		const auto delaySinceWardCreated = gametime->get_time() - pingableWard.creationTime;
+		if (delaySinceWardCreated < pingableWard.delayToWait)
+		{
+			return;
+		}
+
+		// Ping at ward position
+		const auto position = pingableWard.position;
+		const auto pos = vector(position.x - -100 + rand() % (100 - (-100) + 1), position.y + -100 + rand() % (100 - (-100) + 1), position.z);
+		myhero->cast_ping(pos, nullptr, _player_ping_type::area_is_warded);
+
+		pingableWards.lastPingTime = gametime->get_time();
+		pingableWards.wards.erase(pingableWards.wards.begin());
 	}
 
 	void on_update()
@@ -413,6 +468,9 @@ namespace utilities {
 
 		// Update particle data
 		updateObjects();
+
+		// Ping wards
+		pingWards();
 
 	}
 
@@ -704,75 +762,90 @@ namespace utilities {
 		switch (emitterHash)
 		{
 			// Teleport particles
-			case buff_hash("TwistedFate_R_Gatemarker_Red"):
-			{
-				const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 1.5, .castingPos = obj->get_position() };
-				particlePredList.push_back(particleData);
-				return;
-			}
-			case buff_hash("Ekko_R_ChargeIndicator"):
-			{
-				const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 0.5, .castingPos = obj->get_position() };
-				particlePredList.push_back(particleData);
-				return;
-			}
-			case buff_hash("Pantheon_R_Update_Indicator_Enemy"):
-			{
-				const auto& castPos = obj->get_position() + obj->get_particle_rotation_forward() * 1350;
-				const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 2.2, .castingPos = castPos };
-				particlePredList.push_back(particleData);
-				return;
-			}
-			case buff_hash("Galio_R_Tar_Ground_Enemy"):
-			{
-				const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 2.75, .castingPos = obj->get_position() };
-				particlePredList.push_back(particleData);
-				return;
-			}
-			case buff_hash("Evelynn_R_Landing"):
-			{
-				const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 0.85, .castingPos = obj->get_position() };
-				particlePredList.push_back(particleData);
-				return;
-			}
-			case buff_hash("TahmKench_W_ImpactWarning_Enemy"):
-			{
-				const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 0.8, .castingPos = obj->get_position() };
-				particlePredList.push_back(particleData);
-				return;
-			}
-			case buff_hash("Zed_R_tar_TargetMarker"):
+		case buff_hash("TwistedFate_R_Gatemarker_Red"):
+		{
+			const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 1.5, .castingPos = obj->get_position() };
+			particlePredList.push_back(particleData);
+			return;
+		}
+		case buff_hash("Ekko_R_ChargeIndicator"):
+		{
+			const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 0.5, .castingPos = obj->get_position() };
+			particlePredList.push_back(particleData);
+			return;
+		}
+		case buff_hash("Pantheon_R_Update_Indicator_Enemy"):
+		{
+			const auto& castPos = obj->get_position() + obj->get_particle_rotation_forward() * 1350;
+			const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 2.2, .castingPos = castPos };
+			particlePredList.push_back(particleData);
+			return;
+		}
+		case buff_hash("Galio_R_Tar_Ground_Enemy"):
+		{
+			const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 2.75, .castingPos = obj->get_position() };
+			particlePredList.push_back(particleData);
+			return;
+		}
+		case buff_hash("Evelynn_R_Landing"):
+		{
+			const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 0.85, .castingPos = obj->get_position() };
+			particlePredList.push_back(particleData);
+			return;
+		}
+		case buff_hash("TahmKench_W_ImpactWarning_Enemy"):
+		{
+			const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 0.8, .castingPos = obj->get_position() };
+			particlePredList.push_back(particleData);
+			return;
+		}
+		case buff_hash("Zed_R_tar_TargetMarker"):
 			if (obj->get_particle_attachment_object()) {
 				const particleStruct& particleData = { .obj = obj, .target = obj->get_particle_attachment_object(), .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 0.95, .castingPos = vector::zero, .isZed = true };
 				particlePredList.push_back(particleData);
 				return;
 			}
-			case 1882371666:
-			{
-				const particleStruct& particleData = { .obj = obj, .target = obj->get_particle_attachment_object(), .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = obj->get_position().distance(urfCannon)/2800, .castingPos = obj->get_position() };
-				particlePredList.push_back(particleData);
-				return;
-			}
+		case 1882371666:
+		{
+			const particleStruct& particleData = { .obj = obj, .target = obj->get_particle_attachment_object(), .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = obj->get_position().distance(urfCannon) / 2800, .castingPos = obj->get_position() };
+			particlePredList.push_back(particleData);
+			return;
+		}
 
 
-			//Ping utility
-			case buff_hash("SharedWardTracker_Pingable"):
+		//Ping utility
+		case buff_hash("SharedWardTracker_Pingable"):
+		{
+			if (settings::ping::enable->get_bool())
 			{
-				if (settings::ping::enable->get_bool())
+
+				const float randomWaitingDelay = (float)(rand() % 5) / 10.f + 0.25;
+
+				const pingableParticle pingableParticle = {
+					.ward = obj,
+					.position = obj->get_position(),
+					.creationTime = gametime->get_time(),
+					.delayToWait = randomWaitingDelay
+				};
+
+				if (!settings::ping::onlyvisible->get_bool() || obj->is_visible_on_screen())
 				{
-					const auto position = obj->get_position();
-					scheduler->delay_action((float)(rand() % 5) / 10.f + 0.25, [position, obj]()
-						{
-							if (obj && obj->is_valid() && (!settings::ping::onlyvisible->get_bool() || obj->is_visible_on_screen()))
-							{
-								const auto pos = vector(position.x - -100 + rand() % (100 - (-100) + 1), position.y + -100 + rand() % (100 - (-100) + 1), position.z);
-								myhero->cast_ping(pos, nullptr, _player_ping_type::area_is_warded);
-							}
-						}
-					);
+					pingableWards.wards.push_back(pingableParticle);
 				}
-			break;
+
+				//const auto position = obj->get_position();
+				//scheduler->delay_action((float)(rand() % 5) / 10.f + 0.25, [position, obj]()
+				//	{
+				//		if (obj && obj->is_valid() && (!settings::ping::onlyvisible->get_bool() || obj->is_visible_on_screen()))
+				//		{
+				//			const auto pos = vector(position.x - -100 + rand() % (100 - (-100) + 1), position.y + -100 + rand() % (100 - (-100) + 1), position.z);
+				//			myhero->cast_ping(pos, nullptr, _player_ping_type::area_is_warded);
+				//		}
+				//	}
+				//);
 			}
+			break;
+		}
 		}
 
 		if (obj->get_emitter()->get_teleport_state() != "SummonerTeleport") return;
@@ -923,7 +996,7 @@ namespace utilities {
 				isDragonAttacked = !isLanding;
 				lastDragon = sender;
 				return;
-			}	
+			}
 			else if (sender->get_name().find("Herald") != std::string::npos && strcmp(data->animation_name, "Dance") != 0)
 			{
 				debugPrint("Animation from Herald : %s", data->animation_name);
@@ -967,7 +1040,7 @@ namespace utilities {
 		}
 		else
 		{
-			const teleportStruct& teleportData = {.duration = duration, .startTime = gametime->get_time(), .endTime = gametime->get_time() + duration, .type = type};
+			const teleportStruct& teleportData = { .duration = duration, .startTime = gametime->get_time(), .endTime = gametime->get_time() + duration, .type = type };
 			teleportList[sender->get_handle()] = teleportData;
 		}
 	}
@@ -1148,7 +1221,7 @@ namespace utilities {
 		event_handler<events::on_cast_spell>::add_callback(on_cast_spell);
 		event_handler<events::on_issue_order>::add_callback(on_issue_order);
 		event_handler<events::on_play_animation>::add_callback(on_play_animation);
-		
+
 	}
 
 	void unload()

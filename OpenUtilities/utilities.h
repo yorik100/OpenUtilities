@@ -13,6 +13,8 @@ namespace utilities
 	void updateParticles();
 	void castNoTrigger(spellslot spellSlot, vector pos);
 	void orderNoTrigger(vector pos);
+	float getGlobalLvl();
+	void pingWards();
 	void on_update();
 	void on_draw();
 	void on_create(const game_object_script obj);
