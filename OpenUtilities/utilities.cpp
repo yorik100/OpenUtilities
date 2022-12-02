@@ -451,7 +451,7 @@ namespace utilities {
 
 		// Ping at ward position
 		const auto position = pingableWard.position;
-		const auto pos = vector(position.x - 100 + rand() % 200, position.y - 100 + rand() % 200, position.z);
+		const auto pos = vector(position.x - 100 + rand() % 200, position.y + 100 - (rand()*2) % 200, position.z);
 		myhero->cast_ping(pos, nullptr, _player_ping_type::area_is_warded);
 
 		pingableWards.lastPingTime = gametime->get_time();
