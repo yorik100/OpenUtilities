@@ -335,7 +335,7 @@ namespace utilities {
 		for (const auto& ward : realWards)
 		{
 			const auto& object_hash = spell_hash_real(ward->get_name_cstr());
-			if (object_hash == spell_hash("VisionWard"))
+			if (object_hash == spell_hash("SightWard"))
 			{
 				wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
 					{
@@ -344,7 +344,7 @@ namespace utilities {
 				),
 					wards.end());
 			}
-			else if (object_hash == spell_hash("SightWard"))
+			else if (object_hash == spell_hash("VisionWard"))
 			{
 				wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
 					{
@@ -682,7 +682,7 @@ namespace utilities {
 		if (obj->is_enemy() && (object_hash == spell_hash("VisionWard") || object_hash == spell_hash("SightWard")))
 		{
 			realWards.push_back(obj);
-			if (object_hash == spell_hash("VisionWard"))
+			if (object_hash == spell_hash("SightWard"))
 			{
 				wards.erase(std::remove_if(wards.begin(), wards.end(), [obj](const wardInfo& x)
 					{
@@ -691,7 +691,7 @@ namespace utilities {
 				),
 					wards.end());
 			}
-			else if (object_hash == spell_hash("SightWard"))
+			else if (object_hash == spell_hash("VisionWard"))
 			{
 				wards.erase(std::remove_if(wards.begin(), wards.end(), [obj](const wardInfo& x)
 					{
