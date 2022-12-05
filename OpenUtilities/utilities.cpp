@@ -344,7 +344,7 @@ namespace utilities {
 				),
 					wards.end());
 			}
-			if (object_hash == spell_hash("SightWard"))
+			else if (object_hash == spell_hash("SightWard"))
 			{
 				wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
 					{
@@ -691,7 +691,7 @@ namespace utilities {
 				),
 					wards.end());
 			}
-			if (object_hash == spell_hash("SightWard"))
+			else if (object_hash == spell_hash("SightWard"))
 			{
 				wards.erase(std::remove_if(wards.begin(), wards.end(), [obj](const wardInfo& x)
 					{
