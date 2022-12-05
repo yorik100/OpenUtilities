@@ -335,24 +335,12 @@ namespace utilities {
 		for (const auto& ward : realWards)
 		{
 			const auto& object_hash = spell_hash_real(ward->get_name_cstr());
-			if (object_hash == spell_hash("SightWard"))
-			{
 				wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
 					{
-						return x.wardType == 0 && ward->get_position().distance(x.position) < 100;
+						return ward->get_position().distance(x.position) < x.wardType == 0 ? 100 : 350;
 					}
 				),
 					wards.end());
-			}
-			else if (object_hash == spell_hash("VisionWard"))
-			{
-				wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
-					{
-						return x.wardType == 1 && ward->get_position().distance(x.position) < 350;
-					}
-				),
-					wards.end());
-			}
 		}
 
 		// Removing now unneeded wards
@@ -682,24 +670,12 @@ namespace utilities {
 		if (obj->is_enemy() && (object_hash == spell_hash("VisionWard") || object_hash == spell_hash("SightWard")))
 		{
 			realWards.push_back(obj);
-			if (object_hash == spell_hash("SightWard"))
-			{
 				wards.erase(std::remove_if(wards.begin(), wards.end(), [obj](const wardInfo& x)
 					{
-						return x.wardType == 0 && obj->get_position().distance(x.position) < 100;
+						return obj->get_position().distance(x.position) < x.wardType == 0 ? 100 : 350;
 					}
 				),
 					wards.end());
-			}
-			else if (object_hash == spell_hash("VisionWard"))
-			{
-				wards.erase(std::remove_if(wards.begin(), wards.end(), [obj](const wardInfo& x)
-					{
-						return x.wardType == 1 && obj->get_position().distance(x.position) < 350;
-					}
-				),
-					wards.end());
-			}
 		}
 
 		// Get if an epic monster is attacking someone
