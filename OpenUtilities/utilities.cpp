@@ -828,7 +828,7 @@ namespace utilities {
 					.delayToWait = randomWaitingDelay
 				};
 
-				if (!settings::ping::onlyvisible->get_bool() || obj->is_visible_on_screen())
+				if (!settings::ping::onlyvisible->get_bool() || obj->get_position().is_on_screen())
 				{
 					pingableWards.wards.push_back(pingableParticle);
 				}
