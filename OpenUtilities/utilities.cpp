@@ -336,7 +336,7 @@ namespace utilities {
 		{
 			wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
 				{
-					return ward->get_position().distance(x.position) < x.wardType == 0 ? 100 : 350;
+					return ward->get_position().distance(x.position) < x.wardType == 0 ? 100 : 200;
 				}
 			),
 				wards.end());
@@ -671,7 +671,7 @@ namespace utilities {
 			realWards.push_back(obj);
 			wards.erase(std::remove_if(wards.begin(), wards.end(), [obj](const wardInfo& x)
 				{
-					return obj->get_position().distance(x.position) < x.wardType == 0 ? 100 : 350;
+					return obj->get_position().distance(x.position) < x.wardType == 0 ? 100 : 200;
 				}
 			),
 				wards.end());
