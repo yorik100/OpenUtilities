@@ -829,7 +829,7 @@ namespace utilities {
 				};
 				vector screenPos;
 				renderer->world_to_screen(obj->get_position(), screenPos);
-				if (!settings::ping::onlyvisible->get_bool() || screenPos.is_on_screen())
+				if (!settings::ping::onlyvisible->get_bool() || renderer->is_on_screen(screenPos, 50))
 				{
 					pingableWards.wards.push_back(pingableParticle);
 				}
