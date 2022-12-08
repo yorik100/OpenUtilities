@@ -827,8 +827,9 @@ namespace utilities {
 					.creationTime = gametime->get_time(),
 					.delayToWait = randomWaitingDelay
 				};
-
-				if (!settings::ping::onlyvisible->get_bool() || obj->get_position().is_on_screen())
+				vector screenPos;
+				renderer->world_to_screen(obj->get_position(), screenPos);
+				if (!settings::ping::onlyvisible->get_bool() || screenPos.is_on_screen())
 				{
 					pingableWards.wards.push_back(pingableParticle);
 				}
