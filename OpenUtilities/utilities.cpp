@@ -656,6 +656,9 @@ namespace utilities {
 
 	void on_create(const game_object_script obj)
 	{
+		// Debug stuff
+		//if (obj->get_emitter() && obj->get_emitter()->is_me())
+		//	myhero->print_chat(0, "Particle from player %s at %f", obj->get_name_cstr(), gametime->get_time());
 		// Get object name hash
 		const auto& object_hash = spell_hash_real(obj->get_name_cstr());
 
@@ -880,6 +883,9 @@ namespace utilities {
 
 	void on_do_cast(game_object_script sender, spell_instance_script spell)
 	{
+		// Debug stuff
+		//if (sender && spell && sender->is_me())
+		//	myhero->print_chat(0, "Spell cast finished %s at %f", spell->get_spell_data()->get_name_cstr(), gametime->get_time());
 		// Detect if someone casted something towards an Epic Monster
 		const auto& target = entitylist->get_object(spell->get_last_target_id());
 		const auto& isEpicTarget = target && !target->is_dead() && target->is_epic_monster() && !target->get_owner();
@@ -939,6 +945,9 @@ namespace utilities {
 
 	void on_process_spell_cast(game_object_script sender, spell_instance_script spell)
 	{
+		// Debug stuff
+		//if (sender && spell && sender->is_me())
+		//	myhero->print_chat(0, "Spell cast %s at %f", spell->get_spell_data()->get_name_cstr(), gametime->get_time());
 		// Get ward casts
 		if (sender && spell && sender->is_ai_hero() && sender->is_enemy())
 		{
