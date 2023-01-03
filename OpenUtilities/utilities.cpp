@@ -305,7 +305,10 @@ namespace utilities {
 		// Wards removal
 		wards.erase(std::remove_if(wards.begin(), wards.end(), [](const wardInfo& x)
 			{
-				return (x.wardType == 0 && x.remainingTime < gametime->get_time());
+				const auto& shouldRemove = x.wardType == 0 && x.remainingTime < gametime->get_time();
+				if (shouldRemove)
+					debugPrint("Ward removed because it expired");
+				return shouldRemove;
 			}
 		),
 			wards.end());
@@ -336,7 +339,12 @@ namespace utilities {
 		{
 			wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
 				{
-					return ward->get_position().distance(x.position) < x.wardType == 0 ? 100 : 200;
+					const auto& dist = ward->get_position().distance(x.position);
+					const auto& wardDist = x.wardType == 0 ? 100.f : 200.f;
+					const auto& shouldRemove = dist < wardDist;
+					if (shouldRemove)
+						debugPrint("Ward removed because distance was %f and %f is smaller than %f", dist, dist, wardDist);
+					return shouldRemove;
 				}
 			),
 				wards.end());
@@ -674,7 +682,12 @@ namespace utilities {
 			realWards.push_back(obj);
 			wards.erase(std::remove_if(wards.begin(), wards.end(), [obj](const wardInfo& x)
 				{
-					return obj->get_position().distance(x.position) < x.wardType == 0 ? 100 : 200;
+					const auto& dist = obj->get_position().distance(x.position);
+					const auto& wardDist = x.wardType == 0 ? 100.f : 200.f;
+					const auto& shouldRemove = dist < wardDist;
+					if (shouldRemove)
+						debugPrint("Ward removed because distance was %f and %f is smaller than %f", dist, dist, wardDist);
+					return shouldRemove;
 				}
 			),
 				wards.end());
