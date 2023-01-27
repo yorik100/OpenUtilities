@@ -865,8 +865,6 @@ namespace utilities {
 		}
 		}
 
-		if (obj->get_emitter()->get_teleport_state() != "SummonerTeleport") return;
-
 		if (object_hash == spell_hash("global_ss_teleport_turret_red.troy"))
 		{
 			const auto& target = obj->get_particle_attachment_object();
