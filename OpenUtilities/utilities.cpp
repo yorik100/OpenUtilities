@@ -1138,7 +1138,7 @@ namespace utilities {
 	void on_issue_order(game_object_script& target, vector& pos, _issue_order_type& type, bool* process)
 	{
 		// Check if a move order is sent and if it should be processed
-		if (dontCancel || !settings::safe::antiNexusRange->get_bool() || type != MoveTo) return;
+		if (dontCancel || !settings::safe::antiNexusRange->get_bool() || myhero->has_buff(buff_hash("KogMawIcathianSurprise")) || myhero->has_buff(buff_hash("sionpassivezombie")) || type != MoveTo) return;
 
 		if (myhero->get_position().distance(turretPos) < turretRange + myhero->get_bounding_radius()) return;
 		const auto& path = myhero->get_path(pos);
