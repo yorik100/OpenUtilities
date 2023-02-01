@@ -677,6 +677,9 @@ namespace utilities {
 		// Get object name hash
 		const auto& object_hash = spell_hash_real(obj->get_name_cstr());
 
+		// Get emitter hash if there is any
+		const auto& emitterHash = obj->get_emitter_resources_hash();
+
 		// Register traps
 		if (obj->is_enemy() && object_hash == spell_hash("Noxious Trap"))
 		{
@@ -741,7 +744,7 @@ namespace utilities {
 		const game_object_script& epicOwnerTarget = obj->is_missile() && obj->missile_get_target_id() ? entitylist->get_object(obj->missile_get_target_id()) : nullptr;
 		const auto& epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster() && !epicOwnerTarget->get_owner();
 		const auto& isTargetEpic = epicParticleAttachment || epicMissileTarget;
-		if (isTargetEpic && object_hash != spell_hash("SRU_Plant_Vision_Pollen_Debuff.troy") && object_hash != spell_hash("SRE_Dragon_Chemtech_Mutated_Scryer_Revealed"))
+		if (isTargetEpic && object_hash != spell_hash("SRU_Plant_Vision_Pollen_Debuff.troy") && object_hash != spell_hash("SRE_Dragon_Chemtech_Mutated_Scryer_Revealed") && (!emitterHash || emitterHash != buff_hash("Nunu_P_Enemy_Flute_Mark")))
 		{
 			auto owner = epicParticleAttachment ? epicAttachment : epicOwnerTarget;
 			if (owner->get_name().find("Baron") != std::string::npos)
@@ -769,7 +772,6 @@ namespace utilities {
 
 		// Get possible valid particles
 		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero()) return;
-		const auto& emitterHash = obj->get_emitter_resources_hash();
 
 		// Register blue wards
 		if (object_hash == spell_hash("Global_Trinket_ItemClairvoyance_Red.troy"))
