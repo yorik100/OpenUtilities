@@ -546,6 +546,10 @@ namespace utilities {
 			}
 		}
 
+	}
+
+	void on_draw_real()
+	{
 		// Epic monster indicators
 		if (settings::epic::epicTrackerNotifications->get_bool() || settings::epic::epicTrackerMap->get_bool())
 		{
@@ -663,7 +667,6 @@ namespace utilities {
 				}
 			}
 		}
-
 	}
 
 	void on_create(const game_object_script obj)
@@ -1235,6 +1238,7 @@ namespace utilities {
 		// Add events
 		event_handler<events::on_update>::add_callback(on_update);
 		event_handler<events::on_env_draw>::add_callback(on_draw);
+		event_handler<events::on_draw>::add_callback(on_draw_real);
 		event_handler<events::on_create_object>::add_callback(on_create);
 		event_handler<events::on_delete_object>::add_callback(on_delete);
 		event_handler<events::on_buff_gain>::add_callback(on_buff_gain);
@@ -1260,6 +1264,7 @@ namespace utilities {
 		// Remove events
 		event_handler< events::on_update >::remove_handler(on_update);
 		event_handler< events::on_env_draw >::remove_handler(on_draw);
+		event_handler< events::on_draw >::remove_handler(on_draw_real);
 		event_handler< events::on_create_object >::remove_handler(on_create);
 		event_handler< events::on_delete_object >::remove_handler(on_delete);
 		event_handler< events::on_buff_gain >::remove_handler(on_buff_gain);

@@ -17,6 +17,7 @@ namespace utilities
 	void pingWards();
 	void on_update();
 	void on_draw();
+	void on_real_real();
 	void on_create(const game_object_script obj);
 	void on_delete(const game_object_script obj);
 	void on_do_cast(game_object_script sender, spell_instance_script spell);
