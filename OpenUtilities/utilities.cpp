@@ -491,24 +491,7 @@ namespace utilities {
 			{
 				if (!obj.obj->is_valid() || obj.owner->is_dead() || obj.time + obj.castTime <= gametime->get_time() || obj.castingPos == vector::zero) continue;
 
-				draw_manager->add_circle(obj.castingPos, obj.owner->get_bounding_radius(), MAKE_COLOR(138, 43, 226, 255), 2);
 				draw_manager->add_filled_circle(obj.castingPos, obj.owner->get_bounding_radius() * std::min(1.f, (1 / (obj.castTime / (gametime->get_time() - obj.time)))), MAKE_COLOR(255, 0, 255, 64));
-				draw_manager->add_circle(obj.castingPos, obj.owner->get_bounding_radius() * std::min(1.f, (1 / (obj.castTime / (gametime->get_time() - obj.time)))), MAKE_COLOR(255, 0, 255, 255), 2);
-				vector screenPos;
-				renderer->world_to_screen(obj.castingPos, screenPos);
-				const auto& size = vector(40.f, 40.f);
-				const auto& sizeMod = size / 2;
-				draw_manager->add_image(obj.owner->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
-				const int& alpha = round(255 * 0.5);
-				draw_manager->add_circle_on_screen(screenPos, 22, MAKE_COLOR(255, 0, 0, alpha), 2.f);
-				vector minimapPos;
-				vector castPos = obj.castingPos;
-				gui->get_tactical_map()->to_map_coord(castPos, minimapPos);
-				draw_manager->add_image(obj.owner->get_square_icon_portrait(), minimapPos - vector(12, 12), { 24,24 }, 90.f, { 0,0 }, { 1,1 }, { 0.4f,0.4f,0.4f,1 });
-				//const auto timeElapsed = gametime->get_time() - obj.time;
-				//const auto percentage = timeElapsed / obj.castTime;
-				//const auto radius = 12 - (12 * percentage);
-				draw_manager->add_circle_on_screen(minimapPos, 13, MAKE_COLOR(138, 43, 226, 255));
 			}
 		}
 
@@ -525,17 +508,11 @@ namespace utilities {
 
 			auto castTime = teleportData.endTime - teleportData.startTime;
 			auto isRecall = teleportData.type == teleport_type::Recall || teleportData.type == teleport_type::SuperRecall;
-			auto colour1 = !isRecall ? MAKE_COLOR(138, 43, 226, 255) : MAKE_COLOR(30, 144, 255, 255);
-			draw_manager->add_circle(target->get_position(), target->get_bounding_radius(), colour1, 2);
 			auto colour3 = !isRecall ? MAKE_COLOR(255, 0, 255, 64) : MAKE_COLOR(0, 190, 255, 64);
 			draw_manager->add_filled_circle(target->get_position(), target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour3);
-			auto colour2 = !isRecall ? MAKE_COLOR(255, 0, 255, 255) : MAKE_COLOR(0, 190, 255, 255);
-			draw_manager->add_circle(target->get_position(), target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour2, 2);
 			if (isRecall)
 			{
-				draw_manager->add_circle(spawnPoint, target->get_bounding_radius(), colour1, 2);
 				draw_manager->add_filled_circle(spawnPoint, target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour3);
-				draw_manager->add_circle(spawnPoint, target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour2, 2);
 				vector screenPos;
 				renderer->world_to_screen(spawnPoint, screenPos);
 				const auto& size = vector(40.f, 40.f);
@@ -546,6 +523,16 @@ namespace utilities {
 			}
 		}
 
+		// Wards manager
+		if (settings::hidden::enable->get_bool())
+		{
+			for (const auto& ward : wards)
+			{
+				const auto& colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 255) : MAKE_COLOR(0, 255, 255, 64);
+				if (settings::hidden::drawCircle->get_bool())
+					draw_manager->add_filled_circle(ward.position, 40, colour);
+			}
+		}
 	}
 
 	void on_draw_real()
@@ -665,6 +652,64 @@ namespace utilities {
 					renderer->world_to_screen(ownerPos, screenPos);
 					draw_manager->add_text_on_screen(screenPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", ward.owner->get_model_cstr());
 				}
+			}
+		}
+
+		// Recall and Teleport indicator
+		for (const auto& target : entitylist->get_enemy_heroes())
+		{
+			if (target->is_visible()) continue;
+
+			teleportStruct teleportData = teleportList[target->get_handle()];
+			if (teleportData.endTime == 0) continue;
+
+			const auto& timeLeft = teleportData.endTime - gametime->get_time();
+			if (timeLeft >= 0 && teleportData.type != teleport_type::Teleport && teleportData.type != teleport_type::Recall && teleportData.type != teleport_type::SuperRecall) continue;
+
+			auto castTime = teleportData.endTime - teleportData.startTime;
+			auto isRecall = teleportData.type == teleport_type::Recall || teleportData.type == teleport_type::SuperRecall;
+			auto colour1 = !isRecall ? MAKE_COLOR(138, 43, 226, 255) : MAKE_COLOR(30, 144, 255, 255);
+			draw_manager->add_circle(target->get_position(), target->get_bounding_radius(), colour1, 2);
+			auto colour2 = !isRecall ? MAKE_COLOR(255, 0, 255, 255) : MAKE_COLOR(0, 190, 255, 255);
+			draw_manager->add_circle(target->get_position(), target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour2, 2);
+			if (isRecall)
+			{
+				draw_manager->add_circle(spawnPoint, target->get_bounding_radius(), colour1, 2);
+				draw_manager->add_circle(spawnPoint, target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour2, 2);
+				vector screenPos;
+				renderer->world_to_screen(spawnPoint, screenPos);
+				const auto& size = vector(40.f, 40.f);
+				const auto& sizeMod = size / 2;
+				draw_manager->add_image(target->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
+				const int& alpha = round(255 * 0.5);
+				draw_manager->add_circle_on_screen(screenPos, 22, MAKE_COLOR(255, 0, 0, alpha), 2.f);
+			}
+		}
+
+		// Draw particle teleport positions
+		if (settings::teleport::teleportEnable->get_bool())
+		{
+			for (const auto& obj : particlePredList)
+			{
+				if (!obj.obj->is_valid() || obj.owner->is_dead() || obj.time + obj.castTime <= gametime->get_time() || obj.castingPos == vector::zero) continue;
+
+				draw_manager->add_circle(obj.castingPos, obj.owner->get_bounding_radius(), MAKE_COLOR(138, 43, 226, 255), 2);
+				draw_manager->add_circle(obj.castingPos, obj.owner->get_bounding_radius() * std::min(1.f, (1 / (obj.castTime / (gametime->get_time() - obj.time)))), MAKE_COLOR(255, 0, 255, 255), 2);
+				vector screenPos;
+				renderer->world_to_screen(obj.castingPos, screenPos);
+				const auto& size = vector(40.f, 40.f);
+				const auto& sizeMod = size / 2;
+				draw_manager->add_image(obj.owner->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
+				const int& alpha = round(255 * 0.5);
+				draw_manager->add_circle_on_screen(screenPos, 22, MAKE_COLOR(255, 0, 0, alpha), 2.f);
+				vector minimapPos;
+				vector castPos = obj.castingPos;
+				gui->get_tactical_map()->to_map_coord(castPos, minimapPos);
+				draw_manager->add_image(obj.owner->get_square_icon_portrait(), minimapPos - vector(12, 12), { 24,24 }, 90.f, { 0,0 }, { 1,1 }, { 0.4f,0.4f,0.4f,1 });
+				//const auto timeElapsed = gametime->get_time() - obj.time;
+				//const auto percentage = timeElapsed / obj.castTime;
+				//const auto radius = 12 - (12 * percentage);
+				draw_manager->add_circle_on_screen(minimapPos, 13, MAKE_COLOR(138, 43, 226, 255));
 			}
 		}
 	}
