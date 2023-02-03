@@ -489,6 +489,11 @@ namespace utilities {
 		{
 			for (const auto& obj : particlePredList)
 			{
+				// Check if draw position is visible on screen
+				vector screenPos;
+				renderer->world_to_screen(obj.castingPos, screenPos);
+				if (!renderer->is_on_screen(screenPos, 50 + obj.owner->get_bounding_radius())) continue;
+
 				if (!obj.obj->is_valid() || obj.owner->is_dead() || obj.time + obj.castTime <= gametime->get_time() || obj.castingPos == vector::zero) continue;
 
 				draw_manager->add_filled_circle(obj.castingPos, obj.owner->get_bounding_radius() * std::min(1.f, (1 / (obj.castTime / (gametime->get_time() - obj.time)))), MAKE_COLOR(255, 0, 255, 64));
@@ -505,6 +510,11 @@ namespace utilities {
 
 			const auto& timeLeft = teleportData.endTime - gametime->get_time();
 			if (timeLeft >= 0 && teleportData.type != teleport_type::Teleport && teleportData.type != teleport_type::Recall && teleportData.type != teleport_type::SuperRecall) continue;
+
+			// Check if draw position is visible on screen
+			vector screenPos;
+			renderer->world_to_screen(target->get_position(), screenPos);
+			if (!renderer->is_on_screen(screenPos, 50 + target->get_bounding_radius())) continue;
 
 			auto castTime = teleportData.endTime - teleportData.startTime;
 			auto isRecall = teleportData.type == teleport_type::Recall || teleportData.type == teleport_type::SuperRecall;
@@ -528,7 +538,12 @@ namespace utilities {
 		{
 			for (const auto& ward : wards)
 			{
-				const auto& colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 255) : MAKE_COLOR(0, 255, 255, 64);
+				// Check if draw position is visible on screen
+				vector screenPos;
+				renderer->world_to_screen(ward.position, screenPos);
+				if (!renderer->is_on_screen(screenPos, 50 + 40)) continue;
+
+				const auto& colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 64) : MAKE_COLOR(0, 255, 255, 64);
 				if (settings::hidden::drawCircle->get_bool())
 					draw_manager->add_filled_circle(ward.position, 40, colour);
 			}
@@ -629,7 +644,7 @@ namespace utilities {
 			for (const auto& ward : wards)
 			{
 				const auto& colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 255) : MAKE_COLOR(0, 255, 255, 255);
-				const auto& insideColour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 127) : MAKE_COLOR(0, 255, 255, 127);
+				const auto& insideColour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 64) : MAKE_COLOR(0, 255, 255, 64);
 				vector minimapPos;
 				vector wardPos = ward.position;
 				gui->get_tactical_map()->to_map_coord(wardPos, minimapPos);
@@ -1014,6 +1029,12 @@ namespace utilities {
 		//if (sender && spell && sender->is_me())
 		//	myhero->print_chat(0, "Spell cast %s at %f", spell->get_spell_data()->get_name_cstr(), gametime->get_time());
 		// Get ward casts
+
+		if (sender && spell && sender->is_me() && spell->get_last_target_id())
+		{
+			const auto target = entitylist->get_object(spell->get_last_target_id());
+			myhero->print_chat(0, "Spell cast %s at %f", target->get_base_skin_name().c_str(), gametime->get_time());
+		}
 		if (sender && spell && sender->is_ai_hero() && sender->is_enemy())
 		{
 			switch (spell->get_spell_data()->get_name_hash())
