@@ -1030,11 +1030,6 @@ namespace utilities {
 		//	myhero->print_chat(0, "Spell cast %s at %f", spell->get_spell_data()->get_name_cstr(), gametime->get_time());
 		// Get ward casts
 
-		if (sender && spell && sender->is_me() && spell->get_last_target_id())
-		{
-			const auto target = entitylist->get_object(spell->get_last_target_id());
-			myhero->print_chat(0, "Spell cast %s at %f", target->get_base_skin_name().c_str(), gametime->get_time());
-		}
 		if (sender && spell && sender->is_ai_hero() && sender->is_enemy())
 		{
 			switch (spell->get_spell_data()->get_name_hash())
