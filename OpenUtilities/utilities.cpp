@@ -538,12 +538,7 @@ namespace utilities {
 		{
 			for (const auto& ward : wards)
 			{
-				// Check if draw position is visible on screen
-				vector screenPos;
-				renderer->world_to_screen(ward.position, screenPos);
-				if (!renderer->is_on_screen(screenPos, 50 + 40)) continue;
-
-				const auto& colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 64) : MAKE_COLOR(0, 255, 255, 64);
+				const auto& colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 255) : MAKE_COLOR(0, 255, 255, 64);
 				if (settings::hidden::drawCircle->get_bool())
 					draw_manager->add_filled_circle(ward.position, 40, colour);
 			}
