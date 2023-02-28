@@ -781,7 +781,7 @@ namespace utilities {
 		const game_object_script& epicOwner = obj->is_missile() ? entitylist->get_object(obj->missile_get_sender_id()) : nullptr;
 		const auto& epicMissile = epicOwner && !epicOwner->is_dead() && epicOwner->is_epic_monster() && !epicOwner->get_owner();
 		const auto& isOwnedByEpic = epicParticle || epicMissile;
-		if (isOwnedByEpic)
+		if (isOwnedByEpic && object_hash != spell_hash("sru_dragon_chemtech_Base_BA_Overcharge_Spine_01"))
 		{
 			auto owner = epicParticle ? epicEmitter : epicOwner;
 			if (owner->get_name().find("Baron") != std::string::npos)
