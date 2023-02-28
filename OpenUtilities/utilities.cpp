@@ -392,12 +392,16 @@ namespace utilities {
 				}
 				else
 				{
-					obj.castingPos = obj.obj->get_position();
+					obj.castingPos = obj.obj->get_position().extend(nexusPos, obj.owner->get_bounding_radius());
 				}
+				if (obj.castingPos.is_wall() || obj.castingPos.is_building())
+					obj.castingPos = obj.obj->get_position();
 			}
 			else if (obj.isZed)
 			{
 				obj.castingPos = obj.target->get_position() + (obj.owner->get_direction() * (obj.target->get_bounding_radius() + obj.owner->get_bounding_radius()));
+				if (obj.castingPos.is_wall() || obj.castingPos.is_building())
+					obj.castingPos = obj.target->get_position() + (obj.owner->get_direction() * 1);
 			}
 		}
 	}
