@@ -356,17 +356,20 @@ namespace utilities {
 		// Loop through unknown traps
 		for (const auto& trap : unknownTraps)
 		{
-			const auto& trapBuff = trap->get_buff(buff_hash("JhinETrap"));
-			if (trap->get_owner() && trap->get_owner()->is_enemy() && trapBuff)
+			if (trap->get_owner() && trap->get_owner()->is_enemy())
 			{
-				const trapInfo& trapData = { .remainingTime = gametime->get_time() + trapBuff->get_remaining_time(), .owner = trap->get_owner(), .obj = trap, .trapType = 0, .buff = trapBuff };
-				traps.push_back(trapData);
-			}
-			const auto& trapBuff2 = trap->get_buff(buff_hash("Bushwhack"));
-			if (trap->get_owner() && trap->get_owner()->is_enemy() && trapBuff2)
-			{
-				const trapInfo& trapData = { .remainingTime = gametime->get_time() + trapBuff2->get_remaining_time(), .owner = trap->get_owner(), .obj = trap, .trapType = 1, .buff = trapBuff2 };
-				traps.push_back(trapData);
+				const auto& trapBuff = trap->get_buff(buff_hash("JhinETrap"));
+				if (trapBuff)
+				{
+					const trapInfo& trapData = { .remainingTime = gametime->get_time() + trapBuff->get_remaining_time(), .owner = trap->get_owner(), .obj = trap, .trapType = 0, .buff = trapBuff };
+					traps.push_back(trapData);
+				}
+				const auto& trapBuff2 = trap->get_buff(buff_hash("Bushwhack"));
+				if (trapBuff2)
+				{
+					const trapInfo& trapData = { .remainingTime = gametime->get_time() + trapBuff2->get_remaining_time(), .owner = trap->get_owner(), .obj = trap, .trapType = 1, .buff = trapBuff2 };
+					traps.push_back(trapData);
+				}
 			}
 		}
 
@@ -643,14 +646,16 @@ namespace utilities {
 						glow->remove_glow(trap.obj);
 					if (settings::hidden::drawCircle->get_bool())
 						draw_manager->add_circle(trap.obj->get_position(), size, colour, 2);
-					const auto& timeLeft = (int)std::ceil(trap.remainingTime - gametime->get_time());
-					const auto& remainingTimePos = vector(trap.obj->get_hpbar_pos().x + 15, trap.obj->get_hpbar_pos().y + 55, trap.obj->get_hpbar_pos().z);
+					const int& timeLeft = (int)std::ceil(trap.remainingTime - gametime->get_time());
+					const auto& textSize = draw_manager->calc_text_size(22, "%i", timeLeft);
+					const auto& remainingTimePos = vector(trap.obj->get_hpbar_pos().x - textSize.x/2 + 30, trap.obj->get_hpbar_pos().y - textSize.y/2 + 55, trap.obj->get_hpbar_pos().z);
 					if (timeLeft > 0 && settings::hidden::drawRemaining->get_bool())
 						draw_manager->add_text_on_screen(remainingTimePos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
 				}
 				else
 					glow->remove_glow(trap.obj);
-				const auto& ownerPos = vector(trap.obj->get_hpbar_pos().x + 15, trap.obj->get_hpbar_pos().y + 80, trap.obj->get_hpbar_pos().z);
+				const auto& textSize2 = draw_manager->calc_text_size(22, "%s", trap.owner->get_model_cstr());
+				const auto& ownerPos = vector(trap.obj->get_hpbar_pos().x - textSize2.x/2 + 30, trap.obj->get_hpbar_pos().y - textSize2.y/2 + 80, trap.obj->get_hpbar_pos().z);
 				if (settings::hidden::drawOwner->get_bool())
 					draw_manager->add_text_on_screen(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_model_cstr());
 			}
@@ -670,20 +675,24 @@ namespace utilities {
 				draw_manager->add_circle_on_screen(minimapPos, 6, colour);
 				if (settings::hidden::drawCircle->get_bool())
 					draw_manager->add_circle(ward.position, 40, colour, 2);
-				const auto& timeLeft = (int)std::ceil(ward.remainingTime - gametime->get_time());
+				const int& timeLeft = (int)std::ceil(ward.remainingTime - gametime->get_time());
+				const auto& textSize = draw_manager->calc_text_size(22, "%i", timeLeft);
+				const auto& textSize2 = draw_manager->calc_text_size(22, "%s", ward.owner->get_model_cstr());
 				if (ward.wardType == 0 && timeLeft > 0 && settings::hidden::drawRemaining->get_bool())
 				{
-					const auto& timeLeftPos = vector(ward.position.x - 10, ward.position.y, ward.position.z);
+					const auto& timeLeftPos = ward.position;
 					vector screenPos;
 					renderer->world_to_screen(timeLeftPos, screenPos);
-					draw_manager->add_text_on_screen(screenPos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
+					const auto& finalPos = vector(screenPos.x - textSize.x / 2, screenPos.y - textSize.y / 2 + 10, screenPos.z);
+					draw_manager->add_text_on_screen(finalPos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
 				}
 				if (settings::hidden::drawOwner->get_bool())
 				{
-					const auto& ownerPos = vector(ward.position.x - 50, ward.position.y - 50, ward.position.z);
+					const auto& ownerPos = ward.position;
 					vector screenPos;
 					renderer->world_to_screen(ownerPos, screenPos);
-					draw_manager->add_text_on_screen(screenPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", ward.owner->get_model_cstr());
+					const auto& finalPos = vector(screenPos.x - textSize2.x / 2, screenPos.y - textSize2.y / 2 + 30, screenPos.z);
+					draw_manager->add_text_on_screen(finalPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", ward.owner->get_model_cstr());
 				}
 			}
 		}
@@ -1046,7 +1055,7 @@ namespace utilities {
 		//	myhero->print_chat(0, "Spell cast %s at %f", spell->get_spell_data()->get_name_cstr(), gametime->get_time());
 		// Get ward casts
 
-		if (sender && spell && sender->is_ai_hero() && sender->is_enemy())
+		if (sender && spell && sender->is_enemy() && sender->is_ai_hero())
 		{
 			switch (spell->get_spell_data()->get_name_hash())
 			{
