@@ -74,7 +74,8 @@ namespace utilities {
 	std::unordered_map<uint32_t, teleportStruct> teleportList;
 	std::unordered_map<uint32_t, float> guardianReviveTime;
 
-	static std::unordered_set godBuffList{
+	static constexpr uint32_t godBuffList[]
+	{
 		buff_hash("KayleR"),
 		buff_hash("TaricR"),
 		buff_hash("SivirE"),
@@ -85,12 +86,14 @@ namespace utilities {
 		buff_hash("PantheonE")
 	};
 
-	static std::unordered_set noKillBuffList{
+	static constexpr uint32_t noKillBuffList[]
+	{
 		buff_hash("UndyingRage"),
 		buff_hash("ChronoShift")
 	};
 
-	static std::unordered_set stasisBuffList{
+	static constexpr uint32_t stasisBuffList[]
+	{
 		buff_hash("ChronoRevive"),
 		buff_hash("BardRStasis"),
 		buff_hash("ZhonyasRingShield"),
