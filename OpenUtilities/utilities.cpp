@@ -1092,12 +1092,28 @@ namespace utilities {
 
 	void on_network_packet(game_object_script sender, std::uint32_t network_id, pkttype_e type, void* args)
 	{
-		const auto& isEpicSender = type == pkttype_e::PKT_S2C_PlayAnimation_s && sender && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
-		if (isEpicSender)
-		{
-			const auto& data = (PKT_S2C_PlayAnimationArgs*)args;
-			if (!data) return;
+		if (type != pkttype_e::PKT_S2C_PlayAnimation_s || !sender) return;
 
+		const auto& data = (PKT_S2C_PlayAnimationArgs*)args;
+		if (!data) return;
+
+		const auto& isEpicSender = !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
+		const auto& isCrab = sender->is_monster() && strcmp(data->animation_name, "crab_hide") == 0;
+		if (isCrab)
+		{
+			if (sender->get_name() == "Sru_Crab16.1.1")
+			{
+				camp_manager->update_camp_alive_status((int)neutral_camp_id::Crab_Top, false);
+				debugPrint("Top crab ded");
+			}
+			else if (sender->get_name() == "Sru_Crab15.1.1")
+			{
+				camp_manager->update_camp_alive_status((int)neutral_camp_id::Crab_Bottom, false);
+				debugPrint("Bot crab ded");
+			}
+		}
+		else if (isEpicSender)
+		{
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
 				const auto isIdle = strcmp(data->animation_name, "Idle1_a2n_PAR") == 0;
