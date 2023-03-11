@@ -131,6 +131,7 @@ namespace utilities {
 			TreeEntry* enable;
 			TreeEntry* onlyvisible;
 			TreeEntry* onlyvalid;
+			TreeEntry* normalping;
 		}
 		TreeEntry* lowSpec;
 		TreeEntry* debugPrint;
@@ -268,12 +269,12 @@ namespace utilities {
 
 		// Flash settings
 		const auto flashTab = mainMenu->add_tab("open.utilities.flash", "Flash utility");
-		settings::flash::antiFlashGlitch = flashTab->add_checkbox("open.utilities.flash.antiflashglitch", "Prevent glitching flash in wall", true);
+		settings::flash::antiFlashGlitch = flashTab->add_checkbox("open.utilities.flash.antiflashglitch", "Prevent glitching flash in wall", false);
 		settings::flash::flashExtend = flashTab->add_checkbox("open.utilities.flash.flashextend", "Auto extend flash", true);
 
 		// Safe settings
 		const auto safeTab = mainMenu->add_tab("open.utilities.safe", "Anti nexus turret");
-		settings::safe::antiNexusRange = safeTab->add_checkbox("open.utilities.safe.antinexusrange", "Avoid going under Nexus turret", true);
+		settings::safe::antiNexusRange = safeTab->add_checkbox("open.utilities.safe.antinexusrange", "Avoid going under Nexus turret", false);
 
 		// Traps settings
 		const auto hiddenTab = mainMenu->add_tab("open.utilities.hidden", "Hidden objects");
@@ -289,6 +290,7 @@ namespace utilities {
 		settings::ping::enable = pingTab->add_checkbox("open.utilities.ping.enable", "Auto ping wards", false);
 		settings::ping::onlyvisible = pingTab->add_checkbox("open.utilities.ping.onlyvisible", "Only ping if visible", false);
 		settings::ping::onlyvalid = pingTab->add_checkbox("open.utilities.ping.onlyvalid", "Only ping if valid", true);
+		settings::ping::normalping = pingTab->add_checkbox("open.utilities.ping.normalping", "Use normal ping", false);
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
@@ -470,7 +472,7 @@ namespace utilities {
 		// Ping at ward position
 		const auto position = pingableWard.position;
 		const auto pos = vector(position.x - 100 + rand() % 200, position.y + 100 - (rand()*2) % 200, position.z);
-		myhero->cast_ping(pos, nullptr, _player_ping_type::area_is_warded);
+		myhero->cast_ping(pos, nullptr, settings::ping::normalping->get_bool() ? _player_ping_type::normal : _player_ping_type::area_is_warded);
 
 		pingableWards.lastPingTime = gametime->get_time();
 		pingableWards.wards.erase(pingableWards.wards.begin());
