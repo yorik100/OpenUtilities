@@ -252,7 +252,12 @@ namespace utilities {
 	void createMenu()
 	{
 		// Main tab
-		mainMenu = menu->create_tab("open.utilities", "OpenUtilities");
+		mainMenu = menu->create_tab("open.utilities", "[AURORA] OpenUtilities");
+		const auto aurora_texture = draw_manager->load_texture_from_file(L"aurora.png");
+		if (aurora_texture)
+		{
+			mainMenu->set_assigned_texture(aurora_texture->texture);
+		}
 
 		// Teleport settings
 		const auto teleportTab = mainMenu->add_tab("open.utilities.teleport", "Teleport");

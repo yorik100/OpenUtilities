@@ -1,7 +1,7 @@
 #include "../plugin_sdk/plugin_sdk.hpp"
 #include "utilities.h"
 
-PLUGIN_NAME("OpenUtilities");
+PLUGIN_NAME("[AURORA] OpenUtilities");
 
 PLUGIN_TYPE(plugin_type::utility);
 
