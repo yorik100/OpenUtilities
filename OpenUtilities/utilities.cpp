@@ -818,7 +818,6 @@ namespace utilities {
 			{
 				debugPrint("Object from Dragon : %s", obj->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
-				isDragonAttacked = true;
 				lastDragon = owner;
 				return;
 			}
@@ -1044,7 +1043,6 @@ namespace utilities {
 			{
 				debugPrint("Cast from Dragon : %s", spell->get_spell_data()->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
-				isDragonAttacked = true;
 				lastDragon = sender;
 				return;
 			}
