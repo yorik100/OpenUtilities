@@ -873,6 +873,9 @@ namespace utilities {
 			}
 		}
 
+		if (settings::fow::updatePos->get_bool() && obj->get_particle_attachment_object() && !obj->get_particle_attachment_object()->is_visible() && !obj->get_particle_attachment_object()->is_dead() && obj->get_particle_attachment_object()->get_position().is_valid() && obj->get_position().is_valid())
+			obj->get_particle_attachment_object()->set_position(obj->get_position());
+
 		// Get possible valid particles
 		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero()) return;
 
