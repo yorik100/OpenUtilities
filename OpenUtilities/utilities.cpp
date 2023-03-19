@@ -133,6 +133,10 @@ namespace utilities {
 			TreeEntry* onlyvalid;
 			TreeEntry* normalping;
 		}
+		namespace fow {
+			TreeEntry* scuttleRemove;
+			TreeEntry* updatePos;
+		}
 		TreeEntry* lowSpec;
 		TreeEntry* debugPrint;
 	}
@@ -296,6 +300,11 @@ namespace utilities {
 		settings::ping::onlyvisible = pingTab->add_checkbox("open.utilities.ping.onlyvisible", "Only ping if visible", false);
 		settings::ping::onlyvalid = pingTab->add_checkbox("open.utilities.ping.onlyvalid", "Only ping if valid", true);
 		settings::ping::normalping = pingTab->add_checkbox("open.utilities.ping.normalping", "Use normal ping", false);
+
+		//FoW settings
+		const auto fowTab = mainMenu->add_tab("open.utilities.fow", "FoW");
+		settings::fow::scuttleRemove = fowTab->add_checkbox("open.utilities.fow.scuttleremove", "Remove scuttle on minimap on death", true);
+		settings::fow::updatePos = fowTab->add_checkbox("open.utilities.fow.updatepos", "Update enemy positions if info about position is given", true);
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
@@ -878,9 +887,9 @@ namespace utilities {
 			}
 		}
 
+		// Teleport particles
 		switch (emitterHash)
 		{
-			// Teleport particles
 		case buff_hash("TwistedFate_R_Gatemarker_Red"):
 		{
 			const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 1.5, .castingPos = obj->get_position() };
@@ -930,6 +939,15 @@ namespace utilities {
 			particlePredList.push_back(particleData);
 			return;
 		}
+		// S Q
+		case 310035710:
+		// J W
+		case 2664838270:
+		{
+			if (settings::fow::updatePos->get_bool() && !obj->get_emitter()->is_visible() && !obj->get_emitter()->is_dead())
+				obj->get_emitter()->set_position(obj->get_position());
+			return;
+		}
 
 
 		//Ping utility
@@ -964,7 +982,7 @@ namespace utilities {
 				//	}
 				//);
 			}
-			break;
+			return;
 		}
 		}
 
@@ -992,7 +1010,34 @@ namespace utilities {
 
 	void on_delete(const game_object_script obj)
 	{
+		// Get emitter hash if there is any
+		const auto& emitterHash = obj->get_emitter_resources_hash();
 
+		// Get possible valid particles
+		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero() || obj->get_emitter()->is_visible() || obj->get_emitter()->is_dead()) return;
+
+		// Teleport particles
+		switch (emitterHash)
+		{
+		case buff_hash("Pantheon_R_Update_Indicator_Enemy"):
+		{
+			const auto& castPos = obj->get_position() + obj->get_particle_rotation_forward() * 1350;
+			if (settings::fow::updatePos->get_bool())
+				obj->get_emitter()->set_position(castPos);
+			return;
+		}
+		case buff_hash("Ekko_R_ChargeIndicator"):
+		case buff_hash("Galio_R_Tar_Ground_Enemy"):
+		case buff_hash("Evelynn_R_Landing"):
+		case 1882371666:
+		// S Q
+		case 310035710:
+		{
+			if (settings::fow::updatePos->get_bool())
+				obj->get_emitter()->set_position(obj->get_position());
+			return;
+		}
+		}
 	}
 
 	void on_do_cast(game_object_script sender, spell_instance_script spell)
@@ -1102,7 +1147,7 @@ namespace utilities {
 
 		const auto& isEpicSender = !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 		const auto& isCrab = sender->is_monster() && strcmp(data->animation_name, "crab_hide") == 0;
-		if (isCrab)
+		if (isCrab && settings::fow::scuttleRemove->get_bool())
 		{
 			if (sender->get_name() == "Sru_Crab16.1.1")
 			{
