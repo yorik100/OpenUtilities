@@ -1026,13 +1026,6 @@ namespace utilities {
 		// Teleport particles
 		switch (emitterHash)
 		{
-		case buff_hash("Pantheon_R_Update_Indicator_Enemy"):
-		{
-			const auto& castPos = obj->get_position() + obj->get_particle_rotation_forward() * 1350;
-			if (settings::fow::updatePos->get_bool())
-				obj->get_emitter()->set_position(castPos);
-			return;
-		}
 		case buff_hash("Ekko_R_ChargeIndicator"):
 		case buff_hash("Galio_R_Tar_Ground_Enemy"):
 		case buff_hash("Evelynn_R_Landing"):
