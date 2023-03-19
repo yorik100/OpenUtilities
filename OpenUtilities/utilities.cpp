@@ -943,6 +943,10 @@ namespace utilities {
 		case 310035710:
 		// J W
 		case 2664838270:
+		// GR E
+		case 3670016974:
+		// GA Q
+		case 3616046530:
 		{
 			if (settings::fow::updatePos->get_bool() && !obj->get_emitter()->is_visible() && !obj->get_emitter()->is_dead())
 				obj->get_emitter()->set_position(obj->get_position());
