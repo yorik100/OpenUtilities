@@ -951,7 +951,7 @@ namespace utilities {
 		// GA Q
 		case 3616046530:
 		{
-			if (settings::fow::updatePos->get_bool() && !obj->get_emitter()->is_visible() && !obj->get_emitter()->is_dead())
+			if (settings::fow::updatePos->get_bool() && !obj->get_emitter()->is_visible() && !obj->get_emitter()->is_dead() && obj->get_position().is_valid())
 				obj->get_emitter()->set_position(obj->get_position());
 			return;
 		}
@@ -1033,7 +1033,7 @@ namespace utilities {
 		// S Q
 		case 310035710:
 		{
-			if (settings::fow::updatePos->get_bool())
+			if (settings::fow::updatePos->get_bool() && obj->get_position().is_valid())
 				obj->get_emitter()->set_position(obj->get_position());
 			return;
 		}
