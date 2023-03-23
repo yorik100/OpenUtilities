@@ -612,7 +612,7 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(dragonPos, 550, circleColour, 2);
 				}
 			}
-			else if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) || lastDragon->is_playing_animation(buff_hash("Landing")))
+			else if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) || (lastDragon && lastDragon->is_valid() && lastDragon->is_playing_animation(buff_hash("Landing"))))
 				isDragonAttacked = false;
 
 			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && (gametime->get_time() - baronAttackTime < 8 || gametime->get_time() - baronIdleTime < 2))
