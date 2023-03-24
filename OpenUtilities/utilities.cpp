@@ -326,7 +326,7 @@ namespace utilities {
 			{
 				const auto& shouldRemove = x.wardType == 0 && x.remainingTime < gametime->get_time();
 				if (shouldRemove)
-					debugPrint("Ward removed because it expired");
+					debugPrint("[%i:%i] Ward removed because it expired", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 				return shouldRemove;
 			}
 		),
@@ -362,7 +362,7 @@ namespace utilities {
 					const auto& wardDist = x.wardType == 0 ? 100.f : 200.f;
 					const auto& shouldRemove = dist < wardDist;
 					if (shouldRemove)
-						debugPrint("Ward removed because distance was %f and %f is smaller than %f", dist, dist, wardDist);
+						debugPrint("[%i:%i] Ward removed because distance was %f and %f is smaller than %f", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, dist, dist, wardDist);
 					return shouldRemove;
 				}
 			),
@@ -800,7 +800,7 @@ namespace utilities {
 					const auto& wardDist = x.wardType == 0 ? 100.f : 200.f;
 					const auto& shouldRemove = dist < wardDist;
 					if (shouldRemove)
-						debugPrint("Ward removed because distance was %f and %f is smaller than %f", dist, dist, wardDist);
+						debugPrint("[%i:%i] Ward removed because distance was %f and %f is smaller than %f", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, dist, dist, wardDist);
 					return shouldRemove;
 				}
 			),
@@ -818,21 +818,21 @@ namespace utilities {
 			auto owner = epicParticle ? epicEmitter : epicOwner;
 			if (owner->get_name().find("Baron") != std::string::npos)
 			{
-				debugPrint("Object from Baron : %s", obj->get_name().c_str());
+				debugPrint("[%i:%i] Object from Baron : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
 				baronAttackTime = gametime->get_time();
 				lastBaron = owner;
 				return;
 			}
 			else if (owner->get_name().find("Dragon") != std::string::npos)
 			{
-				debugPrint("Object from Dragon : %s", obj->get_name().c_str());
+				debugPrint("[%i:%i] Object from Dragon : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
 				lastDragon = owner;
 				return;
 			}
 			else if (owner->get_name().find("Herald") != std::string::npos)
 			{
-				debugPrint("Object from Herald : %s", obj->get_name().c_str());
+				debugPrint("[%i:%i] Object from Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = owner;
 				return;
@@ -852,21 +852,21 @@ namespace utilities {
 			auto owner = epicParticleAttachment ? epicAttachment : epicOwnerTarget;
 			if (owner->get_name().find("Baron") != std::string::npos)
 			{
-				debugPrint("Object on Baron : %s", obj->get_name().c_str());
+				debugPrint("[%i:%i] Object on Baron : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
 				baronAttackTime = gametime->get_time();
 				lastBaron = owner;
 				return;
 			}
 			else if (owner->get_name().find("Dragon") != std::string::npos)
 			{
-				debugPrint("Object on Dragon : %s", obj->get_name().c_str());
+				debugPrint("[%i:%i] Object on Dragon : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
 				lastDragon = owner;
 				return;
 			}
 			else if (owner->get_name().find("Herald") != std::string::npos)
 			{
-				debugPrint("Object on Herald : %s", obj->get_name().c_str());
+				debugPrint("[%i:%i] Object on Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = owner;
 				return;
@@ -874,7 +874,10 @@ namespace utilities {
 		}
 
 		if (settings::fow::updatePos->get_bool() && obj->get_particle_attachment_object() && !obj->get_particle_attachment_object()->is_visible() && !obj->get_particle_attachment_object()->is_dead() && obj->get_particle_attachment_object()->get_position().is_valid() && obj->get_position().is_valid())
+		{
 			obj->get_particle_attachment_object()->set_position(obj->get_position());
+			debugPrint("[%i:%i] Object updating position for %s : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_attachment_object()->get_name().c_str(), obj->get_name().c_str());
+		}
 
 		// Get possible valid particles
 		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero()) return;
@@ -1052,21 +1055,21 @@ namespace utilities {
 		{
 			if (target->get_name().find("Baron") != std::string::npos)
 			{
-				debugPrint("Cast on Baron : %s", spell->get_spell_data()->get_name().c_str());
+				debugPrint("[%i:%i] Cast on Baron : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, spell->get_spell_data()->get_name().c_str());
 				baronAttackTime = gametime->get_time();
 				lastBaron = target;
 				return;
 			}
 			else if (target->get_name().find("Dragon") != std::string::npos)
 			{
-				debugPrint("Cast on Dragon : %s", spell->get_spell_data()->get_name().c_str());
+				debugPrint("[%i:%i] Cast on Dragon : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, spell->get_spell_data()->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
 				lastDragon = target;
 				return;
 			}
 			else if (target->get_name().find("Herald") != std::string::npos)
 			{
-				debugPrint("Cast on Herald : %s", spell->get_spell_data()->get_name().c_str());
+				debugPrint("[%i:%i] Cast on Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, spell->get_spell_data()->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = target;
 				return;
@@ -1079,21 +1082,21 @@ namespace utilities {
 		{
 			if (sender->get_name().find("Baron") != std::string::npos)
 			{
-				debugPrint("Cast from Baron : %s", spell->get_spell_data()->get_name().c_str());
+				debugPrint("[%i:%i] Cast from Baron : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, spell->get_spell_data()->get_name().c_str());
 				baronAttackTime = gametime->get_time();
 				lastBaron = sender;
 				return;
 			}
 			else if (sender->get_name().find("Dragon") != std::string::npos)
 			{
-				debugPrint("Cast from Dragon : %s", spell->get_spell_data()->get_name().c_str());
+				debugPrint("[%i:%i] Cast from Dragon : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, spell->get_spell_data()->get_name().c_str());
 				dragonAttackTime = gametime->get_time();
 				lastDragon = sender;
 				return;
 			}
 			else if (sender->get_name().find("Herald") != std::string::npos)
 			{
-				debugPrint("Cast from Herald : %s", spell->get_spell_data()->get_name().c_str());
+				debugPrint("[%i:%i] Cast from Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, spell->get_spell_data()->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = sender;
 				return;
@@ -1152,12 +1155,12 @@ namespace utilities {
 			if (sender->get_name() == "Sru_Crab16.1.1")
 			{
 				camp_manager->update_camp_alive_status((int)neutral_camp_id::Crab_Top, false);
-				debugPrint("Top crab ded");
+				debugPrint("[%i:%i] Top crab ded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 			}
 			else if (sender->get_name() == "Sru_Crab15.1.1")
 			{
 				camp_manager->update_camp_alive_status((int)neutral_camp_id::Crab_Bottom, false);
-				debugPrint("Bot crab ded");
+				debugPrint("[%i:%i] Bot crab ded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 			}
 		}
 		else if (isEpicSender)
@@ -1166,7 +1169,7 @@ namespace utilities {
 			{
 				const auto isIdle = strcmp(data->animation_name, "Idle1_a2n_PAR") == 0;
 				if (isIdle && gametime->get_time() - baronAttackTime >= 8) return;
-				debugPrint("Animation from Baron : %s", data->animation_name);
+				debugPrint("[%i:%i] Animation from Baron : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, data->animation_name);
 				baronAttackTime = !isIdle ? gametime->get_time() : 0;
 				baronIdleTime = isIdle ? gametime->get_time() : 0;
 				lastBaron = sender;
@@ -1176,7 +1179,7 @@ namespace utilities {
 			{
 				const auto isLanding = strcmp(data->animation_name, "Landing") == 0;
 				if (isLanding && !isDragonAttacked) return;
-				debugPrint("Animation from Dragon : %s", data->animation_name);
+				debugPrint("[%i:%i] Animation from Dragon : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, data->animation_name);
 				dragonAttackTime = gametime->get_time();
 				isDragonAttacked = !isLanding;
 				lastDragon = sender;
@@ -1184,7 +1187,7 @@ namespace utilities {
 			}
 			else if (sender->get_name().find("Herald") != std::string::npos && strcmp(data->animation_name, "Dance") != 0)
 			{
-				debugPrint("Animation from Herald : %s", data->animation_name);
+				debugPrint("[%i:%i] Animation from Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, data->animation_name);
 				heraldAttackTime = gametime->get_time();
 				lastHerald = sender;
 				return;
