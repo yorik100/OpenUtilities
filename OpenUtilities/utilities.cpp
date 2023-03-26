@@ -494,6 +494,7 @@ namespace utilities {
 
 	void on_update()
 	{
+		console->print("[%f] State : %i", gametime->get_time(), myhero->get_action_state());
 		// Limit ticks (for low spec mode)
 		if (settings::lowSpec->get_bool() && limitedTick(SERVER_TICKRATE)) return;
 
@@ -784,6 +785,9 @@ namespace utilities {
 		// Get emitter hash if there is any
 		const auto& emitterHash = obj->get_emitter_resources_hash();
 
+		if (object_hash == spell_hash("HA_Hexgate_Shared_OneWay_Mis"))
+			console->print("[%f] Created", gametime->get_time());
+
 		// Register traps
 		if (obj->is_enemy() && object_hash == spell_hash("Noxious Trap"))
 		{
@@ -876,7 +880,7 @@ namespace utilities {
 		if (settings::fow::updatePos->get_bool() && obj->get_particle_attachment_object() && !obj->get_particle_attachment_object()->is_visible() && !obj->get_particle_attachment_object()->is_dead() && obj->get_particle_attachment_object()->get_position().is_valid() && obj->get_position().is_valid())
 		{
 			obj->get_particle_attachment_object()->set_position(obj->get_position());
-			debugPrint("[%i:%i] Object updating position for %s : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_attachment_object()->get_name().c_str(), obj->get_name().c_str());
+			debugPrint("[%i:%i] Object updating position for %s : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_attachment_object()->get_model().c_str(), obj->get_name().c_str());
 		}
 
 		// Get possible valid particles
@@ -1020,6 +1024,11 @@ namespace utilities {
 
 	void on_delete(const game_object_script obj)
 	{
+		const auto& object_hash = spell_hash_real(obj->get_name_cstr());
+
+
+		if (object_hash == spell_hash("HA_Hexgate_Shared_OneWay_Mis"))
+			console->print("[%f] Deleted", gametime->get_time());
 		// Get emitter hash if there is any
 		const auto& emitterHash = obj->get_emitter_resources_hash();
 
