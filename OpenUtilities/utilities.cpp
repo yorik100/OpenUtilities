@@ -494,7 +494,6 @@ namespace utilities {
 
 	void on_update()
 	{
-		console->print("[%f] State : %i", gametime->get_time(), myhero->get_action_state());
 		// Limit ticks (for low spec mode)
 		if (settings::lowSpec->get_bool() && limitedTick(SERVER_TICKRATE)) return;
 
@@ -785,9 +784,6 @@ namespace utilities {
 		// Get emitter hash if there is any
 		const auto& emitterHash = obj->get_emitter_resources_hash();
 
-		if (object_hash == spell_hash("HA_Hexgate_Shared_OneWay_Mis"))
-			console->print("[%f] Created", gametime->get_time());
-
 		// Register traps
 		if (obj->is_enemy() && object_hash == spell_hash("Noxious Trap"))
 		{
@@ -1027,8 +1023,6 @@ namespace utilities {
 		const auto& object_hash = spell_hash_real(obj->get_name_cstr());
 
 
-		if (object_hash == spell_hash("HA_Hexgate_Shared_OneWay_Mis"))
-			console->print("[%f] Deleted", gametime->get_time());
 		// Get emitter hash if there is any
 		const auto& emitterHash = obj->get_emitter_resources_hash();
 
