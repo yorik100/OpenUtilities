@@ -790,6 +790,13 @@ namespace utilities {
 			unknownTraps.push_back(obj);
 		}
 
+		// Update position if object created from entity's position
+		if (settings::fow::updatePos->get_bool() && obj->get_particle_attachment_object() && !obj->get_particle_attachment_object()->is_moving() && (obj->get_particle_attachment_object()->get_path_controller()->get_path_count() != 1) && !obj->get_particle_attachment_object()->is_visible() && !obj->get_particle_attachment_object()->is_hpbar_recently_rendered() && !obj->get_particle_attachment_object()->is_dead() && obj->get_particle_attachment_object()->get_position().is_valid() && obj->get_position().is_valid())
+		{
+			obj->get_particle_attachment_object()->set_position(obj->get_position());
+			debugPrint("[%i:%02d] Object updating position for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_attachment_object()->get_model().c_str(), obj->get_particle_attachment_object()->get_name().c_str(), obj->get_name().c_str());
+		}
+
 		// Filter wards
 		if (obj->is_enemy() && (object_hash == spell_hash("VisionWard") || object_hash == spell_hash("SightWard")))
 		{
@@ -871,12 +878,6 @@ namespace utilities {
 				lastHerald = owner;
 				return;
 			}
-		}
-
-		if (settings::fow::updatePos->get_bool() && obj->get_particle_attachment_object() && !obj->get_particle_attachment_object()->is_moving() && (obj->get_particle_attachment_object()->get_path_controller()->get_path_count() != 1) && !obj->get_particle_attachment_object()->is_visible() && !obj->get_particle_attachment_object()->is_hpbar_recently_rendered() && !obj->get_particle_attachment_object()->is_dead() && obj->get_particle_attachment_object()->get_position().is_valid() && obj->get_position().is_valid())
-		{
-			obj->get_particle_attachment_object()->set_position(obj->get_position());
-			debugPrint("[%i:%02d] Object updating position for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_attachment_object()->get_model().c_str(), obj->get_particle_attachment_object()->get_name().c_str(), obj->get_name().c_str());
 		}
 
 		// Get possible valid particles
@@ -995,7 +996,9 @@ namespace utilities {
 			return;
 		}
 		}
+		
 
+		// Get teleport particles by name hash as particle hash doesn't work with these
 		if (object_hash == spell_hash("global_ss_teleport_turret_red.troy"))
 		{
 			const auto& target = obj->get_particle_attachment_object();
@@ -1029,7 +1032,7 @@ namespace utilities {
 		// Get possible valid particles
 		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero() || obj->get_emitter()->is_visible() || obj->get_emitter()->is_dead()) return;
 
-		// Teleport particles
+		// Update position with teleport or position particles
 		switch (emitterHash)
 		{
 		case buff_hash("Ekko_R_ChargeIndicator"):
@@ -1112,8 +1115,8 @@ namespace utilities {
 		// Debug stuff
 		//if (sender && spell && sender->is_me())
 		//	myhero->print_chat(0, "Spell cast %s at %f", spell->get_spell_data()->get_name_cstr(), gametime->get_time());
+		
 		// Get ward casts
-
 		if (sender && spell && sender->is_enemy() && sender->is_ai_hero())
 		{
 			switch (spell->get_spell_data()->get_name_hash())
@@ -1148,11 +1151,13 @@ namespace utilities {
 	{
 		if (type != pkttype_e::PKT_S2C_PlayAnimation_s || !sender) return;
 
+		// Get animation info, if there is none then ignore that animation
 		const auto& data = (PKT_S2C_PlayAnimationArgs*)args;
 		if (!data) return;
 
 		const auto& isEpicSender = !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 		const auto& isCrab = sender->is_monster() && strcmp(data->animation_name, "crab_hide") == 0;
+		// If crab is dead then set him as dead
 		if (isCrab && settings::fow::scuttleRemove->get_bool())
 		{
 			if (sender->get_name() == "Sru_Crab16.1.1")
@@ -1166,6 +1171,7 @@ namespace utilities {
 				debugPrint("[%i:%02d] Bot crab ded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 			}
 		}
+		// If it is an epic monster then update the tracker based off the animations
 		else if (isEpicSender)
 		{
 			if (sender->get_name().find("Baron") != std::string::npos)
@@ -1310,7 +1316,9 @@ namespace utilities {
 		// Check if a move order is sent and if it should be processed
 		if (dontCancel || !settings::safe::antiNexusRange->get_bool() || type != MoveTo || myhero->has_buff(buff_hash("KogMawIcathianSurprise")) || myhero->has_buff(buff_hash("sionpassivezombie"))) return;
 
+		// Check if we're already in a dangerous position, if we are then we don't mind taking a dangerous path
 		if (myhero->get_position().distance(turretPos) < turretRange + myhero->get_bounding_radius()) return;
+		// Transform dangerous path into safe path
 		const auto& path = myhero->get_path(pos);
 		for (int i = 0; i < static_cast<int>(path.size()) - 1; i++)
 		{
@@ -1349,7 +1357,7 @@ namespace utilities {
 
 	void load()
 	{
-		//Initialize random
+		// Initialise random
 		srand(time(NULL));
 
 		// Get enemy spawnpoint
@@ -1386,10 +1394,10 @@ namespace utilities {
 		// Get URF cannon pos
 		urfCannon = myhero->get_team() == game_object_team::order ? vector(13018.f, 14026.f) : vector(1506.f, 676.f);
 
-		// Get Jhin traps
+		// Get Jhin/Nidalee traps
 		for (const auto& entity : entitylist->get_other_minion_objects())
 		{
-			if (entity->get_name() == "Noxious Trap")
+			if (entity->is_enemy() && entity->get_name() == "Noxious Trap")
 			{
 				unknownTraps.push_back(entity);
 			}
