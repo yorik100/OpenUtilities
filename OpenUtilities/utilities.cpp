@@ -1113,8 +1113,9 @@ namespace utilities {
 	void on_process_spell_cast(game_object_script sender, spell_instance_script spell)
 	{
 		// Debug stuff
-		//if (sender && spell && sender->is_me())
-		//	myhero->print_chat(0, "Spell cast %s at %f", spell->get_spell_data()->get_name_cstr(), gametime->get_time());
+		//const auto& target = entitylist->get_object(spell->get_last_target_id());
+		//if (sender && spell && sender->is_me() && target)
+		//	myhero->print_chat(0, "Spell cast %s at %f on %s", spell->get_spell_data()->get_name_cstr(), gametime->get_time(), target->get_model_cstr());
 		
 		// Get ward casts
 		if (sender && spell && sender->is_enemy() && sender->is_ai_hero())
