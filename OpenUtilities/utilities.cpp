@@ -71,6 +71,7 @@ namespace utilities {
 	std::vector<trapInfo> traps;
 	std::vector<wardInfo> wards;
 	std::vector<game_object_script> realWards;
+	std::vector<game_object_script> maokaiE;
 	std::unordered_map<uint32_t, teleportStruct> teleportList;
 	std::unordered_map<uint32_t, float> guardianReviveTime;
 
@@ -338,6 +339,13 @@ namespace utilities {
 			}
 		),
 			unknownTraps.end());
+		// Maokai E filtering
+		maokaiE.erase(std::remove_if(maokaiE.begin(), maokaiE.end(), [](const game_object_script& x)
+			{
+				return !x->is_valid() || x->is_dead();
+			}
+		),
+			maokaiE.end());
 		// Traps filtering
 		traps.erase(std::remove_if(traps.begin(), traps.end(), [](const trapInfo& x)
 			{
@@ -649,9 +657,9 @@ namespace utilities {
 		}
 
 		// Traps manager
-		if (settings::hidden::enable->get_bool())
+		for (const auto& trap : traps)
 		{
-			for (const auto& trap : traps)
+			if (settings::hidden::enable->get_bool())
 			{
 				if (!trap.obj->is_visible())
 				{
@@ -667,18 +675,32 @@ namespace utilities {
 						draw_manager->add_circle(trap.obj->get_position(), size, colour, 2);
 					const int& timeLeft = (int)std::ceil(trap.remainingTime - gametime->get_time());
 					const auto& textSize = draw_manager->calc_text_size(22, "%i", timeLeft);
-					const auto& remainingTimePos = vector(trap.obj->get_hpbar_pos().x - textSize.x/2 + 30, trap.obj->get_hpbar_pos().y - textSize.y/2 + 55, trap.obj->get_hpbar_pos().z);
+					const auto& remainingTimePos = vector(trap.obj->get_hpbar_pos().x - textSize.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize.y / 2 + 55, trap.obj->get_hpbar_pos().z);
 					if (timeLeft > 0 && settings::hidden::drawRemaining->get_bool())
 						draw_manager->add_text_on_screen(remainingTimePos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
 				}
 				else
 					glow->remove_glow(trap.obj);
 				const auto& textSize2 = draw_manager->calc_text_size(22, "%s", trap.owner->get_model_cstr());
-				const auto& ownerPos = vector(trap.obj->get_hpbar_pos().x - textSize2.x/2 + 30, trap.obj->get_hpbar_pos().y - textSize2.y/2 + 80, trap.obj->get_hpbar_pos().z);
+				const auto& ownerPos = vector(trap.obj->get_hpbar_pos().x - textSize2.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize2.y / 2 + 80, trap.obj->get_hpbar_pos().z);
 				if (settings::hidden::drawOwner->get_bool())
 					draw_manager->add_text_on_screen(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_model_cstr());
 			}
+			else
+				glow->remove_glow(trap.obj);
 		}
+
+		// Maokai E manager
+		for (const auto& obj : maokaiE)
+			if (settings::hidden::enable->get_bool())
+			{
+				if (settings::hidden::glow->get_bool() && !obj->is_visible())
+					glow->apply_glow(obj, MAKE_COLOR(0, 255, 255, 255), 3, 0);
+				else
+					glow->remove_glow(obj);
+			}
+			else
+				glow->remove_glow(obj);
 
 		// Wards manager
 		if (settings::hidden::enable->get_bool())
@@ -790,11 +812,22 @@ namespace utilities {
 			unknownTraps.push_back(obj);
 		}
 
+		if (obj->is_enemy() && object_hash == spell_hash("DoABarrelRoll") && obj->get_model() == "MaokaiSproutling")
+		{
+			maokaiE.push_back(obj);
+		}
+
 		// Update position if object created from entity's position
 		if (settings::fow::updatePos->get_bool() && obj->get_particle_attachment_object() && obj->get_particle_attachment_object()->is_valid() && !obj->get_particle_attachment_object()->is_moving() && (!obj->get_particle_attachment_object()->get_path_controller() || obj->get_particle_attachment_object()->get_path_controller()->get_path_count() != 1) && !obj->get_particle_attachment_object()->is_visible() && !obj->get_particle_attachment_object()->is_hpbar_recently_rendered() && !obj->get_particle_attachment_object()->is_dead() && obj->get_particle_attachment_object()->get_position().is_valid() && obj->get_position().is_valid())
 		{
 			obj->get_particle_attachment_object()->set_position(obj->get_position());
 			debugPrint("[%i:%02d] Object updating position for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_attachment_object()->get_model().c_str(), obj->get_particle_attachment_object()->get_name().c_str(), obj->get_name().c_str());
+		}
+
+		if (settings::fow::updatePos->get_bool() && obj->get_particle_target_attachment_object() && obj->get_particle_target_attachment_object()->is_valid() && !obj->get_particle_target_attachment_object()->is_moving() && (!obj->get_particle_target_attachment_object()->get_path_controller() || obj->get_particle_target_attachment_object()->get_path_controller()->get_path_count() != 1) && !obj->get_particle_target_attachment_object()->is_visible() && !obj->get_particle_target_attachment_object()->is_hpbar_recently_rendered() && !obj->get_particle_target_attachment_object()->is_dead() && obj->get_particle_target_attachment_object()->get_position().is_valid())
+		{
+			obj->get_particle_target_attachment_object()->set_position(obj->get_particle_target_attachment_object()->get_position());
+			debugPrint("[%i:%02d] Object updating position on self for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_target_attachment_object()->get_model().c_str(), obj->get_particle_target_attachment_object()->get_name().c_str(), obj->get_name().c_str());
 		}
 
 		// Filter wards
@@ -1402,6 +1435,10 @@ namespace utilities {
 			{
 				unknownTraps.push_back(entity);
 			}
+			if (entity->is_enemy() && entity->get_name() == "DoABarrelRoll" && entity->get_model() == "MaokaiSproutling")
+			{
+				maokaiE.push_back(entity);
+			}
 		}
 
 		// Call menu creation function
@@ -1429,9 +1466,11 @@ namespace utilities {
 	{
 		// Remove glow from traps
 		for (const auto& trap : traps)
-		{
 			glow->remove_glow(trap.obj);
-		}
+
+		// Remove glow from Maokai E
+		for (const auto& obj : maokaiE)
+			glow->remove_glow(obj);
 
 		// Remove events
 		event_handler< events::on_update >::remove_handler(on_update);
