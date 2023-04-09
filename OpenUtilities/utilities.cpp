@@ -812,6 +812,7 @@ namespace utilities {
 			unknownTraps.push_back(obj);
 		}
 
+		// Register Maokai E objects
 		if (obj->is_enemy() && object_hash == spell_hash("DoABarrelRoll") && obj->get_model() == "MaokaiSproutling")
 		{
 			maokaiE.push_back(obj);
@@ -1427,7 +1428,7 @@ namespace utilities {
 		// Get URF cannon pos
 		urfCannon = myhero->get_team() == game_object_team::order ? vector(13018.f, 14026.f) : vector(1506.f, 676.f);
 
-		// Get Jhin/Nidalee traps
+		// Get Jhin/Nidalee traps and Maokai E objects
 		for (const auto& entity : entitylist->get_other_minion_objects())
 		{
 			if (entity->is_enemy() && entity->get_name() == "Noxious Trap")
