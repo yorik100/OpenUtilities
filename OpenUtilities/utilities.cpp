@@ -694,10 +694,13 @@ namespace utilities {
 		for (const auto& obj : maokaiE)
 			if (settings::hidden::enable->get_bool())
 			{
+				constexpr auto colour = MAKE_COLOR(255, 140, 0, 255);
 				if (settings::hidden::glow->get_bool() && !obj->is_visible())
-					glow->apply_glow(obj, MAKE_COLOR(0, 255, 255, 255), 3, 0);
+					glow->apply_glow(obj, colour, 3, 0);
 				else
 					glow->remove_glow(obj);
+				if (settings::hidden::drawCircle->get_bool())
+					draw_manager->add_circle(obj->get_position(), 70, colour, 2);
 			}
 			else
 				glow->remove_glow(obj);
