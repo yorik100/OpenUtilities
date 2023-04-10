@@ -1435,13 +1435,9 @@ namespace utilities {
 		for (const auto& entity : entitylist->get_other_minion_objects())
 		{
 			if (entity->is_enemy() && entity->get_name() == "Noxious Trap")
-			{
 				unknownTraps.push_back(entity);
-			}
-			if (entity->is_enemy() && entity->get_name() == "DoABarrelRoll" && entity->get_model() == "MaokaiSproutling")
-			{
+			else if (entity->is_enemy() && entity->get_name() == "DoABarrelRoll" && entity->get_model() == "MaokaiSproutling")
 				maokaiE.push_back(entity);
-			}
 		}
 
 		// Call menu creation function
