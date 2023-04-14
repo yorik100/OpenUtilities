@@ -801,8 +801,12 @@ namespace utilities {
 	void on_create(const game_object_script obj)
 	{
 		// Debug stuff
-		//if (obj->get_emitter() && obj->get_emitter()->is_me())
-		//	myhero->print_chat(0, "Particle from player %s at %f", obj->get_name_cstr(), gametime->get_time());
+		if (obj->get_emitter() && obj->get_emitter()->is_enemy() && obj->get_emitter()->is_ai_hero())
+			myhero->print_chat(0, "Particle from player %s at %f %s", obj->get_name_cstr(), gametime->get_time(), obj->get_emitter()->get_name_cstr());
+		//if (obj->get_emitter() && obj->get_emitter()->is_me() && obj->get_particle_attachment_object())
+		//	myhero->print_chat(0, "Particle from player %s at %f (%s)", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_attachment_object()->get_name_cstr());
+		//if (obj->get_emitter() && obj->get_emitter()->is_me() && obj->get_particle_target_attachment_object())
+		//	myhero->print_chat(0, "Particle from player %s at %f (%s) 2", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_target_attachment_object()->get_name_cstr());
 		// Get object name hash
 		const auto& object_hash = spell_hash_real(obj->get_name_cstr());
 
@@ -1244,6 +1248,8 @@ namespace utilities {
 	void on_buff(game_object_script& sender, buff_instance_script& buff, bool gain)
 	{
 		// Detect if someone is reviving from Guardian Angel
+		//if (gain && sender->is_me())
+		//	myhero->print_chat(0, "%s", buff->get_name_cstr());
 		if (!gain && sender->is_valid() && !sender->is_targetable() && buff->get_hash_name() == buff_hash("willrevive") && sender->has_item(ItemId::Guardian_Angel) != spellslot::invalid)
 		{
 			guardianReviveTime[sender->get_handle()] = gametime->get_time() + 4;
@@ -1389,7 +1395,6 @@ namespace utilities {
 
 	void on_play_animation(game_object_script sender, const char* name)
 	{
-
 	}
 
 	void load()
