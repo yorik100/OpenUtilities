@@ -801,8 +801,8 @@ namespace utilities {
 	void on_create(const game_object_script obj)
 	{
 		// Debug stuff
-		if (obj->get_emitter() && obj->get_emitter()->is_enemy() && obj->get_emitter()->is_ai_hero())
-			myhero->print_chat(0, "Particle from player %s at %f %s", obj->get_name_cstr(), gametime->get_time(), obj->get_emitter()->get_name_cstr());
+		//if (obj->get_emitter() && obj->get_emitter()->is_enemy() && obj->get_emitter()->is_ai_hero())
+		//	myhero->print_chat(0, "Particle from player %s at %f %s", obj->get_name_cstr(), gametime->get_time(), obj->get_emitter()->get_name_cstr());
 		//if (obj->get_emitter() && obj->get_emitter()->is_me() && obj->get_particle_attachment_object())
 		//	myhero->print_chat(0, "Particle from player %s at %f (%s)", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_attachment_object()->get_name_cstr());
 		//if (obj->get_emitter() && obj->get_emitter()->is_me() && obj->get_particle_target_attachment_object())
