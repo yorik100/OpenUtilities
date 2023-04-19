@@ -803,8 +803,11 @@ namespace utilities {
 		// Debug stuff
 		//if (obj->get_emitter() && obj->get_emitter()->is_enemy() && obj->get_emitter()->is_ai_hero())
 		//	myhero->print_chat(0, "Particle from player %s at %f %s", obj->get_name_cstr(), gametime->get_time(), obj->get_emitter()->get_name_cstr());
-		//if (obj->get_emitter() && obj->get_emitter()->is_me() && obj->get_particle_attachment_object())
-		//	myhero->print_chat(0, "Particle from player %s at %f (%s)", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_attachment_object()->get_name_cstr());
+		if (obj->get_emitter() && obj->get_emitter()->is_me() && obj->get_particle_attachment_object())
+		{
+			myhero->print_chat(0, "Particle from player %s at %f (%s) %i", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_attachment_object()->get_name_cstr(), obj->get_emitter_resources_hash());
+			console->print("Particle from player %s at %f (%s) %i", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_attachment_object()->get_name_cstr(), obj->get_emitter_resources_hash());
+		}
 		//if (obj->get_emitter() && obj->get_emitter()->is_me() && obj->get_particle_target_attachment_object())
 		//	myhero->print_chat(0, "Particle from player %s at %f (%s) 2", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_target_attachment_object()->get_name_cstr());
 		// Get object name hash
@@ -1393,7 +1396,7 @@ namespace utilities {
 		}
 	}
 
-	void on_play_animation(game_object_script sender, const char* name)
+	void on_play_animation(game_object_script sender, const char* name, bool* process)
 	{
 	}
 
