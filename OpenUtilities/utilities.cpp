@@ -512,7 +512,8 @@ namespace utilities {
 	void glowRemove()
 	{
 		for (const auto& obj : glowObjectsActive)
-			glow->remove_glow(obj);
+			if (obj && obj->is_valid())
+				glow->remove_glow(obj);
 		glowObjectsActive.clear();
 	}
 
