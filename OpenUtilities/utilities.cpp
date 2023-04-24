@@ -12,6 +12,13 @@ namespace utilities {
 		float stasisEnd = 0;
 	};
 
+	struct glowStruct {
+		game_object_script target;
+		uint32_t colour = 0;
+		float thickness = 0;
+		float blur = 0;
+	};
+
 	struct teleportStruct {
 		float duration = 0;
 		float startTime = 0;
@@ -67,11 +74,13 @@ namespace utilities {
 
 	pingableParticles pingableWards;
 	std::vector<particleStruct> particlePredList;
-	std::vector<game_object_script> unknownTraps;
 	std::vector<trapInfo> traps;
 	std::vector<wardInfo> wards;
+	std::vector<game_object_script> unknownTraps;
 	std::vector<game_object_script> realWards;
 	std::vector<game_object_script> maokaiE;
+	std::vector<game_object_script> glowObjectsActive;
+	std::vector<glowStruct> glowObjects;
 	std::unordered_map<uint32_t, teleportStruct> teleportList;
 	std::unordered_map<uint32_t, float> guardianReviveTime;
 
@@ -500,6 +509,24 @@ namespace utilities {
 		pingableWards.wards.erase(pingableWards.wards.begin());
 	}
 
+	void glowRemove()
+	{
+		for (const auto& obj : glowObjectsActive)
+			glow->remove_glow(obj);
+		glowObjectsActive.clear();
+	}
+
+	void glowManager()
+	{
+		glowRemove();
+		for (const auto& obj : glowObjects)
+		{
+			glow->apply_glow(obj.target, obj.colour, obj.thickness, obj.blur);
+			glowObjectsActive.push_back(obj.target);
+		}
+		glowObjects.clear();
+	}
+
 	void on_update()
 	{
 		// Limit ticks (for low spec mode)
@@ -513,6 +540,9 @@ namespace utilities {
 
 		// Ping wards
 		pingWards();
+
+		// Glow apply
+		glowManager();
 
 	}
 
@@ -666,11 +696,7 @@ namespace utilities {
 					const auto& colour = trap.trapType == 0 ? MAKE_COLOR(255, 127, 0, 255) : MAKE_COLOR(0, 127, 0, 255);
 					const auto& size = trap.trapType == 0 ? 160 : 75;
 					if (settings::hidden::glow->get_bool())
-					{
-						glow->apply_glow(trap.obj, colour, 3, 0);
-					}
-					else
-						glow->remove_glow(trap.obj);
+						glowObjects.push_back({ trap.obj, colour, 3, 0 });
 					if (settings::hidden::drawCircle->get_bool())
 						draw_manager->add_circle(trap.obj->get_position(), size, colour, 2);
 					const int& timeLeft = (int)std::ceil(trap.remainingTime - gametime->get_time());
@@ -679,15 +705,11 @@ namespace utilities {
 					if (timeLeft > 0 && settings::hidden::drawRemaining->get_bool())
 						draw_manager->add_text_on_screen(remainingTimePos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
 				}
-				else
-					glow->remove_glow(trap.obj);
 				const auto& textSize2 = draw_manager->calc_text_size(22, "%s", trap.owner->get_model_cstr());
 				const auto& ownerPos = vector(trap.obj->get_hpbar_pos().x - textSize2.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize2.y / 2 + 80, trap.obj->get_hpbar_pos().z);
 				if (settings::hidden::drawOwner->get_bool())
 					draw_manager->add_text_on_screen(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_model_cstr());
 			}
-			else
-				glow->remove_glow(trap.obj);
 		}
 
 		// Maokai E manager
@@ -696,14 +718,10 @@ namespace utilities {
 			{
 				constexpr auto colour = MAKE_COLOR(255, 140, 0, 255);
 				if (settings::hidden::glow->get_bool() && !obj->is_visible())
-					glow->apply_glow(obj, colour, 3, 0);
-				else
-					glow->remove_glow(obj);
+					glowObjects.push_back({ obj, colour, 3, 0 });
 				if (settings::hidden::drawCircle->get_bool())
 					draw_manager->add_circle(obj->get_position(), 70, colour, 2);
 			}
-			else
-				glow->remove_glow(obj);
 
 		// Wards manager
 		if (settings::hidden::enable->get_bool())
@@ -801,8 +819,11 @@ namespace utilities {
 	void on_create(const game_object_script obj)
 	{
 		// Debug stuff
-		//if (obj->get_emitter() && obj->get_emitter()->is_enemy() && obj->get_emitter()->is_ai_hero())
-		//	myhero->print_chat(0, "Particle from player %s at %f %s", obj->get_name_cstr(), gametime->get_time(), obj->get_emitter()->get_name_cstr());
+		//if (obj->get_emitter() && obj->get_emitter()->is_ai_hero())
+		//{
+		//	myhero->print_chat(0, "Particle from player %s at %f %s %i", obj->get_name_cstr(), gametime->get_time(), obj->get_emitter()->get_name_cstr(), obj->get_emitter_resources_hash());
+		//	console->print("Particle from player %s at %f %s %i", obj->get_name_cstr(), gametime->get_time(), obj->get_emitter()->get_name_cstr(), obj->get_emitter_resources_hash());
+		//}
 		//if (obj->get_emitter() && obj->get_emitter()->is_me() && obj->get_particle_attachment_object())
 		//{
 		//	myhero->print_chat(0, "Particle from player %s at %f (%s) %i", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_attachment_object()->get_name_cstr(), obj->get_emitter_resources_hash());
@@ -1066,9 +1087,6 @@ namespace utilities {
 
 	void on_delete(const game_object_script obj)
 	{
-		const auto& object_hash = spell_hash_real(obj->get_name_cstr());
-
-
 		// Get emitter hash if there is any
 		const auto& emitterHash = obj->get_emitter_resources_hash();
 
@@ -1159,6 +1177,8 @@ namespace utilities {
 		//const auto& target = entitylist->get_object(spell->get_last_target_id());
 		//if (sender && spell && sender->is_me() && target)
 		//	myhero->print_chat(0, "Spell cast %s at %f on %s", spell->get_spell_data()->get_name_cstr(), gametime->get_time(), target->get_model_cstr());
+		//if (spell)
+		//	myhero->print_chat(0, "%f", spell->get_attack_cast_delay());
 		
 		// Get ward casts
 		if (sender && spell && sender->is_enemy() && sender->is_ai_hero())
@@ -1198,6 +1218,8 @@ namespace utilities {
 		// Get animation info, if there is none then ignore that animation
 		const auto& data = (PKT_S2C_PlayAnimationArgs*)args;
 		if (!data) return;
+
+		//myhero->print_chat(0, "%s", data->animation_name);
 
 		const auto& isEpicSender = !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 		const auto& isCrab = sender->is_monster() && strcmp(data->animation_name, "crab_hide") == 0;
@@ -1452,32 +1474,27 @@ namespace utilities {
 		createMenu();
 
 		// Add events
-		event_handler<events::on_update>::add_callback(on_update, event_prority::lowest);
-		event_handler<events::on_env_draw>::add_callback(on_draw, event_prority::lowest);
-		event_handler<events::on_draw>::add_callback(on_draw_real, event_prority::lowest);
-		event_handler<events::on_create_object>::add_callback(on_create, event_prority::lowest);
-		event_handler<events::on_delete_object>::add_callback(on_delete, event_prority::lowest);
-		event_handler<events::on_buff_gain>::add_callback(on_buff_gain, event_prority::lowest);
-		event_handler<events::on_buff_lose>::add_callback(on_buff_lose, event_prority::lowest);
-		event_handler<events::on_teleport>::add_callback(on_teleport, event_prority::lowest);
-		event_handler<events::on_do_cast>::add_callback(on_do_cast, event_prority::lowest);
-		event_handler<events::on_process_spell_cast>::add_callback(on_process_spell_cast, event_prority::lowest);
-		event_handler<events::on_network_packet>::add_callback(on_network_packet, event_prority::lowest);
-		event_handler<events::on_cast_spell>::add_callback(on_cast_spell, event_prority::lowest);
-		event_handler<events::on_issue_order>::add_callback(on_issue_order, event_prority::lowest);
-		event_handler<events::on_play_animation>::add_callback(on_play_animation, event_prority::lowest);
+		event_handler<events::on_update>::add_callback(on_update, event_prority::low);
+		event_handler<events::on_env_draw>::add_callback(on_draw, event_prority::low);
+		event_handler<events::on_draw>::add_callback(on_draw_real, event_prority::low);
+		event_handler<events::on_create_object>::add_callback(on_create, event_prority::low);
+		event_handler<events::on_delete_object>::add_callback(on_delete, event_prority::low);
+		event_handler<events::on_buff_gain>::add_callback(on_buff_gain, event_prority::low);
+		event_handler<events::on_buff_lose>::add_callback(on_buff_lose, event_prority::low);
+		event_handler<events::on_teleport>::add_callback(on_teleport, event_prority::low);
+		event_handler<events::on_do_cast>::add_callback(on_do_cast, event_prority::low);
+		event_handler<events::on_process_spell_cast>::add_callback(on_process_spell_cast, event_prority::low);
+		event_handler<events::on_network_packet>::add_callback(on_network_packet, event_prority::low);
+		event_handler<events::on_cast_spell>::add_callback(on_cast_spell, event_prority::low);
+		event_handler<events::on_issue_order>::add_callback(on_issue_order, event_prority::low);
+		event_handler<events::on_play_animation>::add_callback(on_play_animation, event_prority::low);
 
 	}
 
 	void unload()
 	{
-		// Remove glow from traps
-		for (const auto& trap : traps)
-			glow->remove_glow(trap.obj);
-
-		// Remove glow from Maokai E
-		for (const auto& obj : maokaiE)
-			glow->remove_glow(obj);
+		// Remove glows
+		glowRemove();
 
 		// Remove events
 		event_handler< events::on_update >::remove_handler(on_update);
