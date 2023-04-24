@@ -624,8 +624,6 @@ namespace utilities {
 			}
 		}
 
-		// Glow apply
-		glowManager();
 	}
 
 	void on_draw_real()
@@ -814,6 +812,10 @@ namespace utilities {
 				draw_manager->add_circle_on_screen(minimapPos, 13, MAKE_COLOR(138, 43, 226, 255));
 			}
 		}
+
+		// Glow apply
+		glowManager();
+
 	}
 
 	void on_create(const game_object_script obj)
