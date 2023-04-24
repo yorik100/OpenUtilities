@@ -541,9 +541,6 @@ namespace utilities {
 		// Ping wards
 		pingWards();
 
-		// Glow apply
-		glowManager();
-
 	}
 
 	void on_draw()
@@ -626,6 +623,9 @@ namespace utilities {
 					draw_manager->add_filled_circle(ward.position, 40, colour);
 			}
 		}
+
+		// Glow apply
+		glowManager();
 	}
 
 	void on_draw_real()
