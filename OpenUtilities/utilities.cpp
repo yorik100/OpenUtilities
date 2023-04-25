@@ -687,7 +687,6 @@ namespace utilities {
 
 		// Traps manager
 		if (settings::hidden::enable->get_bool())
-		{
 			for (const auto& trap : traps)
 			{
 				if (!trap.obj->is_visible())
@@ -709,7 +708,6 @@ namespace utilities {
 				if (settings::hidden::drawOwner->get_bool())
 					draw_manager->add_text_on_screen(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_model_cstr());
 			}
-		}
 
 		// Maokai E manager
 		if (settings::hidden::enable->get_bool())
@@ -724,7 +722,6 @@ namespace utilities {
 
 		// Wards manager
 		if (settings::hidden::enable->get_bool())
-		{
 			for (const auto& ward : wards)
 			{
 				const auto& colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 255) : MAKE_COLOR(0, 255, 255, 255);
@@ -756,7 +753,6 @@ namespace utilities {
 					draw_manager->add_text_on_screen(finalPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", ward.owner->get_model_cstr());
 				}
 			}
-		}
 
 		// Recall and Teleport indicators
 		if (settings::teleport::teleportEnable->get_bool()) {
