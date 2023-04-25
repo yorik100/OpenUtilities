@@ -686,9 +686,9 @@ namespace utilities {
 		}
 
 		// Traps manager
-		for (const auto& trap : traps)
+		if (settings::hidden::enable->get_bool())
 		{
-			if (settings::hidden::enable->get_bool())
+			for (const auto& trap : traps)
 			{
 				if (!trap.obj->is_visible())
 				{
@@ -712,8 +712,8 @@ namespace utilities {
 		}
 
 		// Maokai E manager
-		for (const auto& obj : maokaiE)
-			if (settings::hidden::enable->get_bool())
+		if (settings::hidden::enable->get_bool())
+			for (const auto& obj : maokaiE)
 			{
 				constexpr auto colour = MAKE_COLOR(255, 140, 0, 255);
 				if (settings::hidden::glow->get_bool() && !obj->is_visible())
