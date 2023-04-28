@@ -375,6 +375,11 @@ namespace utilities {
 		{
 			wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
 				{
+					const auto& isBlue = ward->get_model() == "BlueTrinket";
+					// Don't remove if ward is blue and type is not blue and don't remove if ward isn't blue and type if blue, XOR statement, both isBlue and x.wardType == 0 can't be true or false at the same time, only 1 of them has to be true
+					if (isBlue == (x.wardType == 0))
+						return false;
+
 					const auto& dist = ward->get_position().distance(x.position);
 					const auto& wardDist = x.wardType == 0 ? 100.f : 200.f;
 					const auto& shouldRemove = dist < wardDist;
@@ -867,7 +872,7 @@ namespace utilities {
 			wards.erase(std::remove_if(wards.begin(), wards.end(), [obj](const wardInfo& x)
 				{
 					const auto& dist = obj->get_position().distance(x.position);
-					const auto& wardDist = x.wardType == 0 ? 100.f : 200.f;
+					const auto& wardDist = 125.f;
 					const auto& shouldRemove = dist < wardDist;
 					if (shouldRemove)
 						debugPrint("[%i:%02d] Ward removed because distance was %f and %f is smaller than %f", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, dist, dist, wardDist);
@@ -954,7 +959,7 @@ namespace utilities {
 			{
 				const wardInfo wardData = { .remainingTime = 0, .owner = obj->get_emitter(), .position = obj->get_position(), .wardType = 1 };
 				wards.push_back(wardData);
-			}	
+			}
 		}
 
 		// Teleport particles
