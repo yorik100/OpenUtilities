@@ -373,17 +373,21 @@ namespace utilities {
 		// Wards filtering
 		for (const auto& ward : realWards)
 		{
-			if (!ward->get_owner())
+			if (!ward->get_owner() || (ward->get_max_mana() == 60.f && ward->get_mana() == 60.f))
 				continue;
 			wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
 				{
 					// Check if owner of the ward matches with owner of the cast
 					if (!x.owner || x.owner->get_handle() != ward->get_owner()->get_handle())
 						return false;
-
+					
 					const auto& isBlue = ward->get_model() == "BlueTrinket";
 					// Don't remove if ward is blue and type is not blue and don't remove if ward isn't blue and type if blue, XOR statement, both isBlue and x.wardType == 0 can't be true or false at the same time, only 1 of them has to be true
 					if (isBlue == (x.wardType == 0))
+						return false;
+
+					const int& timeLeft = (int)std::ceil(x.remainingTime - gametime->get_time());
+					if (std::abs(timeLeft - ward->get_mana()) > 10.f)
 						return false;
 
 					const auto& dist = ward->get_position().distance(x.position);
@@ -400,7 +404,7 @@ namespace utilities {
 		// Removing now unneeded wards
 		realWards.erase(std::remove_if(realWards.begin(), realWards.end(), [](const game_object_script& x)
 			{
-				return x->get_owner();
+				return x->get_owner() && (x->get_max_mana() != 60.f || x->get_mana() != 60.f);
 			}
 		),
 			realWards.end());
