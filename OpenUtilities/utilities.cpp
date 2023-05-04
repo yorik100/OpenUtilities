@@ -387,7 +387,7 @@ namespace utilities {
 						return false;
 
 					const auto& dist = ward->get_position().distance(x.position);
-					const auto& wardDist = x.wardType == 0 ? 100.f : 200.f;
+					const auto& wardDist = 150.f;
 					const auto& shouldRemove = dist < wardDist;
 					if (shouldRemove)
 						debugPrint("[%i:%02d] Ward removed because distance was %f and %f is smaller than %f", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, dist, dist, wardDist);
