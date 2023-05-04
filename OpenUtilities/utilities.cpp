@@ -386,9 +386,12 @@ namespace utilities {
 					if (isBlue == (x.wardType == 0))
 						return false;
 
-					const int& timeLeft = (int)std::ceil(x.remainingTime - gametime->get_time());
-					if (std::abs(timeLeft - ward->get_mana()) > 10.f)
-						return false;
+					if (!isBlue)
+					{
+						const int& timeLeft = (int)std::ceil(x.remainingTime - gametime->get_time());
+						if (std::abs(timeLeft - ward->get_mana()) > 10.f)
+							return false;
+					}
 
 					const auto& dist = ward->get_position().distance(x.position);
 					const auto& wardDist = 150.f;
