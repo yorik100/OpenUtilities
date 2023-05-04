@@ -377,8 +377,10 @@ namespace utilities {
 				continue;
 			wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
 				{
+					// Check if owner of the ward matches with owner of the cast
 					if (!x.owner || x.owner->get_handle() != ward->get_owner()->get_handle())
 						return false;
+
 					const auto& isBlue = ward->get_model() == "BlueTrinket";
 					// Don't remove if ward is blue and type is not blue and don't remove if ward isn't blue and type if blue, XOR statement, both isBlue and x.wardType == 0 can't be true or false at the same time, only 1 of them has to be true
 					if (isBlue == (x.wardType == 0))
@@ -876,20 +878,7 @@ namespace utilities {
 
 		// Filter wards
 		if (obj->is_enemy() && (object_hash == spell_hash("VisionWard") || object_hash == spell_hash("SightWard")))
-		{
 			realWards.push_back(obj);
-			wards.erase(std::remove_if(wards.begin(), wards.end(), [obj](const wardInfo& x)
-				{
-					const auto& dist = obj->get_position().distance(x.position);
-					const auto& wardDist = 125.f;
-					const auto& shouldRemove = dist < wardDist;
-					if (shouldRemove)
-						debugPrint("[%i:%02d] Ward removed because distance was %f and %f is smaller than %f", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, dist, dist, wardDist);
-					return shouldRemove;
-				}
-			),
-				wards.end());
-		}
 
 		// Get if an epic monster is attacking someone
 		const game_object_script& epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
