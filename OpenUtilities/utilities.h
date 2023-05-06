@@ -17,6 +17,7 @@ namespace utilities
 	void pingWards();
 	void glowRemove();
 	void glowManager();
+	void coreWalker();
 	void on_update();
 	void on_draw();
 	void on_draw_real();
@@ -24,6 +25,7 @@ namespace utilities
 	void on_delete(const game_object_script obj);
 	void on_do_cast(game_object_script sender, spell_instance_script spell);
 	void on_network_packet(game_object_script sender, std::uint32_t network_id, pkttype_e type, void* args);
+	void on_stop_cast(game_object_script sender, spell_instance_script spell);
 	void on_buff(game_object_script& sender, buff_instance_script& buff, bool gain);
 	void on_buff_gain(game_object_script sender, buff_instance_script buff);
 	void on_buff_lose(game_object_script sender, buff_instance_script buff);

@@ -147,6 +147,12 @@ namespace utilities {
 			TreeEntry* scuttleRemove;
 			TreeEntry* updatePos;
 		}
+		namespace corewalker {
+			TreeEntry* windupPlus;
+			TreeEntry* forceBuffer;
+			TreeEntry* winddownPlus;
+			TreeEntry* forcedownBuffer;
+		}
 		TreeEntry* lowSpec;
 		TreeEntry* debugPrint;
 	}
@@ -158,6 +164,7 @@ namespace utilities {
 	float dragonAttackTime = 0;
 	float heraldAttackTime = 0;
 	float baronIdleTime = 0;
+	float lastAutoTime = 0;
 	float turretRange;
 
 	vector spawnPoint;
@@ -169,6 +176,8 @@ namespace utilities {
 
 	bool isDragonAttacked = false;
 	bool dontCancel = false;
+	bool autoReset = false;
+	bool winddownReset = false;
 
 	game_object_script lastBaron;
 	game_object_script lastDragon;
@@ -315,6 +324,13 @@ namespace utilities {
 		const auto fowTab = mainMenu->add_tab("open.utilities.fow", "FoW");
 		settings::fow::scuttleRemove = fowTab->add_checkbox("open.utilities.fow.scuttleremove", "Remove scuttle on minimap on death", true);
 		settings::fow::updatePos = fowTab->add_checkbox("open.utilities.fow.updatepos", "Update enemy positions if info about position is given", true);
+
+		//Corewalker settings
+		const auto walkTab = mainMenu->add_tab("open.utilities.corewalker", "CoreWalkerPlus");
+		settings::corewalker::windupPlus = walkTab->add_checkbox("open.utilities.corewalker.windupplus", "Force perfect windup", true);
+		settings::corewalker::forceBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcebuffer", "Force windup buffer", false);
+		settings::corewalker::winddownPlus = walkTab->add_checkbox("open.utilities.corewalker.winddownplus", "Force perfect winddown", true);
+		settings::corewalker::forcedownBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcedownbuffer", "Force winddown buffer", false);
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
@@ -551,6 +567,38 @@ namespace utilities {
 		glowObjects.clear();
 	}
 
+	void coreWalker()
+	{
+		const auto spell = myhero->get_active_spell();
+
+		// If not an auto, return
+		if (!spell || !spell->is_auto_attack())
+		{
+			// Winddown manager
+			if (winddownReset && lastAutoTime + myhero->get_attack_delay() - myhero->get_attack_cast_delay() - getPing() - 0.033f - (settings::corewalker::forcedownBuffer->get_bool() ? 0.033f : 0.f) < gametime->get_time())
+			{
+				winddownReset = false;
+				if (settings::corewalker::winddownPlus->get_bool())
+					orbwalker->reset_auto_attack_timer();
+			}
+
+			return;
+		}
+
+		// If not enabled, return
+		if (!settings::corewalker::windupPlus->get_bool() || orbwalker->none_mode()) return;
+
+		// If already sent order then return
+		if (!autoReset) return;
+
+		// If ready to send order, send
+		if (spell->cast_start_time() - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.033f : 0.f) < gametime->get_time())
+		{
+			autoReset = false;
+			myhero->issue_order(MoveTo, true, false);
+		}
+	}
+
 	void on_update()
 	{
 		// Limit ticks (for low spec mode)
@@ -564,6 +612,9 @@ namespace utilities {
 
 		// Ping wards
 		pingWards();
+
+		//Corewalker
+		coreWalker();
 
 	}
 
@@ -853,6 +904,9 @@ namespace utilities {
 		//}
 		//if (obj->get_emitter() && obj->get_emitter()->is_me() && obj->get_particle_target_attachment_object())
 		//	myhero->print_chat(0, "Particle from player %s at %f (%s) 2", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_target_attachment_object()->get_name_cstr());
+		
+		//myhero->print_chat(0, "%s", obj->get_name_cstr());
+
 		// Get object name hash
 		const auto& object_hash = spell_hash_real(obj->get_name_cstr());
 
@@ -1178,6 +1232,23 @@ namespace utilities {
 				return;
 			}
 		}
+
+		if (sender && sender->is_me() && spell && spell->is_auto_attack())
+		{
+			winddownReset = true;
+			autoReset = false;
+			lastAutoTime = gametime->get_time();
+		}
+	}
+
+	void on_stop_cast(game_object_script sender, spell_instance_script spell)
+	{
+		if (sender && sender->is_me() && spell && spell->is_auto_attack())
+		{
+			if (settings::corewalker::winddownPlus->get_bool())
+				orbwalker->reset_auto_attack_timer();
+			autoReset = false;
+		}
 	}
 
 	void on_process_spell_cast(game_object_script sender, spell_instance_script spell)
@@ -1217,6 +1288,12 @@ namespace utilities {
 				break;
 			}
 			}
+		}
+
+		if (sender && sender->is_me() && spell && spell->is_auto_attack())
+		{
+			winddownReset = false;
+			autoReset = true;
 		}
 	}
 
@@ -1390,6 +1467,14 @@ namespace utilities {
 
 	void on_issue_order(game_object_script& target, vector& pos, _issue_order_type& type, bool* process)
 	{
+		// Already resetted
+		if (type == AttackUnit || type == AttackTo)
+			winddownReset = false;
+
+		// Already moved
+		if (type == MoveTo)
+			autoReset = false;
+
 		// Check if a move order is sent and if it should be processed
 		if (dontCancel || !settings::safe::antiNexusRange->get_bool() || type != MoveTo || myhero->has_buff(buff_hash("KogMawIcathianSurprise")) || myhero->has_buff(buff_hash("sionpassivezombie"))) return;
 
@@ -1492,6 +1577,7 @@ namespace utilities {
 		event_handler<events::on_buff_lose>::add_callback(on_buff_lose, event_prority::low);
 		event_handler<events::on_teleport>::add_callback(on_teleport, event_prority::low);
 		event_handler<events::on_do_cast>::add_callback(on_do_cast, event_prority::low);
+		event_handler<events::on_stop_cast>::add_callback(on_stop_cast, event_prority::low);
 		event_handler<events::on_process_spell_cast>::add_callback(on_process_spell_cast, event_prority::low);
 		event_handler<events::on_network_packet>::add_callback(on_network_packet, event_prority::low);
 		event_handler<events::on_cast_spell>::add_callback(on_cast_spell, event_prority::low);
@@ -1515,6 +1601,7 @@ namespace utilities {
 		event_handler< events::on_buff_lose >::remove_handler(on_buff_lose);
 		event_handler< events::on_teleport >::remove_handler(on_teleport);
 		event_handler< events::on_do_cast >::remove_handler(on_do_cast);
+		event_handler< events::on_stop_cast >::remove_handler(on_stop_cast);
 		event_handler< events::on_process_spell_cast >::remove_handler(on_process_spell_cast);
 		event_handler< events::on_network_packet >::remove_handler(on_network_packet);
 		event_handler< events::on_cast_spell >::remove_handler(on_cast_spell);
