@@ -153,6 +153,9 @@ namespace utilities {
 			TreeEntry* winddownPlus;
 			TreeEntry* forcedownBuffer;
 		}
+		namespace nointerrupt{
+			TreeEntry* noCastCancel;
+		}
 		TreeEntry* lowSpec;
 		TreeEntry* debugPrint;
 	}
@@ -165,6 +168,8 @@ namespace utilities {
 	float heraldAttackTime = 0;
 	float baronIdleTime = 0;
 	float lastAutoTime = 0;
+	float lastChannelCast = 0;
+	float lastNoAttackCast = 0;
 	float turretRange;
 
 	vector spawnPoint;
@@ -331,6 +336,11 @@ namespace utilities {
 		settings::corewalker::forceBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcebuffer", "Force windup buffer", false);
 		settings::corewalker::winddownPlus = walkTab->add_checkbox("open.utilities.corewalker.winddownplus", "Force perfect winddown", true);
 		settings::corewalker::forcedownBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcedownbuffer", "Force winddown buffer", false);
+
+		//Corewalker settings
+		const auto noInteruptTab = mainMenu->add_tab("open.utilities.nointerrupt", "NoInterrupt");
+		settings::nointerrupt::noCastCancel = noInteruptTab->add_checkbox("open.utilities.nointerrupt.nocastcancel", "Prevent cast cancels", true);
+		settings::nointerrupt::noCastCancel->set_tooltip("This only prevents cancels on cast for spells like Miss Fortune R, you need a champion module to prevent channel cancels");
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
@@ -1290,10 +1300,15 @@ namespace utilities {
 			}
 		}
 
-		if (sender && sender->is_me() && spell && spell->is_auto_attack())
+		if (sender && sender->is_me() && spell)
 		{
-			winddownReset = false;
-			autoReset = true;
+			lastChannelCast = 0.f;
+			lastNoAttackCast = 0.f;
+			if (spell->is_auto_attack())
+			{
+				winddownReset = false;
+				autoReset = true;
+			}
 		}
 	}
 
@@ -1359,7 +1374,7 @@ namespace utilities {
 	void on_buff(game_object_script& sender, buff_instance_script& buff, bool gain)
 	{
 		// Detect if someone is reviving from Guardian Angel
-		//if (gain && sender->is_me())
+		//if (sender->is_me())
 		//	myhero->print_chat(0, "%s", buff->get_name_cstr());
 		if (!gain && sender->is_valid() && !sender->is_targetable() && buff->get_hash_name() == buff_hash("willrevive") && sender->has_item(ItemId::Guardian_Angel) != spellslot::invalid)
 		{
@@ -1398,8 +1413,64 @@ namespace utilities {
 
 	void on_cast_spell(spellslot spellSlot, game_object_script target, vector& pos, vector& pos2, bool isCharge, bool* process)
 	{
+		if (dontCancel) return;
+
+		const auto spell = myhero->get_spell(spellSlot);
+
+		// Anti channel cancel
+		if (spell && myhero->get_spell_state(spellSlot) == spell_state::Ready)
+		{
+			myhero->print_chat(0, "%s %i", spell->get_name().c_str(), spell->get_icon_texture());
+			console->print("%s %i", spell->get_name().c_str(), spell->get_icon_texture());
+			switch (spell->get_name_hash())
+			{
+			case spell_hash("MissFortuneBulletTime"):
+			case spell_hash("XerathLocusOfPower2"):
+			case spell_hash("NunuR"):
+			case spell_hash("JhinR"):
+			case spell_hash("ReapTheWhirlwind"):
+			case spell_hash("FiddleSticksW"):
+			case spell_hash("ZacE"):
+			{
+				lastChannelCast = gametime->get_time() + getPing() + 0.15f;
+				break;
+			}
+			case spell_hash("MalzaharR"):
+			{
+				if (target && target->is_ai_hero() && myhero->get_position().distance(target->get_position()) <= 750.f)
+					lastChannelCast = gametime->get_time() + getPing() + 0.15f;
+				break;
+			}
+			case spell_hash("KatarinaR"):
+			{
+				if ((unsigned long long int)spell->get_icon_texture() == (unsigned long long int)-922093824)
+					lastChannelCast = gametime->get_time() + getPing() + 0.15f;
+				break;
+			}
+			case spell_hash("KaisaE"):
+			case spell_hash("SionQ"):
+			case spell_hash("LucianR"):
+			case spell_hash("VarusQ"):
+			case spell_hash("XerathArcanopulseChargeUp"):
+			case spell_hash("VladimirE"):
+			case spell_hash("YuumiR"):
+			case spell_hash("ViQ"):
+			case spell_hash("ViegoW"):
+			case spell_hash("PykeQ"):
+			case spell_hash("PoppyR"):
+			case spell_hash("PantheonQ"):
+			case spell_hash("GalioW"):
+			case spell_hash("AkshanR"):
+			case spell_hash("GragasW"):
+			case spell_hash("PantheonE"):
+			{
+				lastNoAttackCast = gametime->get_time() + getPing() + 0.15f;
+				break;
+			}
+			}
+		}
 		// Check if it's flash input
-		if (dontCancel || !pos.is_valid() || !myhero->get_spell(spellSlot) || !myhero->get_spell(spellSlot)->get_spell_data() || myhero->get_spell(spellSlot)->get_spell_data()->get_name_hash() != spell_hash("SummonerFlash")) return;
+		if (!pos.is_valid() || !myhero->get_spell(spellSlot) || !myhero->get_spell(spellSlot)->get_spell_data() || myhero->get_spell(spellSlot)->get_spell_data()->get_name_hash() != spell_hash("SummonerFlash")) return;
 
 		const auto& distance = std::min(400.f, myhero->get_position().distance(pos));
 		const auto& endPos = myhero->get_position().extend(pos, distance);
@@ -1474,6 +1545,22 @@ namespace utilities {
 		// Already moved
 		if (type == MoveTo)
 			autoReset = false;
+
+		// Cancel if about to channel
+		if (settings::nointerrupt::noCastCancel->get_bool())
+		{
+			if (lastChannelCast > gametime->get_time() && (type == MoveTo || type == AttackTo || type == AttackUnit || type == AutoAttack))
+			{
+				*process = false;
+				return;
+			}
+
+			if (lastNoAttackCast > gametime->get_time() && (type == AttackTo || type == AttackUnit || type == AutoAttack))
+			{
+				*process = false;
+				return;
+			}
+		}
 
 		// Check if a move order is sent and if it should be processed
 		if (dontCancel || !settings::safe::antiNexusRange->get_bool() || type != MoveTo || myhero->has_buff(buff_hash("KogMawIcathianSurprise")) || myhero->has_buff(buff_hash("sionpassivezombie"))) return;
