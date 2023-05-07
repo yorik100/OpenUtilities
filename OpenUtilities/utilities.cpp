@@ -337,7 +337,7 @@ namespace utilities {
 		settings::corewalker::winddownPlus = walkTab->add_checkbox("open.utilities.corewalker.winddownplus", "Force perfect winddown", true);
 		settings::corewalker::forcedownBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcedownbuffer", "Force winddown buffer", false);
 
-		//Corewalker settings
+		//NoInterrupt settings
 		const auto noInteruptTab = mainMenu->add_tab("open.utilities.nointerrupt", "NoInterrupt");
 		settings::nointerrupt::noCastCancel = noInteruptTab->add_checkbox("open.utilities.nointerrupt.nocastcancel", "Prevent cast cancels", true);
 		settings::nointerrupt::noCastCancel->set_tooltip("This only prevents cancels on cast for spells like Miss Fortune R, you need a champion module to prevent channel cancels");
@@ -1547,7 +1547,7 @@ namespace utilities {
 			autoReset = false;
 
 		// Cancel if about to channel
-		if (settings::nointerrupt::noCastCancel->get_bool())
+		if (settings::nointerrupt::noCastCancel->get_bool() && myhero->can_cast())
 		{
 			if (lastChannelCast > gametime->get_time() && (type == MoveTo || type == AttackTo || type == AttackUnit || type == AutoAttack))
 			{
