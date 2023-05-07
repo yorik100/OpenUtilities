@@ -332,9 +332,9 @@ namespace utilities {
 
 		//Corewalker settings
 		const auto walkTab = mainMenu->add_tab("open.utilities.corewalker", "CoreWalkerPlus");
-		settings::corewalker::windupPlus = walkTab->add_checkbox("open.utilities.corewalker.windupplus", "Force perfect windup", true);
+		settings::corewalker::windupPlus = walkTab->add_checkbox("open.utilities.corewalker.windupplus", "Force perfect windup", false);
 		settings::corewalker::forceBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcebuffer", "Force windup buffer", false);
-		settings::corewalker::winddownPlus = walkTab->add_checkbox("open.utilities.corewalker.winddownplus", "Force perfect winddown", true);
+		settings::corewalker::winddownPlus = walkTab->add_checkbox("open.utilities.corewalker.winddownplus", "Force perfect winddown", false);
 		settings::corewalker::forcedownBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcedownbuffer", "Force winddown buffer", false);
 
 		//NoInterrupt settings
@@ -596,7 +596,7 @@ namespace utilities {
 		}
 
 		// If not enabled, return
-		if (!settings::corewalker::windupPlus->get_bool() || orbwalker->none_mode()) return;
+		if (!settings::corewalker::windupPlus->get_bool() || orbwalker->none_mode() || myhero->get_spell(spellslot::q)->get_name_hash() == spell_hash("KalistaMysticShot") || myhero->get_spell(spellslot::q)->get_name_hash() == spell_hash("AkshanQ")) return;
 
 		// If already sent order then return
 		if (!autoReset) return;
