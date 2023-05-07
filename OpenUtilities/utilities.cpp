@@ -151,6 +151,7 @@ namespace utilities {
 			TreeEntry* windupPlus;
 			TreeEntry* forceBuffer;
 			TreeEntry* winddownPlus;
+			TreeEntry* cancelReset;
 			TreeEntry* forcedownBuffer;
 		}
 		namespace nointerrupt{
@@ -332,9 +333,10 @@ namespace utilities {
 
 		//Corewalker settings
 		const auto walkTab = mainMenu->add_tab("open.utilities.corewalker", "CoreWalkerPlus");
-		settings::corewalker::windupPlus = walkTab->add_checkbox("open.utilities.corewalker.windupplus", "Force perfect windup", false);
+		settings::corewalker::windupPlus = walkTab->add_checkbox("open.utilities.corewalker.windupplus", "Force perfect windup", true);
 		settings::corewalker::forceBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcebuffer", "Force windup buffer", false);
 		settings::corewalker::winddownPlus = walkTab->add_checkbox("open.utilities.corewalker.winddownplus", "Force perfect winddown", false);
+		settings::corewalker::cancelReset = walkTab->add_checkbox("open.utilities.corewalker.cancelreset", "Reset auto on auto cancel", true);
 		settings::corewalker::forcedownBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcedownbuffer", "Force winddown buffer", false);
 
 		//NoInterrupt settings
@@ -588,7 +590,7 @@ namespace utilities {
 			if (winddownReset && lastAutoTime + myhero->get_attack_delay() - myhero->get_attack_cast_delay() - getPing() - 0.033f - (settings::corewalker::forcedownBuffer->get_bool() ? 0.033f : 0.f) < gametime->get_time())
 			{
 				winddownReset = false;
-				if (settings::corewalker::winddownPlus->get_bool())
+				if (settings::corewalker::cancelReset->get_bool())
 					orbwalker->reset_auto_attack_timer();
 			}
 
