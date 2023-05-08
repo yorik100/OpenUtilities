@@ -601,7 +601,7 @@ namespace utilities {
 		if (!spell || !spell->is_auto_attack())
 		{
 			// Winddown manager
-			if (winddownReset && lastAutoTime + myhero->get_attack_delay() - myhero->get_attack_cast_delay() - getPing() - 0.033f - (settings::corewalker::forcedownBuffer->get_bool() ? 0.033f : 0.f) < gametime->get_time())
+			if (winddownReset && lastAutoTime + myhero->get_attack_delay() - myhero->get_attack_cast_delay() - getPing() - 0.033f - (settings::corewalker::forcedownBuffer->get_bool() ? 0.0165f : 0.f) < gametime->get_time())
 			{
 				winddownReset = false;
 				if (settings::corewalker::winddownPlus->get_bool())
@@ -618,7 +618,7 @@ namespace utilities {
 		if (!autoReset) return;
 
 		// Auto finish trigger
-		if (autoReset && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.033f : 0.f) < gametime->get_time())
+		if (autoReset && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.0165f : 0.f) < gametime->get_time())
 		{
 			winddownReset = true;
 			autoReset = false;
@@ -627,7 +627,7 @@ namespace utilities {
 		}
 
 		// If ready to send order, send
-		if (!orbwalker->none_mode() && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.033f : 0.f) < gametime->get_time())
+		if (!orbwalker->none_mode() && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.0165f : 0.f) < gametime->get_time())
 		{
 			autoReset = false;
 			myhero->issue_order(MoveTo, true, false);
@@ -1581,7 +1581,7 @@ namespace utilities {
 		if (settings::corewalker::forceSync->get_bool() && !evade->is_evading() && (type == MoveTo || type == AttackTo || type == AttackUnit || type == AutoAttack))
 		{
 			const auto spell = myhero->get_active_spell();
-			if ((myhero->get_attack_cast_delay() > (0.066f + getPing()) && lastIssuedOrder > gametime->get_time()) || (spell && spell->is_auto_attack() && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.033f : 0.f) >= gametime->get_time()))
+			if ((myhero->get_attack_cast_delay() > (0.066f + getPing()) && lastIssuedOrder > gametime->get_time()) || (spell && spell->is_auto_attack() && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.0165f : 0.f) >= gametime->get_time()))
 			{
 				*process = false;
 				return;
