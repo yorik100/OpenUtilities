@@ -153,6 +153,7 @@ namespace utilities {
 			TreeEntry* winddownPlus;
 			TreeEntry* cancelReset;
 			TreeEntry* forcedownBuffer;
+			TreeEntry* forceSync;
 		}
 		namespace nointerrupt{
 			TreeEntry* noCastCancel;
@@ -171,6 +172,7 @@ namespace utilities {
 	float lastAutoTime = 0;
 	float lastChannelCast = 0;
 	float lastNoAttackCast = 0;
+	float lastIssuedOrder = 0;
 	float turretRange;
 
 	vector spawnPoint;
@@ -334,10 +336,14 @@ namespace utilities {
 		//Corewalker settings
 		const auto walkTab = mainMenu->add_tab("open.utilities.corewalker", "CoreWalkerPlus");
 		settings::corewalker::windupPlus = walkTab->add_checkbox("open.utilities.corewalker.windupplus", "Force perfect windup", true);
+		settings::corewalker::windupPlus->set_tooltip("Overrides windup");
 		settings::corewalker::forceBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcebuffer", "Force windup buffer", false);
 		settings::corewalker::winddownPlus = walkTab->add_checkbox("open.utilities.corewalker.winddownplus", "Force perfect winddown", false);
+		settings::corewalker::winddownPlus->set_tooltip("Overrides OrbWalker speed/winddown");
 		settings::corewalker::cancelReset = walkTab->add_checkbox("open.utilities.corewalker.cancelreset", "Reset auto on auto cancel", true);
 		settings::corewalker::forcedownBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcedownbuffer", "Force winddown buffer", false);
+		settings::corewalker::forceSync = walkTab->add_checkbox("open.utilities.corewalker.forcesync", "Force cast sync", false);
+		settings::corewalker::forceSync->set_tooltip("Wait for attack confirm");
 
 		//NoInterrupt settings
 		const auto noInteruptTab = mainMenu->add_tab("open.utilities.nointerrupt", "NoInterrupt");
@@ -581,6 +587,13 @@ namespace utilities {
 
 	void coreWalker()
 	{
+		if (evade->is_evading())
+		{
+			lastChannelCast = 0.f;
+			lastNoAttackCast = 0.f;
+			lastIssuedOrder = 0.f;
+		}
+
 		const auto spell = myhero->get_active_spell();
 
 		// If not an auto, return
@@ -1306,6 +1319,7 @@ namespace utilities {
 		{
 			lastChannelCast = 0.f;
 			lastNoAttackCast = 0.f;
+			lastIssuedOrder = 0.f;
 			if (spell->is_auto_attack())
 			{
 				winddownReset = false;
@@ -1540,16 +1554,8 @@ namespace utilities {
 
 	void on_issue_order(game_object_script& target, vector& pos, _issue_order_type& type, bool* process)
 	{
-		// Already resetted
-		if (type == AttackUnit || type == AttackTo)
-			winddownReset = false;
-
-		// Already moved
-		if (type == MoveTo)
-			autoReset = false;
-
 		// Cancel if about to channel
-		if (settings::nointerrupt::noCastCancel->get_bool() && myhero->can_cast())
+		if (settings::nointerrupt::noCastCancel->get_bool() && myhero->can_cast() && !evade->is_evading())
 		{
 			if (lastChannelCast > gametime->get_time() && (type == MoveTo || type == AttackTo || type == AttackUnit || type == AutoAttack))
 			{
@@ -1563,6 +1569,26 @@ namespace utilities {
 				return;
 			}
 		}
+
+		// Cancel if attack buffered
+		if (settings::corewalker::forceSync->get_bool() && !evade->is_evading() && (type == MoveTo || type == AttackTo || type == AttackUnit || type == AutoAttack))
+		{
+			const auto spell = myhero->get_active_spell();
+			if ((myhero->get_attack_cast_delay() > (0.066f + getPing()) && lastIssuedOrder > gametime->get_time()) || (spell && spell->is_auto_attack() && spell->cast_start_time() - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.033f : 0.f) >= gametime->get_time()))
+				*process = false;
+			return;
+		}
+
+		// Already resetted
+		if (type == AttackUnit || type == AttackTo)
+		{
+			lastIssuedOrder = gametime->get_time() + getPing() + 0.066f;
+			winddownReset = false;
+		}
+
+		// Already moved
+		if (type == MoveTo)
+			autoReset = false;
 
 		// Check if a move order is sent and if it should be processed
 		if (dontCancel || !settings::safe::antiNexusRange->get_bool() || type != MoveTo || myhero->has_buff(buff_hash("KogMawIcathianSurprise")) || myhero->has_buff(buff_hash("sionpassivezombie"))) return;
