@@ -343,7 +343,7 @@ namespace utilities {
 		settings::corewalker::winddownPlus->set_tooltip("Overrides OrbWalker speed/winddown");
 		settings::corewalker::cancelReset = walkTab->add_checkbox("open.utilities.corewalker.cancelreset", "Reset auto on auto cancel", true);
 		settings::corewalker::forcedownBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcedownbuffer", "Force winddown buffer", false);
-		settings::corewalker::forceSync = walkTab->add_checkbox("open.utilities.corewalker.forcesync", "Force cast sync", false);
+		settings::corewalker::forceSync = walkTab->add_checkbox("open.utilities.corewalker.forcesync", "Force cast sync (prevents manual auto cancel)", false);
 		settings::corewalker::forceSync->set_tooltip("Wait for attack confirm");
 
 		//NoInterrupt settings
