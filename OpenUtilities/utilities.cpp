@@ -173,6 +173,7 @@ namespace utilities {
 	float lastChannelCast = 0;
 	float lastNoAttackCast = 0;
 	float lastIssuedOrder = 0;
+	float attackFinishTime = 0;
 	float turretRange;
 
 	vector spawnPoint;
@@ -603,7 +604,7 @@ namespace utilities {
 			if (winddownReset && lastAutoTime + myhero->get_attack_delay() - myhero->get_attack_cast_delay() - getPing() - 0.033f - (settings::corewalker::forcedownBuffer->get_bool() ? 0.033f : 0.f) < gametime->get_time())
 			{
 				winddownReset = false;
-				if (settings::corewalker::cancelReset->get_bool())
+				if (settings::corewalker::winddownPlus->get_bool())
 					orbwalker->reset_auto_attack_timer();
 			}
 
@@ -611,16 +612,26 @@ namespace utilities {
 		}
 
 		// If not enabled, return
-		if (!settings::corewalker::windupPlus->get_bool() || orbwalker->none_mode() || myhero->get_spell(spellslot::q)->get_name_hash() == spell_hash("KalistaMysticShot") || myhero->get_spell(spellslot::q)->get_name_hash() == spell_hash("AkshanQ")) return;
+		if (!settings::corewalker::windupPlus->get_bool() || myhero->get_spell(spellslot::q)->get_name_hash() == spell_hash("KalistaMysticShot") || myhero->get_spell(spellslot::q)->get_name_hash() == spell_hash("AkshanQ")) return;
 
 		// If already sent order then return
 		if (!autoReset) return;
 
+		// Auto finish trigger
+		if (autoReset && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.033f : 0.f) < gametime->get_time())
+		{
+			winddownReset = true;
+			autoReset = false;
+			debugPrint("Auto finished %f", attackFinishTime);
+			lastAutoTime = gametime->get_time();
+		}
+
 		// If ready to send order, send
-		if (spell->cast_start_time() - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.033f : 0.f) < gametime->get_time())
+		if (!orbwalker->none_mode() && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.033f : 0.f) < gametime->get_time())
 		{
 			autoReset = false;
 			myhero->issue_order(MoveTo, true, false);
+			debugPrint("Forced windup %f", gametime->get_time());
 		}
 	}
 
@@ -1257,21 +1268,15 @@ namespace utilities {
 				return;
 			}
 		}
-
-		if (sender && sender->is_me() && spell && spell->is_auto_attack())
-		{
-			winddownReset = true;
-			autoReset = false;
-			lastAutoTime = gametime->get_time();
-		}
 	}
 
 	void on_stop_cast(game_object_script sender, spell_instance_script spell)
 	{
 		if (sender && sender->is_me() && spell && spell->is_auto_attack())
 		{
-			if (settings::corewalker::winddownPlus->get_bool())
+			if (settings::corewalker::cancelReset->get_bool())
 				orbwalker->reset_auto_attack_timer();
+			debugPrint("Auto cancel %f", gametime->get_time());
 			autoReset = false;
 		}
 	}
@@ -1322,6 +1327,8 @@ namespace utilities {
 			lastIssuedOrder = 0.f;
 			if (spell->is_auto_attack())
 			{
+				debugPrint("Auto started %f", gametime->get_time() + spell->get_attack_cast_delay());
+				attackFinishTime = gametime->get_time() + spell->get_attack_cast_delay();
 				winddownReset = false;
 				autoReset = true;
 			}
@@ -1574,9 +1581,11 @@ namespace utilities {
 		if (settings::corewalker::forceSync->get_bool() && !evade->is_evading() && (type == MoveTo || type == AttackTo || type == AttackUnit || type == AutoAttack))
 		{
 			const auto spell = myhero->get_active_spell();
-			if ((myhero->get_attack_cast_delay() > (0.066f + getPing()) && lastIssuedOrder > gametime->get_time()) || (spell && spell->is_auto_attack() && spell->cast_start_time() - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.033f : 0.f) >= gametime->get_time()))
+			if ((myhero->get_attack_cast_delay() > (0.066f + getPing()) && lastIssuedOrder > gametime->get_time()) || (spell && spell->is_auto_attack() && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.033f : 0.f) >= gametime->get_time()))
+			{
 				*process = false;
-			return;
+				return;
+			}
 		}
 
 		// Already resetted
