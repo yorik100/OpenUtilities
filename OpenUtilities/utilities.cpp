@@ -336,7 +336,7 @@ namespace utilities {
 
 		//Corewalker settings
 		const auto walkTab = mainMenu->add_tab("open.utilities.corewalker", "CoreWalkerPlus");
-		settings::corewalker::windupPlus = walkTab->add_checkbox("open.utilities.corewalker.windupplus", "Force perfect windup", true);
+		settings::corewalker::windupPlus = walkTab->add_checkbox("open.utilities.corewalker.windupplus", "Force perfect windup", false);
 		settings::corewalker::windupPlus->set_tooltip("Overrides windup");
 		settings::corewalker::forceBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcebuffer", "Force windup buffer", false);
 		settings::corewalker::winddownPlus = walkTab->add_checkbox("open.utilities.corewalker.winddownplus", "Force perfect winddown", false);
