@@ -1578,7 +1578,7 @@ namespace utilities {
 		}
 
 		// Cancel if attack buffered
-		if (settings::corewalker::forceSync->get_bool() && !evade->is_evading() && (type == MoveTo || type == AttackTo || type == AttackUnit || type == AutoAttack))
+		if (settings::corewalker::forceSync->get_bool() && !evade->is_evading() && myhero->get_spell(spellslot::q)->get_name_hash() != spell_hash("KalistaMysticShot") && (type == MoveTo || type == AttackTo || type == AttackUnit || type == AutoAttack))
 		{
 			const auto spell = myhero->get_active_spell();
 			if ((myhero->get_attack_cast_delay() > (0.066f + getPing()) && lastIssuedOrder > gametime->get_time()) || (spell && spell->is_auto_attack() && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.033f : 0.f) >= gametime->get_time()))
