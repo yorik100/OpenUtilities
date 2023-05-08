@@ -1561,7 +1561,6 @@ namespace utilities {
 
 	void on_issue_order(game_object_script& target, vector& pos, _issue_order_type& type, bool* process)
 	{
-		debugPrint("Reset");
 		// Cancel if about to channel
 		if (settings::nointerrupt::noCastCancel->get_bool() && myhero->can_cast() && !evade->is_evading())
 		{
