@@ -1278,6 +1278,7 @@ namespace utilities {
 				orbwalker->reset_auto_attack_timer();
 			debugPrint("Auto cancel %f", gametime->get_time());
 			autoReset = false;
+			winddownReset = false;
 		}
 	}
 
