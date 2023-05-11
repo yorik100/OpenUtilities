@@ -1587,7 +1587,7 @@ namespace utilities {
 			if ((myhero->get_attack_cast_delay() > (0.066f + getPing()) && lastIssuedOrder > gametime->get_time() && target && myhero->is_in_auto_attack_range(target) && lastAutoTime + myhero->get_attack_delay() - myhero->get_attack_cast_delay() - getPing() - 0.033f - (settings::corewalker::forcedownBuffer->get_bool() ? 0.0165f : 0.f) < gametime->get_time()) || (spell && spell->is_auto_attack() && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.0165f : 0.f) >= gametime->get_time()))
 			{
 				*process = false;
-				if (spell && spell->is_auto_attack())
+				if (spell && spell->is_auto_attack() && (type == MoveTo || type == AttackTo))
 					cancelBuffer = true;
 				return;
 			}
