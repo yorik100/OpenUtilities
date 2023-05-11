@@ -629,9 +629,15 @@ namespace utilities {
 		// If ready to send order, send
 		if (((!orbwalker->none_mode() && canWindupPlus) || cancelBuffer) && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.0165f : 0.f) < gametime->get_time())
 		{
+			if (cancelBuffer)
+				myhero->issue_order(MoveTo, true, false);
+			else
+			{
+				auto pos = hud->get_hud_input_logic()->get_game_cursor_position();
+				orbwalker->move_to(pos);
+			}
 			autoReset = false;
 			cancelBuffer = false;
-			myhero->issue_order(MoveTo, true, false);
 			debugPrint("Forced windup %f", gametime->get_time());
 		}
 	}
