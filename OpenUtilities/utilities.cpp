@@ -72,6 +72,13 @@ namespace utilities {
 		float lastPingTime = 0.f;
 	};
 
+	//struct fowTracker
+	//{
+	//	game_object_script entity;
+	//	float lastUpdateTime;
+	//	vector position;
+	//};
+
 	pingableParticles pingableWards;
 	std::vector<particleStruct> particlePredList;
 	std::vector<trapInfo> traps;
@@ -82,6 +89,7 @@ namespace utilities {
 	std::vector<game_object_script> glowObjectsActive;
 	std::vector<glowStruct> glowObjects;
 	std::unordered_map<uint32_t, teleportStruct> teleportList;
+	//std::unordered_map<uint32_t, fowTracker> fowList;
 	std::unordered_map<uint32_t, float> guardianReviveTime;
 
 	static constexpr uint32_t godBuffList[]
@@ -172,6 +180,7 @@ namespace utilities {
 	float dragonAttackTime = 0;
 	float heraldAttackTime = 0;
 	float baronIdleTime = 0;
+	float heraldIdleTime = 0;
 	float lastAutoTime = 0;
 	float lastChannelCast = 0;
 	float lastNoAttackCast = 0;
@@ -412,6 +421,18 @@ namespace utilities {
 			}
 		),
 			realWards.end());
+
+		//for (auto it = fowList.begin(); it != fowList.end(); )
+		//{
+		//	if (!it->second.entity || !it->second.entity->is_valid() || it->second.entity->is_visible())
+		//	{
+		//		it = fowList.erase(it);
+		//	}
+		//	else
+		//	{
+		//		++it;
+		//	}
+		//}
 
 		// Wards filtering
 		for (const auto& ward : realWards)
@@ -756,7 +777,7 @@ namespace utilities {
 		// Epic monster indicators
 		if (settings::epic::epicTrackerNotifications->get_bool() || settings::epic::epicTrackerMap->get_bool())
 		{
-			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && !lastDragon->is_playing_animation(buff_hash("Landing")) && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 4))
+			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 5))
 			{
 				const auto& isAggroed = isDragonAttacked || gametime->get_time() - dragonAttackTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && isAggroed) {
@@ -773,7 +794,7 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(dragonPos, 550, circleColour, 2);
 				}
 			}
-			else if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) || (lastDragon && lastDragon->is_valid() && lastDragon->is_playing_animation(buff_hash("Landing"))))
+			else if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon))
 				isDragonAttacked = false;
 
 			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && (gametime->get_time() - baronAttackTime < 8 || gametime->get_time() - baronIdleTime < 2))
@@ -794,9 +815,10 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(baronPos, 550, circleColour, 2);
 				}
 			}
-			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && gametime->get_time() - heraldAttackTime < 15)
+			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && (gametime->get_time() - heraldAttackTime < 15 || gametime->get_time() - heraldIdleTime < 2))
 			{
-				if (settings::epic::epicTrackerNotifications->get_bool()) {
+				const auto& isIdle = gametime->get_time() - heraldIdleTime < 2;
+				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
 					const auto& position = vector(1330 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 150 + settings::epic::yOffset->get_int());
 					const auto& size = vector(60.f, 60.f);
 					const auto& sizeMod = size / 2;
@@ -805,9 +827,31 @@ namespace utilities {
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Herald is under attack!");
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
-					draw_manager->draw_circle_on_minimap(baronPos, 500, MAKE_COLOR(255, 0, 0, 255), 2);
+				{
+					const auto& circleColour = !isIdle ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
+					draw_manager->draw_circle_on_minimap(baronPos, 500, circleColour, 2);
+				}
 			}
 		}
+
+		// Last killed entity position
+		//for (const auto& data : fowList)
+		//{
+		//	if (data.second.lastUpdateTime + 10 > gametime->get_time())
+		//	{
+		//		auto size = vector(16.f, 16.f);
+		//		auto sizeMod = size / 2;
+		//		vector minimapPos;
+		//		vector castPos = data.second.position;
+		//		gui->get_tactical_map()->to_map_coord(castPos, minimapPos);
+		//		draw_manager->add_image(data.second.entity->get_square_icon_portrait(), minimapPos - sizeMod, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,1 });
+		//		vector screenPos;
+		//		renderer->world_to_screen(data.second.position, screenPos);
+		//		size = vector(40.f, 40.f);
+		//		sizeMod = size / 2;
+		//		draw_manager->add_image(data.second.entity->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,1.f });
+		//	}
+		//}
 
 		// Traps manager
 		if (settings::hidden::enable->get_bool())
@@ -1668,6 +1712,61 @@ namespace utilities {
 			myhero->print_chat(0, "%s (%s) Voted %s", args.sender->get_base_skin_name().c_str(), args.sender->get_name_cstr(), args.success ? "YES" : "NO");
 	}
 
+	void on_global_event(std::uint32_t hash_name, const char* name, global_event_params_script params)
+	{
+		const auto sender = entitylist->get_object_by_network_id(params->get_argument(1));
+		const auto target = entitylist->get_object_by_network_id(params->get_argument(3));
+		//if (sender && sender->is_valid() && (sender->is_ai_hero() || sender->is_monster() || sender->is_epic_monster()))
+		//{
+		//	myhero->print_chat(0, "Source : %s %i %i %s", name, params->get_argument(1), params->get_argument(2), sender->get_model_cstr());
+		//	if (target && target->is_valid())
+		//		myhero->print_chat(0, "Target : %s", target->get_model_cstr());
+		//}
+		if (hash_name == buff_hash("OnCastHeal"))
+		{
+			const auto& isEpicSender = sender && sender->is_valid() && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
+			if (isEpicSender && target && target->is_valid() && sender->get_handle() && target->get_handle())
+			{
+				if (sender->get_name().find("Baron") != std::string::npos)
+				{
+					if (!baronAttackTime) return;
+					debugPrint("[%i:%02d] Baron lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+					baronAttackTime = 0;
+					baronIdleTime = gametime->get_time();
+					lastBaron = sender;
+					return;
+				}
+				else if (sender->get_name().find("Dragon") != std::string::npos)
+				{
+					if (!isDragonAttacked) return;
+					debugPrint("[%i:%02d] Dragon lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+					dragonAttackTime = gametime->get_time();
+					isDragonAttacked = false;
+					lastDragon = sender;
+					return;
+				}
+				else if (sender->get_name().find("Herald") != std::string::npos)
+				{
+					if (!heraldAttackTime) return;
+					debugPrint("[%i:%02d] Herald lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+					heraldAttackTime = 0;
+					heraldIdleTime = gametime->get_time();
+					lastHerald = sender;
+					return;
+				}
+			}
+		}
+		//else if (hash_name == buff_hash("OnDie"))
+		//{
+		//	if (!target || !target->is_valid() || !sender || !sender->is_valid() || !target->is_ai_hero()) return;
+
+		//	if (target->is_visible() || target->is_ally()) return;
+
+		//	const fowTracker& data = { .entity = target, .lastUpdateTime = gametime->get_time(), .position = sender->get_position()};
+		//	fowList[target->get_handle()] = data;
+		//}
+	}
+
 	void load()
 	{
 		// Initialise random
@@ -1736,6 +1835,7 @@ namespace utilities {
 		event_handler<events::on_issue_order>::add_callback(on_issue_order, event_prority::low);
 		event_handler<events::on_play_animation>::add_callback(on_play_animation, event_prority::low);
 		event_handler<events::on_vote>::add_callback(on_vote, event_prority::low);
+		event_handler<events::on_global_event>::add_callback(on_global_event, event_prority::low);
 	}
 
 	void unload()
@@ -1760,6 +1860,7 @@ namespace utilities {
 		event_handler< events::on_issue_order >::remove_handler(on_issue_order);
 		event_handler< events::on_play_animation >::remove_handler(on_play_animation);
 		event_handler< events::on_vote >::remove_handler(on_vote);
+		event_handler< events::on_global_event >::remove_handler(on_global_event);
 	}
 
 }
