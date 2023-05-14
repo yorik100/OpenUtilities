@@ -158,6 +158,9 @@ namespace utilities {
 		namespace nointerrupt{
 			TreeEntry* noCastCancel;
 		}
+		namespace surrender {
+			TreeEntry* showSurrend;
+		}
 		TreeEntry* lowSpec;
 		TreeEntry* debugPrint;
 	}
@@ -351,6 +354,10 @@ namespace utilities {
 		const auto noInteruptTab = mainMenu->add_tab("open.utilities.nointerrupt", "NoInterrupt");
 		settings::nointerrupt::noCastCancel = noInteruptTab->add_checkbox("open.utilities.nointerrupt.nocastcancel", "Prevent cast cancels", true);
 		settings::nointerrupt::noCastCancel->set_tooltip("This only prevents cancels on cast for spells like Miss Fortune R, you need a champion module to prevent channel cancels");
+
+		//Surrender settings
+		const auto surrenderTab = mainMenu->add_tab("open.utilities.surrender", "Surrender");
+		settings::surrender::showSurrend = surrenderTab->add_checkbox("open.utilities.surrender.showsurrend", "Show surrender votes", true);
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
@@ -1653,6 +1660,14 @@ namespace utilities {
 		//	myhero->print_chat(0, "Animation : %s", name);
 	}
 
+	void on_vote(const on_vote_args& args)
+	{
+		if (args.vote_type != on_vote_type::surrender) return;
+
+		if (args.sender && settings::surrender::showSurrend->get_bool())
+			myhero->print_chat(0, "%s (%s) Voted %s", args.sender->get_base_skin_name().c_str(), args.sender->get_name_cstr(), args.success ? "YES" : "NO");
+	}
+
 	void load()
 	{
 		// Initialise random
@@ -1720,7 +1735,7 @@ namespace utilities {
 		event_handler<events::on_cast_spell>::add_callback(on_cast_spell, event_prority::low);
 		event_handler<events::on_issue_order>::add_callback(on_issue_order, event_prority::low);
 		event_handler<events::on_play_animation>::add_callback(on_play_animation, event_prority::low);
-
+		event_handler<events::on_vote>::add_callback(on_vote, event_prority::low);
 	}
 
 	void unload()
@@ -1744,6 +1759,7 @@ namespace utilities {
 		event_handler< events::on_cast_spell >::remove_handler(on_cast_spell);
 		event_handler< events::on_issue_order >::remove_handler(on_issue_order);
 		event_handler< events::on_play_animation >::remove_handler(on_play_animation);
+		event_handler< events::on_vote >::remove_handler(on_vote);
 	}
 
 }
