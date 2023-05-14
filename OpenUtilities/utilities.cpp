@@ -158,9 +158,7 @@ namespace utilities {
 		namespace corewalker {
 			TreeEntry* windupPlus;
 			TreeEntry* forceBuffer;
-			TreeEntry* winddownPlus;
 			TreeEntry* cancelReset;
-			TreeEntry* forcedownBuffer;
 			TreeEntry* forceSync;
 		}
 		namespace nointerrupt{
@@ -198,7 +196,6 @@ namespace utilities {
 	bool isDragonAttacked = false;
 	bool dontCancel = false;
 	bool autoReset = false;
-	bool winddownReset = false;
 	bool cancelBuffer = false;
 
 	game_object_script lastBaron;
@@ -352,10 +349,7 @@ namespace utilities {
 		settings::corewalker::windupPlus = walkTab->add_checkbox("open.utilities.corewalker.windupplus", "Force perfect windup", false);
 		settings::corewalker::windupPlus->set_tooltip("Overrides windup");
 		settings::corewalker::forceBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcebuffer", "Force windup buffer", false);
-		settings::corewalker::winddownPlus = walkTab->add_checkbox("open.utilities.corewalker.winddownplus", "Force perfect winddown", false);
-		settings::corewalker::winddownPlus->set_tooltip("Overrides OrbWalker speed/winddown");
 		settings::corewalker::cancelReset = walkTab->add_checkbox("open.utilities.corewalker.cancelreset", "Reset auto on auto cancel", true);
-		settings::corewalker::forcedownBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcedownbuffer", "Force winddown buffer", false);
 		settings::corewalker::forceSync = walkTab->add_checkbox("open.utilities.corewalker.forcesync", "Force cast sync (prevents manual auto cancel)", false);
 		settings::corewalker::forceSync->set_tooltip("Wait for attack confirm");
 
@@ -627,18 +621,7 @@ namespace utilities {
 		const auto spell = myhero->get_active_spell();
 
 		// If not an auto, return
-		if (!spell || !spell->is_auto_attack())
-		{
-			// Winddown manager
-			if (winddownReset && lastAutoTime + myhero->get_attack_delay() - myhero->get_attack_cast_delay() - getPing() - 0.033f - (settings::corewalker::forcedownBuffer->get_bool() ? 0.0165f : 0.f) < gametime->get_time())
-			{
-				winddownReset = false;
-				if (settings::corewalker::winddownPlus->get_bool())
-					orbwalker->reset_auto_attack_timer();
-			}
-
-			return;
-		}
+		if (!spell || !spell->is_auto_attack()) return;
 
 		// If already sent order then return
 		if (!autoReset) return;
@@ -646,7 +629,6 @@ namespace utilities {
 		// Auto finish trigger
 		if (attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.0165f : 0.f) < gametime->get_time())
 		{
-			winddownReset = true;
 			autoReset = false;
 			debugPrint("Auto finished %f", attackFinishTime);
 			lastAutoTime = gametime->get_time();
@@ -1337,7 +1319,6 @@ namespace utilities {
 			debugPrint("Auto cancel %f", gametime->get_time());
 			cancelBuffer = false;
 			autoReset = false;
-			winddownReset = false;
 		}
 	}
 
@@ -1389,7 +1370,6 @@ namespace utilities {
 			{
 				debugPrint("Auto started %f and ends at %f", spell->get_time(), spell->get_time() + spell->get_attack_cast_delay());
 				attackFinishTime = spell->get_time() + spell->get_attack_cast_delay();
-				winddownReset = false;
 				autoReset = true;
 			}
 		}
@@ -1641,7 +1621,7 @@ namespace utilities {
 		if (settings::corewalker::forceSync->get_bool() && !evade->is_evading() && myhero->get_spell(spellslot::q)->get_name_hash() != spell_hash("KalistaMysticShot") && (type == MoveTo || type == AttackTo || type == AttackUnit || type == AutoAttack))
 		{
 			const auto spell = myhero->get_active_spell();
-			if ((myhero->get_attack_cast_delay() > (0.066f + getPing()) && lastIssuedOrder > gametime->get_time() && target && myhero->is_in_auto_attack_range(target) && lastAutoTime + myhero->get_attack_delay() - myhero->get_attack_cast_delay() - getPing() - 0.033f - (settings::corewalker::forcedownBuffer->get_bool() ? 0.0165f : 0.f) < gametime->get_time()) || (spell && spell->is_auto_attack() && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.0165f : 0.f) >= gametime->get_time()))
+			if ((myhero->get_attack_cast_delay() > (0.066f + getPing()) && lastIssuedOrder > gametime->get_time() && target && myhero->is_in_auto_attack_range(target) && lastAutoTime + myhero->get_attack_delay() - myhero->get_attack_cast_delay() - getPing() - 0.033f) || (spell && spell->is_auto_attack() && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.0165f : 0.f) >= gametime->get_time()))
 			{
 				*process = false;
 				if (spell && spell->is_auto_attack() && (type == MoveTo || type == AttackTo))
@@ -1654,7 +1634,6 @@ namespace utilities {
 		if (type == AttackUnit || type == AttackTo)
 		{
 			lastIssuedOrder = gametime->get_time() + getPing() + 0.15f;
-			winddownReset = false;
 		}
 
 		// Already moved
