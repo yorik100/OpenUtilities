@@ -357,7 +357,7 @@ namespace utilities {
 
 		//Surrender settings
 		const auto surrenderTab = mainMenu->add_tab("open.utilities.surrender", "Surrender");
-		settings::surrender::showSurrend = surrenderTab->add_checkbox("open.utilities.surrender.showsurrend", "Show surrender votes", true);
+		settings::surrender::showSurrend = surrenderTab->add_checkbox("open.utilities.surrender.showsurrend", "Show surrender votes", false);
 
 		// Misc
 		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
