@@ -948,7 +948,7 @@ namespace utilities {
 		//if (obj->get_emitter() && obj->get_emitter()->is_me() && obj->get_particle_target_attachment_object())
 		//	myhero->print_chat(0, "Particle from player %s at %f (%s) 2", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_target_attachment_object()->get_name_cstr());
 		
-		//myhero->print_chat(0, "%s", obj->get_name_cstr());
+		//myhero->print_chat(0, "Name : %s Model : %s", obj->get_name_cstr(), obj->get_model_cstr());
 
 		// Get object name hash
 		const auto& object_hash = spell_hash_real(obj->get_name_cstr());
@@ -1352,7 +1352,7 @@ namespace utilities {
 		const auto& data = (PKT_S2C_PlayAnimationArgs*)args;
 		if (!data) return;
 
-		//myhero->print_chat(0, "%s", data->animation_name);
+		//myhero->print_chat(0, "Name : %s Basename : %s Basenamehash : %s Buffhash : %s", data->animation_name, myhero->get_spell(spellslot::q)->get_name().c_str(), myhero->get_spell(spellslot::w)->get_name().c_str(), myhero->get_spell(spellslot::e)->get_name().c_str(), myhero->get_spell(spellslot::r)->get_name().c_str());
 
 		const auto& isEpicSender = !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 		const auto& isCrab = sender->is_monster() && strcmp(data->animation_name, "crab_hide") == 0;
@@ -1407,7 +1407,7 @@ namespace utilities {
 	{
 		// Detect if someone is reviving from Guardian Angel
 		//if (sender->is_me())
-		//	myhero->print_chat(0, "%s", buff->get_name_cstr());
+		//	myhero->print_chat(0, "Buff : %s", buff->get_name_cstr());
 		if (!gain && sender->is_valid() && !sender->is_targetable() && buff->get_hash_name() == buff_hash("willrevive") && sender->has_item(ItemId::Guardian_Angel) != spellslot::invalid)
 		{
 			guardianReviveTime[sender->get_handle()] = gametime->get_time() + 4;
@@ -1649,6 +1649,8 @@ namespace utilities {
 
 	void on_play_animation(game_object_script sender, const char* name, bool* process)
 	{
+		//if (sender && sender->is_me())
+		//	myhero->print_chat(0, "Animation : %s", name);
 	}
 
 	void load()
