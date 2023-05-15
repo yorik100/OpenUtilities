@@ -1442,7 +1442,10 @@ namespace utilities {
 	{
 		// Detect if someone is reviving from Guardian Angel
 		//if (sender->is_me())
-		//	myhero->print_chat(0, "Buff : %s", buff->get_name_cstr());
+		//{
+		//	myhero->print_chat(0, "Buff %s : %s", gain ? "gained" : "lost", buff->get_name_cstr());
+		//	console->print("Buff %s : %s", gain ? "gained" : "lost", buff->get_name_cstr());
+		//}
 		if (!gain && sender->is_valid() && !sender->is_targetable() && buff->get_hash_name() == buff_hash("willrevive") && sender->has_item(ItemId::Guardian_Angel) != spellslot::invalid)
 		{
 			guardianReviveTime[sender->get_handle()] = gametime->get_time() + 4;
