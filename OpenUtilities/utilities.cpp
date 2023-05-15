@@ -310,9 +310,9 @@ namespace utilities {
 		settings::epic::epicTrackerNotifications = epicTab->add_checkbox("open.utilities.epictracker.epictrackernotifications", "Show attacked epic monsters notifications", true);
 		settings::epic::epicTrackerMap = epicTab->add_checkbox("open.utilities.epictracker.epictrackermap", "Show attacked epic monsters on minimap", true);
 		settings::epic::epicTrackerVisible = epicTab->add_checkbox("open.utilities.epictracker.epictrackervisible", "Track even if visible", false);
-		settings::epic::xOffset = epicTab->add_slider("open.utilities.epictracker.xoffset", "Notifications horizontal position", 0, -2000, 2000);
-		settings::epic::yOffset = epicTab->add_slider("open.utilities.epictracker.yoffset", "Notifications vertical position", 0, -2000, 2000);
-		settings::epic::distanceBetween = epicTab->add_slider("open.utilities.epictracker.distancebetween", "Distance between notifications", 0, 0, 2000);
+		settings::epic::xOffset = epicTab->add_slider("open.utilities.epictracker.xoffset", "Notifications horizontal position", 35, -2000, 2000);
+		settings::epic::yOffset = epicTab->add_slider("open.utilities.epictracker.yoffset", "Notifications vertical position", 15, -2000, 2000);
+		settings::epic::distanceBetween = epicTab->add_slider("open.utilities.epictracker.distancebetween", "Distance between notifications", 225, 0, 2000);
 
 		// Flash settings
 		const auto flashTab = mainMenu->add_tab("open.utilities.flash", "Flash utility");
@@ -767,7 +767,7 @@ namespace utilities {
 					const auto& size = vector(60.f, 60.f);
 					const auto& sizeMod = size / 2;
 					draw_manager->add_image(lastDragon->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto& positionText = vector(575 + settings::epic::xOffset->get_int() - settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
+					const auto& positionText = vector(520 + sizeMod.x + 25 + settings::epic::xOffset->get_int() - settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Dragon is under attack!");
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
@@ -788,8 +788,10 @@ namespace utilities {
 					const auto& size = vector(60.f, 60.f);
 					const auto& sizeMod = size / 2;
 					draw_manager->add_image(lastBaron->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto& positionText = vector(1050 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
-					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Baron is under attack!");
+					const auto& text = "Baron is under attack!";
+					const auto& textSize = draw_manager->calc_text_size(25, text);
+					const auto& positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
+					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, text);
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
 				{
@@ -804,9 +806,11 @@ namespace utilities {
 					const auto& position = vector(1330 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 150 + settings::epic::yOffset->get_int());
 					const auto& size = vector(60.f, 60.f);
 					const auto& sizeMod = size / 2;
+					const auto& text = "Herald is under attack!";
+					const auto& textSize = draw_manager->calc_text_size(25, text);
 					draw_manager->add_image(lastHerald->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto& positionText = vector(1040 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
-					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Herald is under attack!");
+					const auto& positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
+					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, text);
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
 				{
@@ -1697,7 +1701,7 @@ namespace utilities {
 		const auto target = entitylist->get_object_by_network_id(params->get_argument(3));
 		//if (sender && sender->is_valid() && (sender->is_ai_hero() || sender->is_monster() || sender->is_epic_monster()))
 		//{
-		//	myhero->print_chat(0, "Source : %s %i %i %s", name, params->get_argument(1), params->get_argument(2), sender->get_model_cstr());
+		//	myhero->print_chat(0, "Source : %s %i %i %s %i %i %i %i", name, params->get_argument(1), params->get_argument(2), sender->get_model_cstr(), params->get_argument(3), params->get_argument(4), params->get_argument(5), params->get_argument(6));
 		//	if (target && target->is_valid())
 		//		myhero->print_chat(0, "Target : %s", target->get_model_cstr());
 		//}
@@ -1706,16 +1710,7 @@ namespace utilities {
 			const auto& isEpicSender = sender && sender->is_valid() && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 			if (isEpicSender && target && target->is_valid() && sender->get_handle() && target->get_handle())
 			{
-				if (sender->get_name().find("Baron") != std::string::npos)
-				{
-					if (!baronAttackTime) return;
-					debugPrint("[%i:%02d] Baron lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
-					baronAttackTime = 0;
-					baronIdleTime = gametime->get_time();
-					lastBaron = sender;
-					return;
-				}
-				else if (sender->get_name().find("Dragon") != std::string::npos)
+				if (sender->get_name().find("Dragon") != std::string::npos)
 				{
 					if (!isDragonAttacked) return;
 					debugPrint("[%i:%02d] Dragon lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
