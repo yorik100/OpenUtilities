@@ -184,7 +184,8 @@ namespace utilities {
 	float lastNoAttackCast = 0;
 	float lastIssuedOrder = 0;
 	float attackFinishTime = 0;
-	float turretRange;
+	float lastBaronHeal = 0;
+	float turretRange = 0;
 
 	vector spawnPoint;
 	vector nexusPos;
@@ -985,7 +986,8 @@ namespace utilities {
 		//if (obj->get_emitter() && obj->get_emitter()->is_me() && obj->get_particle_target_attachment_object())
 		//	myhero->print_chat(0, "Particle from player %s at %f (%s) 2", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_target_attachment_object()->get_name_cstr());
 		
-		//myhero->print_chat(0, "Name : %s Model : %s", obj->get_name_cstr(), obj->get_model_cstr());
+		//if (obj->is_missile())
+		//	myhero->print_chat(0, "Name : %s Model : %s", obj->get_name_cstr(), obj->get_model_cstr());
 
 		// Get object name hash
 		const auto& object_hash = spell_hash_real(obj->get_name_cstr());
@@ -1713,7 +1715,20 @@ namespace utilities {
 			const auto& isEpicSender = sender && sender->is_valid() && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 			if (isEpicSender && target && target->is_valid() && sender->get_handle() && target->get_handle())
 			{
-				if (sender->get_name().find("Dragon") != std::string::npos)
+				if (sender->get_name().find("Baron") != std::string::npos)
+				{
+					if (gametime->get_time() - lastBaronHeal < 0.25)
+					{
+						if (!baronAttackTime) return;
+						debugPrint("[%i:%02d] Baron lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+						baronAttackTime = 0;
+						baronIdleTime = gametime->get_time();
+						lastBaron = sender;
+					}
+					lastBaronHeal = gametime->get_time();
+					return;
+				}
+				else if (sender->get_name().find("Dragon") != std::string::npos)
 				{
 					if (!isDragonAttacked) return;
 					debugPrint("[%i:%02d] Dragon lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
