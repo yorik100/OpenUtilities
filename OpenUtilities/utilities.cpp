@@ -1717,7 +1717,9 @@ namespace utilities {
 			{
 				if (sender->get_name().find("Baron") != std::string::npos)
 				{
-					if (gametime->get_time() - lastBaronHeal < 0.25)
+					const auto tempBaronHeal = lastBaronHeal;
+					lastBaronHeal = gametime->get_time();
+					if (gametime->get_time() - tempBaronHeal < 0.25)
 					{
 						if (!baronAttackTime) return;
 						debugPrint("[%i:%02d] Baron lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
@@ -1725,7 +1727,6 @@ namespace utilities {
 						baronIdleTime = gametime->get_time();
 						lastBaron = sender;
 					}
-					lastBaronHeal = gametime->get_time();
 					return;
 				}
 				else if (sender->get_name().find("Dragon") != std::string::npos)
