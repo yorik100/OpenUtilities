@@ -92,31 +92,31 @@ namespace utilities {
 	//std::unordered_map<uint32_t, fowTracker> fowList;
 	std::unordered_map<uint32_t, float> guardianReviveTime;
 
-	static constexpr uint32_t godBuffList[]
-	{
-		buff_hash("KayleR"),
-		buff_hash("TaricR"),
-		buff_hash("SivirE"),
-		buff_hash("FioraW"),
-		buff_hash("NocturneShroudofDarkness"),
-		buff_hash("kindredrnodeathbuff"),
-		buff_hash("XinZhaoRRangedImmunity"),
-		buff_hash("PantheonE")
-	};
+	//static constexpr uint32_t godBuffList[]
+	//{
+	//	buff_hash("KayleR"),
+	//	buff_hash("TaricR"),
+	//	buff_hash("SivirE"),
+	//	buff_hash("FioraW"),
+	//	buff_hash("NocturneShroudofDarkness"),
+	//	buff_hash("kindredrnodeathbuff"),
+	//	buff_hash("XinZhaoRRangedImmunity"),
+	//	buff_hash("PantheonE")
+	//};
 
-	static constexpr uint32_t noKillBuffList[]
-	{
-		buff_hash("UndyingRage"),
-		buff_hash("ChronoShift")
-	};
+	//static constexpr uint32_t noKillBuffList[]
+	//{
+	//	buff_hash("UndyingRage"),
+	//	buff_hash("ChronoShift")
+	//};
 
-	static constexpr uint32_t stasisBuffList[]
-	{
-		buff_hash("ChronoRevive"),
-		buff_hash("BardRStasis"),
-		buff_hash("ZhonyasRingShield"),
-		buff_hash("LissandraRSelf")
-	};
+	//static constexpr uint32_t stasisBuffList[]
+	//{
+	//	buff_hash("ChronoRevive"),
+	//	buff_hash("BardRStasis"),
+	//	buff_hash("ZhonyasRingShield"),
+	//	buff_hash("LissandraRSelf")
+	//};
 
 	TreeTab* mainMenu;
 	namespace settings {
@@ -246,7 +246,7 @@ namespace utilities {
 	bool isRecalling(const game_object_script& target)
 	{
 		// Get if target is recalling
-		const auto& isRecalling = target->is_teleporting() && (target->is_teleporting() || target->get_teleport_state() == "recall" || target->get_teleport_state() == "SuperRecall" || target->get_teleport_state() == "SummonerTeleport");
+		const auto isRecalling = target->is_teleporting() && (target->is_teleporting() || target->get_teleport_state() == "recall" || target->get_teleport_state() == "SuperRecall" || target->get_teleport_state() == "SummonerTeleport");
 		return isRecalling;
 	}
 
@@ -279,8 +279,8 @@ namespace utilities {
 		{
 			for (const auto& contour : child->Contour)
 			{
-				const auto& position = vector(contour.X, contour.Y, 0);
-				const auto& distance = myhero->get_distance(position);
+				const auto position = vector(contour.X, contour.Y, 0);
+				const auto distance = myhero->get_distance(position);
 				if (distance < min_distance)
 				{
 					min_distance = distance;
@@ -452,9 +452,9 @@ namespace utilities {
 							return false;
 					}
 
-					const auto& dist = ward->get_position().distance(x.position);
-					const auto& wardDist = 150.f;
-					const auto& shouldRemove = dist < wardDist;
+					const auto dist = ward->get_position().distance(x.position);
+					const auto wardDist = 150.f;
+					const auto shouldRemove = dist < wardDist;
 					if (shouldRemove)
 						debugPrint("[%i:%02d] Ward removed because distance was %f and %f is smaller than %f", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, dist, dist, wardDist);
 					return shouldRemove;
@@ -562,7 +562,7 @@ namespace utilities {
 		}
 
 		// If ward to ping is invalid then return
-		const auto pingableWard = pingableWards.wards[0];
+		const auto& pingableWard = pingableWards.wards[0];
 		if (!pingableWard.ward || (!pingableWard.ward->is_valid() && settings::ping::onlyvalid->get_bool()))
 		{
 			pingableWards.wards.erase(pingableWards.wards.begin());
@@ -612,6 +612,7 @@ namespace utilities {
 
 	void coreWalker()
 	{
+		// Stuff to make Orb better
 		if (evade->is_evading())
 		{
 			lastChannelCast = 0.f;
@@ -635,7 +636,7 @@ namespace utilities {
 			lastAutoTime = gametime->get_time();
 		}
 
-		const auto& canWindupPlus = (settings::corewalker::windupPlus->get_bool() && myhero->get_spell(spellslot::q)->get_name_hash() != spell_hash("KalistaMysticShot") && myhero->get_spell(spellslot::q)->get_name_hash() != spell_hash("AkshanQ"));
+		const auto canWindupPlus = (settings::corewalker::windupPlus->get_bool() && myhero->get_spell(spellslot::q)->get_name_hash() != spell_hash("KalistaMysticShot") && myhero->get_spell(spellslot::q)->get_name_hash() != spell_hash("AkshanQ"));
 
 		// If ready to send order, send
 		if (((!orbwalker->none_mode() && canWindupPlus) || cancelBuffer) && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.0165f : 0.f) < gametime->get_time())
@@ -696,10 +697,10 @@ namespace utilities {
 			{
 				if (target->is_visible()) continue;
 
-				teleportStruct teleportData = teleportList[target->get_handle()];
+				const teleportStruct& teleportData = teleportList[target->get_handle()];
 				if (teleportData.endTime == 0) continue;
 
-				const auto& timeLeft = teleportData.endTime - gametime->get_time();
+				const auto timeLeft = teleportData.endTime - gametime->get_time();
 				if (timeLeft >= 0 && teleportData.type != teleport_type::Teleport && teleportData.type != teleport_type::Recall && teleportData.type != teleport_type::SuperRecall) continue;
 
 				// Check if draw position is visible on screen
@@ -707,19 +708,19 @@ namespace utilities {
 				renderer->world_to_screen(target->get_position(), screenPos);
 				if (!renderer->is_on_screen(screenPos, 50 + target->get_bounding_radius())) continue;
 
-				auto castTime = teleportData.endTime - teleportData.startTime;
-				auto isRecall = teleportData.type == teleport_type::Recall || teleportData.type == teleport_type::SuperRecall;
-				auto colour3 = !isRecall ? MAKE_COLOR(255, 0, 255, 64) : MAKE_COLOR(0, 190, 255, 64);
+				const auto castTime = teleportData.endTime - teleportData.startTime;
+				const auto isRecall = teleportData.type == teleport_type::Recall || teleportData.type == teleport_type::SuperRecall;
+				const auto colour3 = !isRecall ? MAKE_COLOR(255, 0, 255, 64) : MAKE_COLOR(0, 190, 255, 64);
 				draw_manager->add_filled_circle(target->get_position(), target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour3);
 				if (isRecall)
 				{
 					draw_manager->add_filled_circle(spawnPoint, target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour3);
 					vector screenPos;
 					renderer->world_to_screen(spawnPoint, screenPos);
-					const auto& size = vector(40.f, 40.f);
-					const auto& sizeMod = size / 2;
+					const auto size = vector(40.f, 40.f);
+					const auto sizeMod = size / 2;
 					draw_manager->add_image(target->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
-					const int& alpha = round(255 * 0.5);
+					const int alpha = round(255 * 0.5);
 					draw_manager->add_circle_on_screen(screenPos, 22, MAKE_COLOR(255, 0, 0, alpha), 2.f);
 				}
 			}
@@ -747,7 +748,7 @@ namespace utilities {
 				renderer->world_to_screen(ward.position, screenPos);
 				if (!renderer->is_on_screen(screenPos, 50 + 40)) continue;
 
-				const auto& colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 64) : MAKE_COLOR(0, 255, 255, 64);
+				const auto colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 64) : MAKE_COLOR(0, 255, 255, 64);
 				if (settings::hidden::drawCircle->get_bool())
 					draw_manager->add_filled_circle(ward.position, 40, colour);
 			}
@@ -762,18 +763,18 @@ namespace utilities {
 		{
 			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 5))
 			{
-				const auto& isAggroed = isDragonAttacked || gametime->get_time() - dragonAttackTime < 2;
+				const auto isAggroed = isDragonAttacked || gametime->get_time() - dragonAttackTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && isAggroed) {
-					const auto& position = vector(520 + settings::epic::xOffset->get_int() - settings::epic::distanceBetween->get_int(), 150 + settings::epic::yOffset->get_int());
-					const auto& size = vector(60.f, 60.f);
-					const auto& sizeMod = size / 2;
+					const auto position = vector(520 + settings::epic::xOffset->get_int() - settings::epic::distanceBetween->get_int(), 150 + settings::epic::yOffset->get_int());
+					const auto size = vector(60.f, 60.f);
+					const auto sizeMod = size / 2;
 					draw_manager->add_image(lastDragon->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto& positionText = vector(520 + sizeMod.x + 25 + settings::epic::xOffset->get_int() - settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
+					const auto positionText = vector(520 + sizeMod.x + 25 + settings::epic::xOffset->get_int() - settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Dragon is under attack!");
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
 				{
-					const auto& circleColour = isAggroed ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
+					const auto circleColour = isAggroed ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
 					draw_manager->draw_circle_on_minimap(dragonPos, 550, circleColour, 2);
 				}
 			}
@@ -782,40 +783,40 @@ namespace utilities {
 
 			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && (gametime->get_time() - baronAttackTime < 8 || gametime->get_time() - baronIdleTime < 2))
 			{
-				const auto& isIdle = gametime->get_time() - baronIdleTime < 2;
+				const auto isIdle = gametime->get_time() - baronIdleTime < 2;
 				if (gametime->get_time() - baronIdleTime < 1) baronAttackTime = 0;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
-					const auto& position = vector(1330 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 150 + settings::epic::yOffset->get_int());
-					const auto& size = vector(60.f, 60.f);
-					const auto& sizeMod = size / 2;
+					const auto position = vector(1330 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 150 + settings::epic::yOffset->get_int());
+					const auto size = vector(60.f, 60.f);
+					const auto sizeMod = size / 2;
 					draw_manager->add_image(lastBaron->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto& text = "Baron is under attack!";
-					const auto& textSize = draw_manager->calc_text_size(25, text);
-					const auto& positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
+					const auto text = "Baron is under attack!";
+					const auto textSize = draw_manager->calc_text_size(25, text);
+					const auto positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, text);
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
 				{
-					const auto& circleColour = !isIdle ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
+					const auto circleColour = !isIdle ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
 					draw_manager->draw_circle_on_minimap(baronPos, 550, circleColour, 2);
 				}
 			}
 			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && (gametime->get_time() - heraldAttackTime < 15 || gametime->get_time() - heraldIdleTime < 2))
 			{
-				const auto& isIdle = gametime->get_time() - heraldIdleTime < 2;
+				const auto isIdle = gametime->get_time() - heraldIdleTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
-					const auto& position = vector(1330 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 150 + settings::epic::yOffset->get_int());
-					const auto& size = vector(60.f, 60.f);
-					const auto& sizeMod = size / 2;
-					const auto& text = "Herald is under attack!";
-					const auto& textSize = draw_manager->calc_text_size(25, text);
+					const auto position = vector(1330 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 150 + settings::epic::yOffset->get_int());
+					const auto size = vector(60.f, 60.f);
+					const auto sizeMod = size / 2;
+					const auto text = "Herald is under attack!";
+					const auto textSize = draw_manager->calc_text_size(25, text);
 					draw_manager->add_image(lastHerald->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto& positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
+					const auto positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, text);
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
 				{
-					const auto& circleColour = !isIdle ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
+					const auto circleColour = !isIdle ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
 					draw_manager->draw_circle_on_minimap(baronPos, 500, circleColour, 2);
 				}
 			}
@@ -846,20 +847,20 @@ namespace utilities {
 			{
 				if (!trap.obj->is_visible())
 				{
-					const auto& colour = trap.trapType == 0 ? MAKE_COLOR(255, 127, 0, 255) : MAKE_COLOR(0, 127, 0, 255);
-					const auto& size = trap.trapType == 0 ? 160 : 75;
+					const auto colour = trap.trapType == 0 ? MAKE_COLOR(255, 127, 0, 255) : MAKE_COLOR(0, 127, 0, 255);
+					const auto size = trap.trapType == 0 ? 160 : 75;
 					if (settings::hidden::glow->get_bool())
 						glowObjects.push_back({ trap.obj, colour, 3, 0 });
 					if (settings::hidden::drawCircle->get_bool())
 						draw_manager->add_circle(trap.obj->get_position(), size, colour, 2);
-					const int& timeLeft = (int)std::ceil(trap.remainingTime - gametime->get_time());
-					const auto& textSize = draw_manager->calc_text_size(22, "%i", timeLeft);
-					const auto& remainingTimePos = vector(trap.obj->get_hpbar_pos().x - textSize.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize.y / 2 + 55, trap.obj->get_hpbar_pos().z);
+					const int timeLeft = (int)std::ceil(trap.remainingTime - gametime->get_time());
+					const auto textSize = draw_manager->calc_text_size(22, "%i", timeLeft);
+					const auto remainingTimePos = vector(trap.obj->get_hpbar_pos().x - textSize.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize.y / 2 + 55, trap.obj->get_hpbar_pos().z);
 					if (timeLeft > 0 && settings::hidden::drawRemaining->get_bool())
 						draw_manager->add_text_on_screen(remainingTimePos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
 				}
-				const auto& textSize2 = draw_manager->calc_text_size(22, "%s", trap.owner->get_model_cstr());
-				const auto& ownerPos = vector(trap.obj->get_hpbar_pos().x - textSize2.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize2.y / 2 + 80, trap.obj->get_hpbar_pos().z);
+				const auto textSize2 = draw_manager->calc_text_size(22, "%s", trap.owner->get_model_cstr());
+				const auto ownerPos = vector(trap.obj->get_hpbar_pos().x - textSize2.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize2.y / 2 + 80, trap.obj->get_hpbar_pos().z);
 				if (settings::hidden::drawOwner->get_bool())
 					draw_manager->add_text_on_screen(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_model_cstr());
 			}
@@ -879,32 +880,33 @@ namespace utilities {
 		if (settings::hidden::enable->get_bool())
 			for (const auto& ward : wards)
 			{
-				const auto& colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 255) : MAKE_COLOR(0, 255, 255, 255);
-				const auto& insideColour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 64) : MAKE_COLOR(0, 255, 255, 64);
+				const auto colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 255) : MAKE_COLOR(0, 255, 255, 255);
+				const auto insideColour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 64) : MAKE_COLOR(0, 255, 255, 64);
 				vector minimapPos;
 				vector wardPos = ward.position;
 				gui->get_tactical_map()->to_map_coord(wardPos, minimapPos);
-				draw_manager->add_filled_circle_on_screen(minimapPos, 5, insideColour);
+				if (settings::hidden::glow->get_bool())
+					draw_manager->add_filled_circle_on_screen(minimapPos, 5, insideColour);
 				draw_manager->add_circle_on_screen(minimapPos, 6, colour);
 				if (settings::hidden::drawCircle->get_bool())
 					draw_manager->add_circle(ward.position, 40, colour, 2);
-				const int& timeLeft = (int)std::ceil(ward.remainingTime - gametime->get_time());
-				const auto& textSize = draw_manager->calc_text_size(22, "%i", timeLeft);
-				const auto& textSize2 = draw_manager->calc_text_size(22, "%s", ward.owner->get_model_cstr());
+				const int timeLeft = (int)std::ceil(ward.remainingTime - gametime->get_time());
+				const auto textSize = draw_manager->calc_text_size(22, "%i", timeLeft);
+				const auto textSize2 = draw_manager->calc_text_size(22, "%s", ward.owner->get_model_cstr());
 				if (ward.wardType == 0 && timeLeft > 0 && settings::hidden::drawRemaining->get_bool())
 				{
-					const auto& timeLeftPos = ward.position;
+					const auto timeLeftPos = ward.position;
 					vector screenPos;
 					renderer->world_to_screen(timeLeftPos, screenPos);
-					const auto& finalPos = vector(screenPos.x - textSize.x / 2, screenPos.y - textSize.y / 2 + 10, screenPos.z);
+					const auto finalPos = vector(screenPos.x - textSize.x / 2, screenPos.y - textSize.y / 2 + 10, screenPos.z);
 					draw_manager->add_text_on_screen(finalPos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
 				}
 				if (settings::hidden::drawOwner->get_bool())
 				{
-					const auto& ownerPos = ward.position;
+					const auto ownerPos = ward.position;
 					vector screenPos;
 					renderer->world_to_screen(ownerPos, screenPos);
-					const auto& finalPos = vector(screenPos.x - textSize2.x / 2, screenPos.y - textSize2.y / 2 + 30, screenPos.z);
+					const auto finalPos = vector(screenPos.x - textSize2.x / 2, screenPos.y - textSize2.y / 2 + 30, screenPos.z);
 					draw_manager->add_text_on_screen(finalPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", ward.owner->get_model_cstr());
 				}
 			}
@@ -915,17 +917,17 @@ namespace utilities {
 			{
 				if (target->is_visible()) continue;
 
-				teleportStruct teleportData = teleportList[target->get_handle()];
+				const teleportStruct& teleportData = teleportList[target->get_handle()];
 				if (teleportData.endTime == 0) continue;
 
-				const auto& timeLeft = teleportData.endTime - gametime->get_time();
+				const auto timeLeft = teleportData.endTime - gametime->get_time();
 				if (timeLeft >= 0 && teleportData.type != teleport_type::Teleport && teleportData.type != teleport_type::Recall && teleportData.type != teleport_type::SuperRecall) continue;
 
-				auto castTime = teleportData.endTime - teleportData.startTime;
-				auto isRecall = teleportData.type == teleport_type::Recall || teleportData.type == teleport_type::SuperRecall;
-				auto colour1 = !isRecall ? MAKE_COLOR(138, 43, 226, 255) : MAKE_COLOR(30, 144, 255, 255);
+				const auto castTime = teleportData.endTime - teleportData.startTime;
+				const auto isRecall = teleportData.type == teleport_type::Recall || teleportData.type == teleport_type::SuperRecall;
+				const auto colour1 = !isRecall ? MAKE_COLOR(138, 43, 226, 255) : MAKE_COLOR(30, 144, 255, 255);
 				draw_manager->add_circle(target->get_position(), target->get_bounding_radius(), colour1, 2);
-				auto colour2 = !isRecall ? MAKE_COLOR(255, 0, 255, 255) : MAKE_COLOR(0, 190, 255, 255);
+				const auto colour2 = !isRecall ? MAKE_COLOR(255, 0, 255, 255) : MAKE_COLOR(0, 190, 255, 255);
 				draw_manager->add_circle(target->get_position(), target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour2, 2);
 				if (isRecall)
 				{
@@ -933,10 +935,10 @@ namespace utilities {
 					draw_manager->add_circle(spawnPoint, target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour2, 2);
 					vector screenPos;
 					renderer->world_to_screen(spawnPoint, screenPos);
-					const auto& size = vector(40.f, 40.f);
-					const auto& sizeMod = size / 2;
+					const auto size = vector(40.f, 40.f);
+					const auto sizeMod = size / 2;
 					draw_manager->add_image(target->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
-					const int& alpha = round(255 * 0.5);
+					const int alpha = round(255 * 0.5);
 					draw_manager->add_circle_on_screen(screenPos, 22, MAKE_COLOR(255, 0, 0, alpha), 2.f);
 				}
 			}
@@ -949,10 +951,10 @@ namespace utilities {
 				draw_manager->add_circle(obj.castingPos, obj.owner->get_bounding_radius() * std::min(1.f, (1 / (obj.castTime / (gametime->get_time() - obj.time)))), MAKE_COLOR(255, 0, 255, 255), 2);
 				vector screenPos;
 				renderer->world_to_screen(obj.castingPos, screenPos);
-				const auto& size = vector(40.f, 40.f);
-				const auto& sizeMod = size / 2;
+				const auto size = vector(40.f, 40.f);
+				const auto sizeMod = size / 2;
 				draw_manager->add_image(obj.owner->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
-				const int& alpha = round(255 * 0.5);
+				const int alpha = round(255 * 0.5);
 				draw_manager->add_circle_on_screen(screenPos, 22, MAKE_COLOR(255, 0, 0, alpha), 2.f);
 				vector minimapPos;
 				vector castPos = obj.castingPos;
@@ -990,10 +992,10 @@ namespace utilities {
 		//	myhero->print_chat(0, "Name : %s Model : %s", obj->get_name_cstr(), obj->get_model_cstr());
 
 		// Get object name hash
-		const auto& object_hash = spell_hash_real(obj->get_name_cstr());
+		const auto object_hash = spell_hash_real(obj->get_name_cstr());
 
 		// Get emitter hash if there is any
-		const auto& emitterHash = obj->get_emitter_resources_hash();
+		const auto emitterHash = obj->get_emitter_resources_hash();
 
 		// Register traps
 		if (obj->is_enemy() && object_hash == spell_hash("Noxious Trap"))
@@ -1025,13 +1027,13 @@ namespace utilities {
 
 		// Get if an epic monster is attacking someone
 		const game_object_script& epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
-		const auto& epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
+		const auto epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
 		const game_object_script& epicOwner = obj->is_missile() ? entitylist->get_object(obj->missile_get_sender_id()) : nullptr;
-		const auto& epicMissile = epicOwner && !epicOwner->is_dead() && epicOwner->is_epic_monster() && !epicOwner->get_owner();
-		const auto& isOwnedByEpic = epicParticle || epicMissile;
+		const auto epicMissile = epicOwner && !epicOwner->is_dead() && epicOwner->is_epic_monster() && !epicOwner->get_owner();
+		const auto isOwnedByEpic = epicParticle || epicMissile;
 		if (isOwnedByEpic && object_hash != spell_hash("sru_dragon_chemtech_Base_BA_Overcharge_Spine_01"))
 		{
-			auto owner = epicParticle ? epicEmitter : epicOwner;
+			const auto& owner = epicParticle ? epicEmitter : epicOwner;
 			if (owner->get_name().find("Baron") != std::string::npos)
 			{
 				debugPrint("[%i:%02d] Object from Baron : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
@@ -1059,13 +1061,13 @@ namespace utilities {
 		game_object_script epicAttachment = obj->get_particle_attachment_object() && obj->get_particle_attachment_object()->is_epic_monster() ? obj->get_particle_attachment_object() : nullptr;
 		if (!epicAttachment)
 			epicAttachment = obj->get_particle_target_attachment_object() && obj->get_particle_target_attachment_object()->is_epic_monster() ? obj->get_particle_target_attachment_object() : nullptr;
-		const auto& epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
+		const auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
 		const game_object_script& epicOwnerTarget = obj->is_missile() && obj->missile_get_target_id() ? entitylist->get_object(obj->missile_get_target_id()) : nullptr;
-		const auto& epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster() && !epicOwnerTarget->get_owner();
-		const auto& isTargetEpic = epicParticleAttachment || epicMissileTarget;
+		const auto epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster() && !epicOwnerTarget->get_owner();
+		const auto isTargetEpic = epicParticleAttachment || epicMissileTarget;
 		if (isTargetEpic && object_hash != spell_hash("SRU_Plant_Vision_Pollen_Debuff.troy") && object_hash != spell_hash("SRE_Dragon_Chemtech_Mutated_Scryer_Revealed") && (!emitterHash || emitterHash != buff_hash("Nunu_P_Enemy_Flute_Mark")))
 		{
-			auto owner = epicParticleAttachment ? epicAttachment : epicOwnerTarget;
+			const auto& owner = epicParticleAttachment ? epicAttachment : epicOwnerTarget;
 			if (owner->get_name().find("Baron") != std::string::npos)
 			{
 				debugPrint("[%i:%02d] Object on Baron : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
@@ -1098,7 +1100,7 @@ namespace utilities {
 			const auto& pos = obj->get_position();
 			if (!pos.is_building() && !pos.is_wall())
 			{
-				const wardInfo wardData = { .remainingTime = 0, .owner = obj->get_emitter(), .position = obj->get_position(), .wardType = 1 };
+				const wardInfo& wardData = { .remainingTime = 0, .owner = obj->get_emitter(), .position = obj->get_position(), .wardType = 1 };
 				wards.push_back(wardData);
 			}
 		}
@@ -1120,7 +1122,7 @@ namespace utilities {
 		}
 		case buff_hash("Pantheon_R_Update_Indicator_Enemy"):
 		{
-			const auto& castPos = obj->get_position() + obj->get_particle_rotation_forward() * 1350;
+			const auto castPos = obj->get_position() + obj->get_particle_rotation_forward() * 1350;
 			const particleStruct& particleData = { .obj = obj, .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 2.2, .castingPos = castPos };
 			particlePredList.push_back(particleData);
 			return;
@@ -1144,7 +1146,8 @@ namespace utilities {
 			return;
 		}
 		case buff_hash("Zed_R_tar_TargetMarker"):
-			if (obj->get_particle_attachment_object()) {
+			if (obj->get_particle_attachment_object())
+			{
 				const particleStruct& particleData = { .obj = obj, .target = obj->get_particle_attachment_object(), .owner = obj->get_emitter(), .time = gametime->get_time(), .castTime = 0.95, .castingPos = vector::zero, .isZed = true };
 				particlePredList.push_back(particleData);
 				return;
@@ -1233,7 +1236,7 @@ namespace utilities {
 	void on_delete(const game_object_script obj)
 	{
 		// Get emitter hash if there is any
-		const auto& emitterHash = obj->get_emitter_resources_hash();
+		const auto emitterHash = obj->get_emitter_resources_hash();
 
 		// Get possible valid particles
 		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero() || obj->get_emitter()->is_visible() || obj->get_emitter()->is_dead()) return;
@@ -1262,7 +1265,7 @@ namespace utilities {
 		//	myhero->print_chat(0, "Spell cast finished %s at %f", spell->get_spell_data()->get_name_cstr(), gametime->get_time());
 		// Detect if someone casted something towards an Epic Monster
 		const auto& target = entitylist->get_object(spell->get_last_target_id());
-		const auto& isEpicTarget = target && !target->is_dead() && target->is_epic_monster() && !target->get_owner();
+		const auto isEpicTarget = target && !target->is_dead() && target->is_epic_monster() && !target->get_owner();
 		if (isEpicTarget)
 		{
 			if (target->get_name().find("Baron") != std::string::npos)
@@ -1344,11 +1347,11 @@ namespace utilities {
 			{
 			case spell_hash("TrinketTotemLvl1"):
 			{
-				const auto& pos = spell->get_end_position();
+				const auto pos = spell->get_end_position();
 				if (!pos.is_building() && !pos.is_wall())
 				{
-					const float& time = 90.f + (30.f / 17.f) * (getGlobalLvl() - 1.f);
-					const wardInfo wardData = { .remainingTime = gametime->get_time() + time, .owner = sender, .position = pos, .wardType = 0 };
+					const float time = 90.f + (30.f / 17.f) * (getGlobalLvl() - 1.f);
+					const wardInfo& wardData = { .remainingTime = gametime->get_time() + time, .owner = sender, .position = pos, .wardType = 0 };
 					wards.push_back(wardData);
 				}
 				break;
@@ -1358,8 +1361,8 @@ namespace utilities {
 				const auto& pos = spell->get_end_position();
 				if (!pos.is_building() && !pos.is_wall())
 				{
-					const float& time = 150;
-					const wardInfo wardData = { .remainingTime = gametime->get_time() + time, .owner = sender, .position = pos, .wardType = 0 };
+					const float time = 150;
+					const wardInfo& wardData = { .remainingTime = gametime->get_time() + time, .owner = sender, .position = pos, .wardType = 0 };
 					wards.push_back(wardData);
 				}
 				break;
@@ -1391,8 +1394,8 @@ namespace utilities {
 
 		//myhero->print_chat(0, "Name : %s Basename : %s Basenamehash : %s Buffhash : %s", data->animation_name, myhero->get_spell(spellslot::q)->get_name().c_str(), myhero->get_spell(spellslot::w)->get_name().c_str(), myhero->get_spell(spellslot::e)->get_name().c_str(), myhero->get_spell(spellslot::r)->get_name().c_str());
 
-		const auto& isEpicSender = !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
-		const auto& isCrab = sender->is_monster() && strcmp(data->animation_name, "crab_hide") == 0;
+		const auto isEpicSender = !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
+		const auto isCrab = sender->is_monster() && strcmp(data->animation_name, "crab_hide") == 0;
 		// If crab is dead then set him as dead
 		if (isCrab && settings::fow::scuttleRemove->get_bool())
 		{
@@ -1544,10 +1547,10 @@ namespace utilities {
 		// Check if it's flash input
 		if (!pos.is_valid() || !myhero->get_spell(spellSlot) || !myhero->get_spell(spellSlot)->get_spell_data() || myhero->get_spell(spellSlot)->get_spell_data()->get_name_hash() != spell_hash("SummonerFlash")) return;
 
-		const auto& distance = std::min(400.f, myhero->get_position().distance(pos));
-		const auto& endPos = myhero->get_position().extend(pos, distance);
+		const auto distance = std::min(400.f, myhero->get_position().distance(pos));
+		const auto endPos = myhero->get_position().extend(pos, distance);
 		// Check if end position is in a wall
-		auto flashGlitch = (settings::flash::antiFlashGlitch->get_bool() && (endPos.is_wall() || endPos.is_building()));
+		const auto flashGlitch = (settings::flash::antiFlashGlitch->get_bool() && (endPos.is_wall() || endPos.is_building()));
 
 		// Extend flash
 		if ((settings::flash::flashExtend->get_bool() || flashGlitch) && distance <= 399.f)
@@ -1639,11 +1642,9 @@ namespace utilities {
 			}
 		}
 
-		// Already resetted
+		// Attacked
 		if (type == AttackUnit || type == AttackTo)
-		{
 			lastIssuedOrder = gametime->get_time() + getPing() + 0.15f;
-		}
 
 		// Already moved
 		if (type == MoveTo && autoReset)
@@ -1669,13 +1670,13 @@ namespace utilities {
 			clipper.Execute(ClipperLib::ctIntersection, polytree);
 			if (polytree.Total() > 0)
 			{
-				const auto& point = getClosestPoint(polytree);
-				const auto& position = vector(point.X, point.Y, 0).extend(turretPos, -90);
+				const auto point = getClosestPoint(polytree);
+				const auto position = vector(point.X, point.Y, 0).extend(turretPos, -90);
 				*process = false;
-				const auto& top_left = position + (position - turretPos).normalized().perpendicular() * 300;
-				const auto& top_right = position - (position - turretPos).normalized().perpendicular() * 300;
+				const auto top_left = position + (position - turretPos).normalized().perpendicular() * 300;
+				const auto top_right = position - (position - turretPos).normalized().perpendicular() * 300;
 				const auto& projection = pos.project_on(top_left, top_right);
-				const auto& result = !projection.line_point.is_wall() ? projection.line_point : position.extend(projection.line_point, 70);
+				const auto result = !projection.line_point.is_wall() ? projection.line_point : position.extend(projection.line_point, 70);
 				if (myhero->get_real_path().size() > 1 || result.distance(myhero->get_position()) > 85)
 				{
 					// Preventing non-sense infinite loops and allowing other modules like Evade to cancel this event (note that it should never ever issue an order inside of turret range but still does)
@@ -1712,7 +1713,7 @@ namespace utilities {
 		//}
 		if (hash_name == buff_hash("OnCastHeal"))
 		{
-			const auto& isEpicSender = sender && sender->is_valid() && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
+			const auto isEpicSender = sender && sender->is_valid() && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 			if (isEpicSender && target && target->is_valid() && sender->get_handle() && target->get_handle())
 			{
 				if (sender->get_name().find("Baron") != std::string::npos)
@@ -1799,17 +1800,16 @@ namespace utilities {
 		// Get URF cannon pos
 		urfCannon = myhero->get_team() == game_object_team::order ? vector(13018.f, 14026.f) : vector(1506.f, 676.f);
 
-		// Get Jhin/Nidalee traps and Maokai E objects
-		for (const auto& entity : entitylist->get_other_minion_objects())
-		{
-			if (entity->is_enemy() && entity->get_name() == "Noxious Trap")
-				unknownTraps.push_back(entity);
-			else if (entity->is_enemy() && entity->get_name() == "DoABarrelRoll" && entity->get_model() == "MaokaiSproutling")
-				maokaiE.push_back(entity);
-		}
-
 		// Call menu creation function
 		createMenu();
+
+		// Trigger on create
+		for (int i = 0; i <= entitylist->get_max_objects(); ++i)
+		{
+			const auto entity = entitylist->get_object(i);
+			if (entity && entity->is_valid())
+				on_create(entity);
+		}
 
 		// Add events
 		event_handler<events::on_update>::add_callback(on_update, event_prority::low);
