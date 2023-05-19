@@ -157,7 +157,7 @@ namespace utilities {
 		}
 		namespace corewalker {
 			TreeEntry* windupPlus;
-			TreeEntry* forceBuffer;
+			TreeEntry* holdZone;
 			TreeEntry* cancelReset;
 			TreeEntry* forceSync;
 		}
@@ -349,7 +349,7 @@ namespace utilities {
 		const auto walkTab = mainMenu->add_tab("open.utilities.corewalker", "CoreWalkerPlus");
 		settings::corewalker::windupPlus = walkTab->add_checkbox("open.utilities.corewalker.windupplus", "Force perfect windup", false);
 		settings::corewalker::windupPlus->set_tooltip("Overrides windup");
-		settings::corewalker::forceBuffer = walkTab->add_checkbox("open.utilities.corewalker.forcebuffer", "Force windup buffer", false);
+		settings::corewalker::holdZone = walkTab->add_slider("open.utilities.corewalker.holdzone", "Hold position radius", 0, 0, 500);
 		settings::corewalker::cancelReset = walkTab->add_checkbox("open.utilities.corewalker.cancelreset", "Reset auto on auto cancel", true);
 		settings::corewalker::forceSync = walkTab->add_checkbox("open.utilities.corewalker.forcesync", "Force cast sync (prevents manual auto cancel)", false);
 		settings::corewalker::forceSync->set_tooltip("Wait for attack confirm");
@@ -629,7 +629,7 @@ namespace utilities {
 		if (!autoReset) return;
 
 		// Auto finish trigger
-		if (attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.0165f : 0.f) < gametime->get_time())
+		if (attackFinishTime - getPing() < gametime->get_time())
 		{
 			autoReset = false;
 			debugPrint("Auto finished %f", attackFinishTime);
@@ -639,14 +639,14 @@ namespace utilities {
 		const auto canWindupPlus = (settings::corewalker::windupPlus->get_bool() && myhero->get_spell(spellslot::q)->get_name_hash() != spell_hash("KalistaMysticShot") && myhero->get_spell(spellslot::q)->get_name_hash() != spell_hash("AkshanQ"));
 
 		// If ready to send order, send
-		if (((!orbwalker->none_mode() && canWindupPlus) || cancelBuffer) && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.0165f : 0.f) < gametime->get_time())
+		if (((!orbwalker->none_mode() && canWindupPlus) || cancelBuffer) && attackFinishTime - getPing() < gametime->get_time())
 		{
 			if (cancelBuffer)
-				myhero->issue_order(MoveTo, true, false);
+				myhero->issue_order(hud->get_hud_input_logic()->get_game_cursor_position(), true, false);
 			else
 			{
-				auto pos = hud->get_hud_input_logic()->get_game_cursor_position();
-				orbwalker->move_to(pos);
+				if (hud->get_hud_input_logic()->get_game_cursor_position().distance(myhero->get_position()) >= settings::corewalker::holdZone->get_int())
+					myhero->issue_order(hud->get_hud_input_logic()->get_game_cursor_position(), true, false);
 			}
 			autoReset = false;
 			cancelBuffer = false;
@@ -1636,7 +1636,7 @@ namespace utilities {
 		if (settings::corewalker::forceSync->get_bool() && !evade->is_evading() && myhero->get_spell(spellslot::q)->get_name_hash() != spell_hash("KalistaMysticShot") && (type == MoveTo || type == AttackTo || type == AttackUnit || type == AutoAttack))
 		{
 			const auto spell = myhero->get_active_spell();
-			if ((myhero->get_attack_cast_delay() > (0.066f + getPing()) && lastIssuedOrder > gametime->get_time() && target && myhero->is_in_auto_attack_range(target) && lastAutoTime + myhero->get_attack_delay() - myhero->get_attack_cast_delay() - getPing() - 0.033f) || (spell && spell->is_auto_attack() && attackFinishTime - getPing() - (settings::corewalker::forceBuffer->get_bool() ? 0.0165f : 0.f) >= gametime->get_time()))
+			if ((myhero->get_attack_cast_delay() > (0.066f + getPing()) && lastIssuedOrder > gametime->get_time() && target && myhero->is_in_auto_attack_range(target) && lastAutoTime + myhero->get_attack_delay() - myhero->get_attack_cast_delay() - getPing() - 0.033f) || (spell && spell->is_auto_attack() && attackFinishTime - getPing() >= gametime->get_time()))
 			{
 				*process = false;
 				if (spell && spell->is_auto_attack() && (type == MoveTo || type == AttackTo))
