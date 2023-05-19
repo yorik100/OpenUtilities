@@ -1101,15 +1101,15 @@ namespace utilities {
 		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero()) return;
 
 		// Register blue wards
-		if (object_hash == spell_hash("Global_Trinket_ItemClairvoyance_Red.troy"))
-		{
-			const auto& pos = obj->get_position();
-			if (!pos.is_building() && !pos.is_wall())
-			{
-				const wardInfo& wardData = { .remainingTime = 0, .owner = obj->get_emitter(), .position = obj->get_position(), .wardType = 1 };
-				wards.push_back(wardData);
-			}
-		}
+		//if (object_hash == spell_hash("Global_Trinket_ItemClairvoyance_Red.troy"))
+		//{
+		//	const auto& pos = obj->get_position();
+		//	if (!pos.is_building() && !pos.is_wall())
+		//	{
+		//		const wardInfo& wardData = { .remainingTime = 0, .owner = obj->get_emitter(), .position = obj->get_position(), .wardType = 1 };
+		//		wards.push_back(wardData);
+		//	}
+		//}
 
 		// Teleport particles
 		switch (emitterHash)
