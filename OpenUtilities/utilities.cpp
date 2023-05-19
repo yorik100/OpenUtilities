@@ -641,12 +641,15 @@ namespace utilities {
 		// If ready to send order, send
 		if (((!orbwalker->none_mode() && canWindupPlus) || cancelBuffer) && attackFinishTime - getPing() < gametime->get_time())
 		{
+			auto pos = hud->get_hud_input_logic()->get_game_cursor_position();
+			if (myhero->get_position().distance(pos) <= myhero->get_pathfindingCollisionRadius() + 50)
+				pos = myhero->get_position().extend(pos, myhero->get_pathfindingCollisionRadius() + 50);
 			if (cancelBuffer)
-				myhero->issue_order(hud->get_hud_input_logic()->get_game_cursor_position(), true, false);
+				myhero->issue_order(pos, true, false);
 			else
 			{
 				if (hud->get_hud_input_logic()->get_game_cursor_position().distance(myhero->get_position()) >= settings::corewalker::holdZone->get_int())
-					myhero->issue_order(hud->get_hud_input_logic()->get_game_cursor_position(), true, false);
+					myhero->issue_order(pos, true, false);
 			}
 			autoReset = false;
 			cancelBuffer = false;
