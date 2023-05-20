@@ -1501,8 +1501,8 @@ namespace utilities {
 		// Anti channel cancel
 		if (spell && myhero->get_spell_state(spellSlot) == spell_state::Ready)
 		{
-			//myhero->print_chat(0, "%s %i", spell->get_name().c_str(), spell->get_icon_texture());
-			//console->print("%s %i", spell->get_name().c_str(), spell->get_icon_texture());
+			//myhero->print_chat(0, "%s %i", spell->get_name().c_str(), *spell->get_icon_texture());
+			//console->print("%s %i", spell->get_name().c_str(), *spell->get_icon_texture());
 			switch (spell->get_name_hash())
 			{
 			case spell_hash("MissFortuneBulletTime"):
@@ -1524,7 +1524,7 @@ namespace utilities {
 			}
 			case spell_hash("KatarinaR"):
 			{
-				if ((unsigned long long int)spell->get_icon_texture() == (unsigned long long int)-922093824)
+				if (*spell->get_icon_texture() == (unsigned long long int)-971980824)
 					lastChannelCast = gametime->get_time() + getPing() + 0.15f;
 				break;
 			}
