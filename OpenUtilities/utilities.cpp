@@ -448,7 +448,7 @@ namespace utilities {
 					if (!isBlue)
 					{
 						const int timeLeft = (int)std::ceil(x.remainingTime - gametime->get_time());
-						if (std::abs(timeLeft - ward->get_mana()) > 10.f)
+						if (std::abs(timeLeft - ward->get_mana()) > 1.5f)
 							return false;
 					}
 
