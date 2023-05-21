@@ -720,7 +720,7 @@ namespace utilities {
 					draw_manager->add_filled_circle(spawnPoint, target->get_bounding_radius() * std::min(1.f, (1 / (castTime / (gametime->get_time() - teleportData.startTime)))), colour3);
 					vector screenPos;
 					renderer->world_to_screen(spawnPoint, screenPos);
-					const auto size = vector(40.f, 40.f);
+					const auto size = vector(50.f, 50.f);
 					const auto sizeMod = size / 2;
 					draw_manager->add_image(target->get_square_icon_portrait(), { screenPos.x - sizeMod.x, screenPos.y - sizeMod.y }, size, 90.f, { 0,0 }, { 1,1 }, { 1.f,1.f,1.f,0.5f });
 					const int alpha = round(255 * 0.5);
@@ -1022,7 +1022,7 @@ namespace utilities {
 			}
 			else if (obj->get_particle_target_attachment_object() && obj->get_particle_target_attachment_object()->is_valid() && obj->get_particle_target_attachment_object()->is_ai_base() && !obj->get_particle_target_attachment_object()->is_moving() && (!obj->get_particle_target_attachment_object()->get_path_controller() || obj->get_particle_target_attachment_object()->get_path_controller()->get_path_count() != 1) && !obj->get_particle_target_attachment_object()->is_visible() && !obj->get_particle_target_attachment_object()->is_hpbar_recently_rendered() && !obj->get_particle_target_attachment_object()->is_dead() && obj->get_particle_target_attachment_object()->get_position().is_valid())
 			{
-				obj->get_particle_target_attachment_object()->set_position(obj->get_particle_target_attachment_object()->get_position());
+				//obj->get_particle_target_attachment_object()->set_position(obj->get_particle_target_attachment_object()->get_position());
 				debugPrint("[%i:%02d] Object updating position on self for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_target_attachment_object()->get_model().c_str(), obj->get_particle_target_attachment_object()->get_name().c_str(), obj->get_name().c_str());
 			}
 		}
