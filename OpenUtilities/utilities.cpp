@@ -992,7 +992,7 @@ namespace utilities {
 		//	myhero->print_chat(0, "Particle from player %s at %f (%s) 2", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_target_attachment_object()->get_name_cstr());
 		
 		//if (obj->is_missile())
-		//	myhero->print_chat(0, "Name : %s Model : %s", obj->get_name_cstr(), obj->get_model_cstr());
+		//myhero->print_chat(0, "Name : %s Model : %s", obj->get_name_cstr(), obj->get_model_cstr());
 
 		// Get object name hash
 		const auto object_hash = spell_hash_real(obj->get_name_cstr());
@@ -1258,7 +1258,8 @@ namespace utilities {
 		case 310035710:
 		{
 			if (settings::fow::updatePos->get_bool() && obj->get_position().is_valid())
-				obj->get_emitter()->set_position(obj->get_position());
+				if (!obj->get_emitter()->is_moving() && (!obj->get_emitter()->get_path_controller() || obj->get_emitter()->get_path_controller()->get_path_count() != 1))
+					obj->get_emitter()->set_position(obj->get_position());
 			return;
 		}
 		}
