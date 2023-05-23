@@ -433,6 +433,7 @@ namespace utilities {
 		for (const auto& ward : realWards)
 		{
 			const auto& wardBuff = ward->get_buff(buff_hash("sharedwardbuff"));
+			if (!wardBuff || !wardBuff->is_valid())
 				continue;
 			wards.erase(std::remove_if(wards.begin(), wards.end(), [ward, wardBuff](const wardInfo& x)
 				{
