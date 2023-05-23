@@ -432,12 +432,12 @@ namespace utilities {
 		// Wards filtering
 		for (const auto& ward : realWards)
 		{
-			if (!ward->get_owner() || (ward->get_max_mana() == 60.f && ward->get_mana() == 60.f) || !ward->has_buff(buff_hash("sharedwardbuff")))
+			const auto& wardBuff = ward->get_buff(buff_hash("sharedwardbuff"));
 				continue;
-			wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
+			wards.erase(std::remove_if(wards.begin(), wards.end(), [ward, wardBuff](const wardInfo& x)
 				{
 					// Check if owner of the ward matches with owner of the cast
-					if (!x.owner || x.owner->get_handle() != ward->get_owner()->get_handle())
+					if (!x.owner || x.owner->get_handle() != wardBuff->get_caster()->get_handle())
 						return false;
 					
 					const auto isBlue = ward->get_model() == "BlueTrinket";
@@ -448,7 +448,7 @@ namespace utilities {
 					if (!isBlue)
 					{
 						const int timeLeft = (int)std::ceil(x.remainingTime - gametime->get_time());
-						if (std::abs(timeLeft - ward->get_mana()) > 1.5f)
+						if (std::abs(timeLeft - wardBuff->get_remaining_time()) > 1.5f)
 							return false;
 					}
 
@@ -466,7 +466,7 @@ namespace utilities {
 		// Removing now unneeded wards
 		realWards.erase(std::remove_if(realWards.begin(), realWards.end(), [](const game_object_script& x)
 			{
-				return x->get_owner() && (x->get_max_mana() != 60.f || x->get_mana() != 60.f);
+				return !x->is_valid() || !x->has_buff(buff_hash("sharedwardbuff"));
 			}
 		),
 			realWards.end());
