@@ -639,21 +639,26 @@ namespace utilities {
 		const auto canWindupPlus = (settings::corewalker::windupPlus->get_bool() && myhero->get_spell(spellslot::q)->get_name_hash() != spell_hash("KalistaMysticShot") && myhero->get_spell(spellslot::q)->get_name_hash() != spell_hash("AkshanQ"));
 
 		// If ready to send order, send
-		if (((!orbwalker->none_mode() && canWindupPlus) || cancelBuffer) && attackFinishTime - getPing() < gametime->get_time())
+		if (((!orbwalker->none_mode() && canWindupPlus) || cancelBuffer))
 		{
-			auto pos = hud->get_hud_input_logic()->get_game_cursor_position();
-			if (myhero->get_position().distance(pos) <= myhero->get_pathfindingCollisionRadius() + 50)
-				pos = myhero->get_position().extend(pos, myhero->get_pathfindingCollisionRadius() + 50);
-			if (cancelBuffer)
-				myhero->issue_order(pos, true, false);
-			else
+			const auto& target = entitylist->get_object(spell->get_last_target_id());
+			const auto isTargetOutOfRange = target && target->is_valid() && !myhero->is_in_auto_attack_range(target, -10.f);
+			if (attackFinishTime - getPing() + (isTargetOutOfRange ? 0.05f : 0.f) < gametime->get_time())
 			{
-				if (hud->get_hud_input_logic()->get_game_cursor_position().distance(myhero->get_position()) >= settings::corewalker::holdZone->get_int())
+				auto pos = hud->get_hud_input_logic()->get_game_cursor_position();
+				if (myhero->get_position().distance(pos) <= myhero->get_pathfindingCollisionRadius() + 50)
+					pos = myhero->get_position().extend(pos, myhero->get_pathfindingCollisionRadius() + 50);
+				if (cancelBuffer)
 					myhero->issue_order(pos, true, false);
+				else
+				{
+					if (hud->get_hud_input_logic()->get_game_cursor_position().distance(myhero->get_position()) >= settings::corewalker::holdZone->get_int())
+						myhero->issue_order(pos, true, false);
+				}
+				autoReset = false;
+				cancelBuffer = false;
+				debugPrint("Forced windup %f", gametime->get_time());
 			}
-			autoReset = false;
-			cancelBuffer = false;
-			debugPrint("Forced windup %f", gametime->get_time());
 		}
 	}
 
