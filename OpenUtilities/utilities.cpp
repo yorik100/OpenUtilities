@@ -432,7 +432,7 @@ namespace utilities {
 		// Wards filtering
 		for (const auto& ward : realWards)
 		{
-			if (!ward->get_owner() || (ward->get_max_mana() == 60.f && ward->get_mana() == 60.f))
+			if (!ward->get_owner() || (ward->get_max_mana() == 60.f && ward->get_mana() == 60.f) || !ward->has_buff(buff_hash("sharedwardbuff")))
 				continue;
 			wards.erase(std::remove_if(wards.begin(), wards.end(), [ward](const wardInfo& x)
 				{
@@ -448,7 +448,7 @@ namespace utilities {
 					if (!isBlue)
 					{
 						const int timeLeft = (int)std::ceil(x.remainingTime - gametime->get_time());
-						if (std::abs(timeLeft - ward->get_mana()) > 5.f)
+						if (std::abs(timeLeft - ward->get_mana()) > 1.5f)
 							return false;
 					}
 
