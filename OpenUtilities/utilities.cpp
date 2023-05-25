@@ -1741,6 +1741,12 @@ namespace utilities {
 						baronIdleTime = gametime->get_time();
 						lastBaron = sender;
 					}
+					else
+					{
+						debugPrint("[%i:%02d] Baron swapped aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+						baronAttackTime = gametime->get_time();
+						lastBaron = sender;
+					}
 					return;
 				}
 				else if (sender->get_name().find("Dragon") != std::string::npos)
