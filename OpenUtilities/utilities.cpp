@@ -1748,7 +1748,6 @@ namespace utilities {
 					if (!isDragonAttacked) return;
 					debugPrint("[%i:%02d] Dragon lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 					dragonAttackTime = gametime->get_time();
-					isDragonAttacked = false;
 					lastDragon = sender;
 					return;
 				}
