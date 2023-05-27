@@ -1416,11 +1416,13 @@ namespace utilities {
 			{
 				camp_manager->update_camp_alive_status((int)neutral_camp_id::Crab_Top, false);
 				debugPrint("[%i:%02d] Top crab ded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+				return;
 			}
 			else if (sender->get_name() == "Sru_Crab15.1.1")
 			{
 				camp_manager->update_camp_alive_status((int)neutral_camp_id::Crab_Bottom, false);
 				debugPrint("[%i:%02d] Bot crab ded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+				return;
 			}
 		}
 		// If it is an epic monster then update the tracker based off the animations
