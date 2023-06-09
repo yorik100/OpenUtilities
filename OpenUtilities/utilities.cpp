@@ -1336,7 +1336,7 @@ namespace utilities {
 	{
 		if (sender && sender->is_me() && spell && spell->is_auto_attack())
 		{
-			if (settings::corewalker::cancelReset->get_bool())
+			if (settings::corewalker::cancelReset->get_bool() && orbwalker->can_move() && !orbwalker->can_attack())
 				orbwalker->reset_auto_attack_timer();
 			debugPrint("Auto cancel %f", gametime->get_time());
 			cancelBuffer = false;
