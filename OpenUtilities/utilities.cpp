@@ -350,7 +350,7 @@ namespace utilities {
 		settings::corewalker::windupPlus = walkTab->add_checkbox("open.utilities.corewalker.windupplus", "Force perfect windup", false);
 		settings::corewalker::windupPlus->set_tooltip("Overrides windup");
 		settings::corewalker::holdZone = walkTab->add_slider("open.utilities.corewalker.holdzone", "Hold position radius", 0, 0, 500);
-		settings::corewalker::cancelReset = walkTab->add_checkbox("open.utilities.corewalker.cancelreset", "Reset auto on auto cancel", true);
+		settings::corewalker::cancelReset = walkTab->add_checkbox("open.utilities.corewalker.cancelreset", "Reset auto on auto cancel", false);
 		settings::corewalker::forceSync = walkTab->add_checkbox("open.utilities.corewalker.forcesync", "Force cast sync (prevents manual auto cancel)", false);
 		settings::corewalker::forceSync->set_tooltip("Wait for attack confirm");
 
@@ -1336,7 +1336,7 @@ namespace utilities {
 	{
 		if (sender && sender->is_me() && spell && spell->is_auto_attack())
 		{
-			if (settings::corewalker::cancelReset->get_bool() && orbwalker->can_move() && !orbwalker->can_attack())
+			if (settings::corewalker::cancelReset->get_bool())
 				orbwalker->reset_auto_attack_timer();
 			debugPrint("Auto cancel %f", gametime->get_time());
 			cancelBuffer = false;
