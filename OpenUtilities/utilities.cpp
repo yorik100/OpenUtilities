@@ -350,7 +350,7 @@ namespace utilities {
 		settings::corewalker::windupPlus = walkTab->add_checkbox("open.utilities.corewalker.windupplus", "Force perfect windup", false);
 		settings::corewalker::windupPlus->set_tooltip("Overrides windup");
 		settings::corewalker::holdZone = walkTab->add_slider("open.utilities.corewalker.holdzone", "Hold position radius", 0, 0, 500);
-		settings::corewalker::cancelReset = walkTab->add_checkbox("open.utilities.corewalker.cancelreset", "Reset auto on auto cancel", true);
+		settings::corewalker::cancelReset = walkTab->add_checkbox("open.utilities.corewalker.cancelreset", "Reset auto on auto cancel", false);
 		settings::corewalker::forceSync = walkTab->add_checkbox("open.utilities.corewalker.forcesync", "Force cast sync (prevents manual auto cancel)", false);
 		settings::corewalker::forceSync->set_tooltip("Wait for attack confirm");
 
@@ -1416,11 +1416,13 @@ namespace utilities {
 			{
 				camp_manager->update_camp_alive_status((int)neutral_camp_id::Crab_Top, false);
 				debugPrint("[%i:%02d] Top crab ded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+				return;
 			}
 			else if (sender->get_name() == "Sru_Crab15.1.1")
 			{
 				camp_manager->update_camp_alive_status((int)neutral_camp_id::Crab_Bottom, false);
 				debugPrint("[%i:%02d] Bot crab ded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+				return;
 			}
 		}
 		// If it is an epic monster then update the tracker based off the animations
