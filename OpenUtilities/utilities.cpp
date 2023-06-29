@@ -1787,32 +1787,38 @@ namespace utilities {
 		srand(time(NULL));
 
 		// Get enemy spawnpoint
-		const auto& spawnPointIt = std::find_if(entitylist->get_all_spawnpoints().begin(), entitylist->get_all_spawnpoints().end(), [](game_object_script x) {
-			return x->is_enemy();
+		const auto& spawnPointIt = std::find_if(entitylist->get_all_spawnpoints().begin(), entitylist->get_all_spawnpoints().end(), [](const game_object_script& x) {
+			return x->is_valid() && x->is_enemy();
 			}
 		);
-		const auto& spawnPointObj = *spawnPointIt;
-		spawnPoint = spawnPointObj->get_position();
-
+		if (*spawnPointIt != nullptr)
+		{
+			const auto& spawnPointObj = *spawnPointIt;
+			if (spawnPointObj->is_valid())
+				spawnPoint = spawnPointObj->get_position();
+		}
 		// Get enemy Nexus pos
-		const auto& nexusPosIt = std::find_if(entitylist->get_all_nexus().begin(), entitylist->get_all_nexus().end(), [](game_object_script x) {
-			return x->is_enemy();
-			}
-		);
-		const auto& nexusEntity = *nexusPosIt;
-		if (nexusEntity->is_valid())
-			nexusPos = nexusEntity->get_position();
+		const auto& nexusPosIt = std::find_if(entitylist->get_all_nexus().begin(), entitylist->get_all_nexus().end(), [](const game_object_script& x) { return x != nullptr && x->is_valid() && x->is_enemy(); });
+		if (*nexusPosIt != nullptr)
+		{
+			const auto& nexusEntity = *nexusPosIt;
+			if (nexusEntity->is_valid())
+				nexusPos = nexusEntity->get_position();
+		}
 
 		// Get enemy Nexus turret pos
-		const auto& nexusTurretPosIt = std::find_if(entitylist->get_enemy_turrets().begin(), entitylist->get_enemy_turrets().end(), [](game_object_script x) {
-			return x->get_name().find("Shrine") != std::string::npos;
+		const auto& nexusTurretPosIt = std::find_if(entitylist->get_enemy_turrets().begin(), entitylist->get_enemy_turrets().end(), [](const game_object_script& x) {
+			return x->is_valid() && x->get_name().find("Shrine") != std::string::npos;
 			}
 		);
-		const auto& nexusTurret = *nexusTurretPosIt;
-		if (nexusTurret)
+		if (*nexusPosIt != nullptr)
 		{
-			turretRange = nexusTurret->get_attackRange();
-			turretPos = nexusTurret->get_position();
+			const auto& nexusTurret = *nexusTurretPosIt;
+			if (nexusTurret->is_valid())
+			{
+				turretRange = nexusTurret->get_attackRange();
+				turretPos = nexusTurret->get_position();
+			}
 		}
 
 		// Get epic monster camp positions
