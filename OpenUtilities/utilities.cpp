@@ -1800,7 +1800,8 @@ namespace utilities {
 			}
 		);
 		const auto& nexusEntity = *nexusPosIt;
-		nexusPos = nexusEntity->get_position();
+		if (nexusEntity->is_valid())
+			nexusPos = nexusEntity->get_position();
 
 		// Get enemy Nexus turret pos
 		const auto& nexusTurretPosIt = std::find_if(entitylist->get_enemy_turrets().begin(), entitylist->get_enemy_turrets().end(), [](game_object_script x) {
@@ -1808,8 +1809,11 @@ namespace utilities {
 			}
 		);
 		const auto& nexusTurret = *nexusTurretPosIt;
-		turretRange = nexusTurret->get_attackRange();
-		turretPos = nexusTurret->get_position();
+		if (nexusTurret)
+		{
+			turretRange = nexusTurret->get_attackRange();
+			turretPos = nexusTurret->get_position();
+		}
 
 		// Get epic monster camp positions
 		auto tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Baron);
