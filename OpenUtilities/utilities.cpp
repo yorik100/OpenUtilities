@@ -998,7 +998,7 @@ namespace utilities {
 		//	myhero->print_chat(0, "Particle from player %s at %f (%s) 2", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_target_attachment_object()->get_name_cstr());
 		
 		//if (obj->is_missile())
-		//myhero->print_chat(0, "Name : %s Model : %s", obj->get_name_cstr(), obj->get_model_cstr());
+		//console->print("Name : %s Model : %s", obj->get_name_cstr(), obj->get_model_cstr());
 
 		// Get object name hash
 		const auto object_hash = spell_hash_real(obj->get_name_cstr());
@@ -1360,24 +1360,22 @@ namespace utilities {
 			{
 			case spell_hash("TrinketTotemLvl1"):
 			{
-				const auto pos = spell->get_end_position();
-				if (!pos.is_building() && !pos.is_wall())
-				{
-					const float time = 90.f + (30.f / 17.f) * (getGlobalLvl() - 1.f);
-					const wardInfo& wardData = { .remainingTime = gametime->get_time() + time, .owner = sender, .position = pos, .wardType = 0 };
-					wards.push_back(wardData);
-				}
+				auto pos = spell->get_end_position();
+				if (pos.is_building() || pos.is_wall())
+					pos = navmesh->get_nearest_passable_cell_center(pos);
+				const float time = 90.f + (30.f / 17.f) * (getGlobalLvl() - 1.f);
+				const wardInfo& wardData = { .remainingTime = gametime->get_time() + time, .owner = sender, .position = pos, .wardType = 0 };
+				wards.push_back(wardData);
 				break;
 			}
 			case spell_hash("ItemGhostWard"):
 			{
-				const auto& pos = spell->get_end_position();
-				if (!pos.is_building() && !pos.is_wall())
-				{
-					const float time = 150;
-					const wardInfo& wardData = { .remainingTime = gametime->get_time() + time, .owner = sender, .position = pos, .wardType = 0 };
-					wards.push_back(wardData);
-				}
+				auto pos = spell->get_end_position();
+				if (pos.is_building() || pos.is_wall())
+					pos = navmesh->get_nearest_passable_cell_center(pos);
+				const float time = 150;
+				const wardInfo& wardData = { .remainingTime = gametime->get_time() + time, .owner = sender, .position = pos, .wardType = 0 };
+				wards.push_back(wardData);
 				break;
 			}
 			}
@@ -1575,52 +1573,20 @@ namespace utilities {
 		}
 
 		if (flashGlitch) {
-			auto isInWall = true;
-			auto shouldBreak = false;
-			float closestDist = FLT_MAX;
-			vector pointToGo;
-			vector pointToFlash;
-			// Loop from 40 to 400
-			for (int i = 40; 400 >= i; i += 40)
-			{
-				// Get 360 points around the end position from end position to i
-				auto points = circlePoints(endPos, i, 360);
-				// Check every if a point that is out of wall is found
-				for (const auto& point : points) {
-					if (!point.is_wall() && !point.is_building())
-					{
-						shouldBreak = true;
-						auto pointDist = myhero->get_position().distance(point);
-						// Get closest valid non-wall position
-						if (pointToGo == vector::zero && endPos.distance(point) < closestDist)
-						{
-							closestDist = endPos.distance(point);
-							isInWall = false;
-							pointToFlash = point;
-						}
-						// Get closest invalid non-wall position
-						if (pointDist < distance && (pointToGo == vector::zero || myhero->get_position().distance(pointToGo) > myhero->get_position().distance(point)))
-						{
-							isInWall = true;
-							pointToGo = point;
-						}
-					}
-				}
-				if (shouldBreak) break;
-			}
+			const auto finalEndPos = navmesh->get_nearest_passable_cell_center(endPos);
 			// If the final flash position is deemed to be too risky or a flash glitch is detected then replace flash order with move order
-			if (isInWall && pointToGo != vector::zero)
+			if (myhero->get_position().distance(finalEndPos) < 400)
 			{
 				*process = false;
-				myhero->issue_order(pointToGo, true, false);
+				myhero->issue_order(finalEndPos, true, false);
 				return;
 			}
 			// If flash posible then flash where it should flash
-			else if (pointToFlash != vector::zero)
+			else if (finalEndPos != vector::zero)
 			{
 				*process = false;
 				// A way of updating the pos given by the cast for other modules as they dont get the updated pos if we modify the pos
-				castNoTrigger(spellSlot, pointToFlash);
+				castNoTrigger(spellSlot, endPos);
 				return;
 			}
 		}
@@ -1720,11 +1686,11 @@ namespace utilities {
 	{
 		const auto sender = entitylist->get_object_by_network_id(params->get_argument(1));
 		const auto target = entitylist->get_object_by_network_id(params->get_argument(3));
-		//if (sender && sender->is_valid() && (sender->is_ai_hero() || sender->is_monster() || sender->is_epic_monster()))
+		//if (sender && sender->is_valid())
 		//{
-		//	myhero->print_chat(0, "Source : %s %i %i %s %i %i %i %i", name, params->get_argument(1), params->get_argument(2), sender->get_model_cstr(), params->get_argument(3), params->get_argument(4), params->get_argument(5), params->get_argument(6));
+		//	myhero->print_chat(0, "Source : %s %i %i %s %i %i %i %i %s", name, params->get_argument(1), params->get_argument(2), sender->get_model_cstr(), params->get_argument(3), params->get_argument(4), params->get_argument(5), params->get_argument(6), sender->get_name_cstr());
 		//	if (target && target->is_valid())
-		//		myhero->print_chat(0, "Target : %s", target->get_model_cstr());
+		//		myhero->print_chat(0, "Target : %s %s", target->get_model_cstr(), target->get_name_cstr());
 		//}
 		if (hash_name == buff_hash("OnCastHeal"))
 		{
