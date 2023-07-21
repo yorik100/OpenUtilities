@@ -1884,7 +1884,13 @@ namespace utilities {
 			{
 				on_create(entity);
 				if (entity->is_general_particle_emitter())
-					on_emitter(entity, effect_create_data_client{});
+				{
+					auto effect_data = effect_create_data_client{};
+					effect_data.emitter_object = entity->get_emitter();
+					effect_data.character_attachment = entity->get_particle_attachment_object();
+					effect_data.second_emitter_object = entity->get_particle_target_attachment_object();
+					on_emitter(entity, effect_data);
+				}
 				if (entity->get_active_spell())
 					on_process_spell_cast(entity, entity->get_active_spell());
 				for (const auto& buff : entity->get_bufflist())
