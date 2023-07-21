@@ -1006,7 +1006,7 @@ namespace utilities {
 		// Get emitter hash if there is any
 		const auto emitterHash = obj->get_emitter_resources_hash();
 
-		// Register traps
+		// Register trapsobj->get_particle_target_attachment_object()
 		if (obj->is_enemy() && object_hash == spell_hash("Noxious Trap"))
 		{
 			unknownTraps.push_back(obj);
@@ -1018,34 +1018,16 @@ namespace utilities {
 			maokaiE.push_back(obj);
 		}
 
-		// Update position if object created from entity's position
-		if (settings::fow::updatePos->get_bool())
-		{
-			if (obj->get_particle_attachment_object() && obj->get_particle_attachment_object()->is_valid() && obj->get_particle_attachment_object()->is_ai_base() && !obj->get_particle_attachment_object()->is_moving() && (!obj->get_particle_attachment_object()->get_path_controller() || obj->get_particle_attachment_object()->get_path_controller()->get_path_count() != 1) && !obj->get_particle_attachment_object()->is_visible() && !obj->get_particle_attachment_object()->is_hpbar_recently_rendered() && !obj->get_particle_attachment_object()->is_dead() && obj->get_particle_attachment_object()->get_position().is_valid() && obj->get_position().is_valid())
-			{
-				obj->get_particle_attachment_object()->set_position(obj->get_position());
-				debugPrint("[%i:%02d] Object updating position for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_attachment_object()->get_model().c_str(), obj->get_particle_attachment_object()->get_name().c_str(), obj->get_name().c_str());
-			}
-			else if (obj->get_particle_target_attachment_object() && obj->get_particle_target_attachment_object()->is_valid() && obj->get_particle_target_attachment_object()->is_ai_base() && !obj->get_particle_target_attachment_object()->is_moving() && (!obj->get_particle_target_attachment_object()->get_path_controller() || obj->get_particle_target_attachment_object()->get_path_controller()->get_path_count() != 1) && !obj->get_particle_target_attachment_object()->is_visible() && !obj->get_particle_target_attachment_object()->is_hpbar_recently_rendered() && !obj->get_particle_target_attachment_object()->is_dead() && obj->get_particle_target_attachment_object()->get_position().is_valid())
-			{
-				//obj->get_particle_target_attachment_object()->set_position(obj->get_particle_target_attachment_object()->get_position());
-				debugPrint("[%i:%02d] Object updating position on self for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_target_attachment_object()->get_model().c_str(), obj->get_particle_target_attachment_object()->get_name().c_str(), obj->get_name().c_str());
-			}
-		}
-
 		// Filter wards
 		if (obj->is_enemy() && (object_hash == spell_hash("VisionWard") || object_hash == spell_hash("SightWard")))
 			realWards.push_back(obj);
 
 		// Get if an epic monster is attacking someone
-		const game_object_script& epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
-		const auto epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
 		const game_object_script& epicOwner = obj->is_missile() ? entitylist->get_object(obj->missile_get_sender_id()) : nullptr;
 		const auto epicMissile = epicOwner && !epicOwner->is_dead() && epicOwner->is_epic_monster() && !epicOwner->get_owner();
-		const auto isOwnedByEpic = epicParticle || epicMissile;
-		if (isOwnedByEpic && object_hash != spell_hash("sru_dragon_chemtech_Base_BA_Overcharge_Spine_01"))
+		if (epicMissile && object_hash != spell_hash("sru_dragon_chemtech_Base_BA_Overcharge_Spine_01"))
 		{
-			const auto& owner = epicParticle ? epicEmitter : epicOwner;
+			const auto& owner = epicOwner;
 			if (owner->get_name().find("Baron") != std::string::npos)
 			{
 				debugPrint("[%i:%02d] Object from Baron : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
@@ -1070,16 +1052,11 @@ namespace utilities {
 		}
 
 		// Get if someone is attacking an epic monster
-		game_object_script epicAttachment = obj->get_particle_attachment_object() && obj->get_particle_attachment_object()->is_epic_monster() ? obj->get_particle_attachment_object() : nullptr;
-		if (!epicAttachment)
-			epicAttachment = obj->get_particle_target_attachment_object() && obj->get_particle_target_attachment_object()->is_epic_monster() ? obj->get_particle_target_attachment_object() : nullptr;
-		const auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
 		const game_object_script& epicOwnerTarget = obj->is_missile() && obj->missile_get_target_id() ? entitylist->get_object(obj->missile_get_target_id()) : nullptr;
 		const auto epicMissileTarget = epicOwnerTarget && !epicOwnerTarget->is_dead() && epicOwnerTarget->is_epic_monster() && !epicOwnerTarget->get_owner();
-		const auto isTargetEpic = epicParticleAttachment || epicMissileTarget;
-		if (isTargetEpic && object_hash != spell_hash("SRU_Plant_Vision_Pollen_Debuff.troy") && object_hash != spell_hash("SRE_Dragon_Chemtech_Mutated_Scryer_Revealed") && object_hash != spell_hash("SRU_Dragon_spawn_sound.troy") && object_hash != spell_hash("SRU_Baron_Idle.troy") && (!emitterHash || emitterHash != buff_hash("Nunu_P_Enemy_Flute_Mark")))
+		if (epicMissileTarget)
 		{
-			const auto& owner = epicParticleAttachment ? epicAttachment : epicOwnerTarget;
+			const auto& owner = epicOwnerTarget;
 			if (owner->get_name().find("Baron") != std::string::npos)
 			{
 				debugPrint("[%i:%02d] Object on Baron : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
@@ -1271,6 +1248,106 @@ namespace utilities {
 		}
 	}
 
+	void on_emitter(game_object_script obj, const effect_create_data_client& create_data)
+	{
+		// Get object name hash
+		const auto object_hash = spell_hash_real(obj->get_name_cstr());
+
+		// Get emitter hash if there is any
+		const auto emitterHash = obj->get_emitter_resources_hash();
+
+		// Update position if object created from entity's position
+		if (settings::fow::updatePos->get_bool())
+		{
+			if (obj->get_particle_attachment_object() && obj->get_particle_attachment_object()->is_valid() && obj->get_particle_attachment_object()->is_ai_base() && !obj->get_particle_attachment_object()->is_moving() && (!obj->get_particle_attachment_object()->get_path_controller() || obj->get_particle_attachment_object()->get_path_controller()->get_path_count() != 1) && !obj->get_particle_attachment_object()->is_visible() && !obj->get_particle_attachment_object()->is_hpbar_recently_rendered() && !obj->get_particle_attachment_object()->is_dead() && obj->get_particle_attachment_object()->get_position().is_valid() && obj->get_position().is_valid())
+			{
+				obj->get_particle_attachment_object()->set_position(obj->get_position());
+				debugPrint("[%i:%02d] Object updating position for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_attachment_object()->get_model().c_str(), obj->get_particle_attachment_object()->get_name().c_str(), obj->get_name().c_str());
+			}
+			else if (obj->get_particle_target_attachment_object() && obj->get_particle_target_attachment_object()->is_valid() && obj->get_particle_target_attachment_object()->is_ai_base() && !obj->get_particle_target_attachment_object()->is_moving() && (!obj->get_particle_target_attachment_object()->get_path_controller() || obj->get_particle_target_attachment_object()->get_path_controller()->get_path_count() != 1) && !obj->get_particle_target_attachment_object()->is_visible() && !obj->get_particle_target_attachment_object()->is_hpbar_recently_rendered() && !obj->get_particle_target_attachment_object()->is_dead() && obj->get_particle_target_attachment_object()->get_position().is_valid())
+			{
+				//obj->get_particle_target_attachment_object()->set_position(obj->get_particle_target_attachment_object()->get_position());
+				debugPrint("[%i:%02d] Object updating position on self for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_target_attachment_object()->get_model().c_str(), obj->get_particle_target_attachment_object()->get_name().c_str(), obj->get_name().c_str());
+			}
+			else if (create_data.character_attachment && create_data.character_attachment->is_valid() && create_data.character_attachment->is_ai_base() && !create_data.character_attachment->is_moving() && (!create_data.character_attachment->get_path_controller() || create_data.character_attachment->get_path_controller()->get_path_count() != 1) && !create_data.character_attachment->is_visible() && !create_data.character_attachment->is_hpbar_recently_rendered() && !create_data.character_attachment->is_dead() && create_data.character_attachment->get_position().is_valid() && obj->get_position().is_valid())
+			{
+				create_data.character_attachment->set_position(obj->get_position());
+				debugPrint("[%i:%02d] Object updating position for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, create_data.character_attachment->get_model().c_str(), create_data.character_attachment->get_name().c_str(), obj->get_name().c_str());
+			}
+			else if ( create_data.second_emitter_object && create_data.second_emitter_object->is_valid() && create_data.second_emitter_object->is_ai_base() && !create_data.second_emitter_object->is_moving() && (!create_data.second_emitter_object->get_path_controller() || create_data.second_emitter_object->get_path_controller()->get_path_count() != 1) && !create_data.second_emitter_object->is_visible() && !create_data.second_emitter_object->is_hpbar_recently_rendered() && !create_data.second_emitter_object->is_dead() && create_data.second_emitter_object->get_position().is_valid())
+			{
+				// create_data.second_emitter_object->set_position(create_data.second_emitter_object->get_position());
+				debugPrint("[%i:%02d] Object updating position on self for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, create_data.second_emitter_object->get_model().c_str(), create_data.second_emitter_object->get_name().c_str(), obj->get_name().c_str());
+			}
+		}
+
+		// Get if an epic monster is attacking someone
+		game_object_script epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
+		if (!epicEmitter)
+			epicEmitter = create_data.emitter_object ? create_data.emitter_object : nullptr;
+		const auto epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
+		if (epicParticle && object_hash != spell_hash("sru_dragon_chemtech_Base_BA_Overcharge_Spine_01") && object_hash != spell_hash("TEMP_Jungle_Monster_AoE_Nova_Indicator"))
+		{
+			const auto& owner = epicEmitter;
+			if (owner->get_name().find("Baron") != std::string::npos)
+			{
+				debugPrint("[%i:%02d] Object from Baron : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
+				baronAttackTime = gametime->get_time();
+				lastBaron = owner;
+				return;
+			}
+			else if (owner->get_name().find("Dragon") != std::string::npos)
+			{
+				debugPrint("[%i:%02d] Object from Dragon : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
+				dragonAttackTime = gametime->get_time();
+				lastDragon = owner;
+				return;
+			}
+			else if (owner->get_name().find("Herald") != std::string::npos)
+			{
+				debugPrint("[%i:%02d] Object from Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
+				heraldAttackTime = gametime->get_time();
+				lastHerald = owner;
+				return;
+			}
+		}
+
+		// Get if someone is attacking an epic monster
+		game_object_script epicAttachment = obj->get_particle_attachment_object() && obj->get_particle_attachment_object()->is_epic_monster() ? obj->get_particle_attachment_object() : nullptr;
+		if (!epicAttachment)
+			epicAttachment = obj->get_particle_target_attachment_object() && obj->get_particle_target_attachment_object()->is_epic_monster() ? obj->get_particle_target_attachment_object() : nullptr;
+		if (!epicAttachment)
+			epicAttachment = create_data.character_attachment;
+		if (!epicAttachment)
+			epicAttachment = create_data.second_emitter_object;
+		const auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
+		if (epicParticleAttachment && object_hash != spell_hash("SRU_Plant_Vision_Pollen_Debuff.troy") && object_hash != spell_hash("SRU_Dragon_idle1_hover_sound.troy") && object_hash != spell_hash("SRE_Dragon_Chemtech_Mutated_Scryer_Revealed") && object_hash != spell_hash("SRU_Dragon_spawn_sound.troy") && object_hash != spell_hash("SRU_Baron_Idle.troy") && (!emitterHash || emitterHash != buff_hash("Nunu_P_Enemy_Flute_Mark")))
+		{
+			const auto& owner = epicAttachment;
+			if (owner->get_name().find("Baron") != std::string::npos)
+			{
+				debugPrint("[%i:%02d] Object on Baron : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
+				baronAttackTime = gametime->get_time();
+				lastBaron = owner;
+				return;
+			}
+			else if (owner->get_name().find("Dragon") != std::string::npos)
+			{
+				debugPrint("[%i:%02d] Object on Dragon : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
+				dragonAttackTime = gametime->get_time();
+				lastDragon = owner;
+				return;
+			}
+			else if (owner->get_name().find("Herald") != std::string::npos)
+			{
+				debugPrint("[%i:%02d] Object on Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
+				heraldAttackTime = gametime->get_time();
+				lastHerald = owner;
+				return;
+			}
+		}
+	}
+
 	void on_do_cast(game_object_script sender, spell_instance_script spell)
 	{
 		// Debug stuff
@@ -1403,7 +1480,7 @@ namespace utilities {
 		const auto& data = (PKT_S2C_PlayAnimationArgs*)args;
 		if (!data) return;
 
-		//myhero->print_chat(0, "Name : %s Basename : %s Basenamehash : %s Buffhash : %s", data->animation_name, myhero->get_spell(spellslot::q)->get_name().c_str(), myhero->get_spell(spellslot::w)->get_name().c_str(), myhero->get_spell(spellslot::e)->get_name().c_str(), myhero->get_spell(spellslot::r)->get_name().c_str());
+		//myhero->print_chat(0, "Name : %s Q : %s W : %s E : %s R : %s", data->animation_name, myhero->get_spell(spellslot::q)->get_name().c_str(), myhero->get_spell(spellslot::w)->get_name().c_str(), myhero->get_spell(spellslot::e)->get_name().c_str(), myhero->get_spell(spellslot::r)->get_name().c_str());
 
 		const auto isEpicSender = !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 		const auto isCrab = sender->is_monster() && strcmp(data->animation_name, "crab_hide") == 0;
@@ -1806,6 +1883,8 @@ namespace utilities {
 			if (entity && entity->is_valid())
 			{
 				on_create(entity);
+				if (entity->is_general_particle_emitter())
+					on_emitter(entity, effect_create_data_client{});
 				if (entity->get_active_spell())
 					on_process_spell_cast(entity, entity->get_active_spell());
 				for (const auto& buff : entity->get_bufflist())
@@ -1820,6 +1899,7 @@ namespace utilities {
 		event_handler<events::on_draw>::add_callback(on_draw_real, event_prority::low);
 		event_handler<events::on_create_object>::add_callback(on_create, event_prority::low);
 		event_handler<events::on_delete_object>::add_callback(on_delete, event_prority::low);
+		event_handler<events::on_create_client_effect>::add_callback(on_emitter, event_prority::low);
 		event_handler<events::on_buff_gain>::add_callback(on_buff_gain, event_prority::low);
 		event_handler<events::on_buff_lose>::add_callback(on_buff_lose, event_prority::low);
 		event_handler<events::on_teleport>::add_callback(on_teleport, event_prority::low);
@@ -1845,6 +1925,7 @@ namespace utilities {
 		event_handler< events::on_draw >::remove_handler(on_draw_real);
 		event_handler< events::on_create_object >::remove_handler(on_create);
 		event_handler< events::on_delete_object >::remove_handler(on_delete);
+		event_handler< events::on_create_client_effect >::remove_handler(on_emitter);
 		event_handler< events::on_buff_gain >::remove_handler(on_buff_gain);
 		event_handler< events::on_buff_lose >::remove_handler(on_buff_lose);
 		event_handler< events::on_teleport >::remove_handler(on_teleport);
