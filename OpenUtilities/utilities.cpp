@@ -1282,9 +1282,7 @@ namespace utilities {
 		}
 
 		// Get if an epic monster is attacking someone
-		game_object_script epicEmitter = obj->get_emitter() ? obj->get_emitter() : nullptr;
-		if (!epicEmitter)
-			epicEmitter = create_data.emitter_object ? create_data.emitter_object : nullptr;
+		const game_object_script& epicEmitter = create_data.emitter_object ? create_data.emitter_object : nullptr;
 		const auto epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
 		if (epicParticle && object_hash != spell_hash("sru_dragon_chemtech_Base_BA_Overcharge_Spine_01") && object_hash != spell_hash("TEMP_Jungle_Monster_AoE_Nova_Indicator"))
 		{
@@ -1313,13 +1311,9 @@ namespace utilities {
 		}
 
 		// Get if someone is attacking an epic monster
-		game_object_script epicAttachment = obj->get_particle_attachment_object() && obj->get_particle_attachment_object()->is_epic_monster() ? obj->get_particle_attachment_object() : nullptr;
+		game_object_script epicAttachment = create_data.character_attachment ? create_data.character_attachment : nullptr;
 		if (!epicAttachment)
-			epicAttachment = obj->get_particle_target_attachment_object() && obj->get_particle_target_attachment_object()->is_epic_monster() ? obj->get_particle_target_attachment_object() : nullptr;
-		if (!epicAttachment)
-			epicAttachment = create_data.character_attachment;
-		if (!epicAttachment)
-			epicAttachment = create_data.second_emitter_object;
+			epicAttachment = create_data.second_emitter_object ? create_data.second_emitter_object : nullptr;
 		const auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
 		if (epicParticleAttachment && object_hash != spell_hash("SRU_Plant_Vision_Pollen_Debuff.troy") && object_hash != spell_hash("SRU_Dragon_idle1_hover_sound.troy") && object_hash != spell_hash("SRE_Dragon_Chemtech_Mutated_Scryer_Revealed") && object_hash != spell_hash("SRU_Dragon_spawn_sound.troy") && object_hash != spell_hash("SRU_Baron_Idle.troy") && (!emitterHash || emitterHash != buff_hash("Nunu_P_Enemy_Flute_Mark")))
 		{
