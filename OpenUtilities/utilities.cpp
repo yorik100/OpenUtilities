@@ -1259,17 +1259,7 @@ namespace utilities {
 		// Update position if object created from entity's position
 		if (settings::fow::updatePos->get_bool())
 		{
-			if (obj->get_particle_attachment_object() && obj->get_particle_attachment_object()->is_valid() && obj->get_particle_attachment_object()->is_ai_base() && !obj->get_particle_attachment_object()->is_moving() && (!obj->get_particle_attachment_object()->get_path_controller() || obj->get_particle_attachment_object()->get_path_controller()->get_path_count() != 1) && !obj->get_particle_attachment_object()->is_visible() && !obj->get_particle_attachment_object()->is_hpbar_recently_rendered() && !obj->get_particle_attachment_object()->is_dead() && obj->get_particle_attachment_object()->get_position().is_valid() && obj->get_position().is_valid())
-			{
-				obj->get_particle_attachment_object()->set_position(obj->get_position());
-				debugPrint("[%i:%02d] Object updating position for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_attachment_object()->get_model().c_str(), obj->get_particle_attachment_object()->get_name().c_str(), obj->get_name().c_str());
-			}
-			else if (obj->get_particle_target_attachment_object() && obj->get_particle_target_attachment_object()->is_valid() && obj->get_particle_target_attachment_object()->is_ai_base() && !obj->get_particle_target_attachment_object()->is_moving() && (!obj->get_particle_target_attachment_object()->get_path_controller() || obj->get_particle_target_attachment_object()->get_path_controller()->get_path_count() != 1) && !obj->get_particle_target_attachment_object()->is_visible() && !obj->get_particle_target_attachment_object()->is_hpbar_recently_rendered() && !obj->get_particle_target_attachment_object()->is_dead() && obj->get_particle_target_attachment_object()->get_position().is_valid())
-			{
-				//obj->get_particle_target_attachment_object()->set_position(obj->get_particle_target_attachment_object()->get_position());
-				debugPrint("[%i:%02d] Object updating position on self for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_particle_target_attachment_object()->get_model().c_str(), obj->get_particle_target_attachment_object()->get_name().c_str(), obj->get_name().c_str());
-			}
-			else if (create_data.character_attachment && create_data.character_attachment->is_valid() && create_data.character_attachment->is_ai_base() && !create_data.character_attachment->is_moving() && (!create_data.character_attachment->get_path_controller() || create_data.character_attachment->get_path_controller()->get_path_count() != 1) && !create_data.character_attachment->is_visible() && !create_data.character_attachment->is_hpbar_recently_rendered() && !create_data.character_attachment->is_dead() && create_data.character_attachment->get_position().is_valid() && obj->get_position().is_valid())
+			if (create_data.character_attachment && create_data.character_attachment->is_valid() && create_data.character_attachment->is_ai_base() && !create_data.character_attachment->is_moving() && (!create_data.character_attachment->get_path_controller() || create_data.character_attachment->get_path_controller()->get_path_count() != 1) && !create_data.character_attachment->is_visible() && !create_data.character_attachment->is_hpbar_recently_rendered() && !create_data.character_attachment->is_dead() && create_data.character_attachment->get_position().is_valid() && obj->get_position().is_valid())
 			{
 				create_data.character_attachment->set_position(obj->get_position());
 				debugPrint("[%i:%02d] Object updating position for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, create_data.character_attachment->get_model().c_str(), create_data.character_attachment->get_name().c_str(), obj->get_name().c_str());
@@ -1315,7 +1305,7 @@ namespace utilities {
 		if (!epicAttachment)
 			epicAttachment = create_data.second_emitter_object ? create_data.second_emitter_object : nullptr;
 		const auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
-		if (epicParticleAttachment && object_hash != spell_hash("SRU_Plant_Vision_Pollen_Debuff.troy") && object_hash != spell_hash("SRU_Dragon_idle1_hover_sound.troy") && object_hash != spell_hash("SRE_Dragon_Chemtech_Mutated_Scryer_Revealed") && object_hash != spell_hash("SRU_Dragon_spawn_sound.troy") && object_hash != spell_hash("SRU_Baron_Idle.troy") && (!emitterHash || emitterHash != buff_hash("Nunu_P_Enemy_Flute_Mark")))
+		if (epicParticleAttachment && object_hash != spell_hash("SRU_Plant_Vision_Pollen_Debuff.troy") && object_hash != spell_hash("SRU_Dragon_idle1_alert3_sound.troy") && object_hash != spell_hash("SRU_Dragon_idle1_hover_sound.troy") && object_hash != spell_hash("SRE_Dragon_Chemtech_Mutated_Scryer_Revealed") && object_hash != spell_hash("SRU_Dragon_spawn_sound.troy") && object_hash != spell_hash("SRU_Baron_Idle.troy") && (!emitterHash || emitterHash != buff_hash("Nunu_P_Enemy_Flute_Mark")))
 		{
 			const auto& owner = epicAttachment;
 			if (owner->get_name().find("Baron") != std::string::npos)
@@ -1340,6 +1330,20 @@ namespace utilities {
 				return;
 			}
 		}
+	}
+
+	void on_sound(const on_play_sound_args& args)
+	{
+		//if (args.source && args.source->is_ai_hero())
+		//{
+		//	myhero->print_chat(0, "Sound Source : %s %s", args.source->get_name_cstr(), args.sound_name);
+		//	console->print("Sound Source : %s %s", args.source->get_name_cstr(), args.sound_name);
+		//}
+		//if (args.target && args.target->is_ai_hero())
+		//{
+		//	myhero->print_chat(0, "Sound Target : %s %s", args.target->get_name_cstr(), args.sound_name);
+		//	console->print("Sound Target : %s %s", args.target->get_name_cstr(), args.sound_name);
+		//}
 	}
 
 	void on_do_cast(game_object_script sender, spell_instance_script spell)
@@ -1900,6 +1904,7 @@ namespace utilities {
 		event_handler<events::on_create_object>::add_callback(on_create, event_prority::low);
 		event_handler<events::on_delete_object>::add_callback(on_delete, event_prority::low);
 		event_handler<events::on_create_client_effect>::add_callback(on_emitter, event_prority::low);
+		event_handler<events::on_play_sound>::add_callback(on_sound, event_prority::low);
 		event_handler<events::on_buff_gain>::add_callback(on_buff_gain, event_prority::low);
 		event_handler<events::on_buff_lose>::add_callback(on_buff_lose, event_prority::low);
 		event_handler<events::on_teleport>::add_callback(on_teleport, event_prority::low);
@@ -1926,6 +1931,7 @@ namespace utilities {
 		event_handler< events::on_create_object >::remove_handler(on_create);
 		event_handler< events::on_delete_object >::remove_handler(on_delete);
 		event_handler< events::on_create_client_effect >::remove_handler(on_emitter);
+		event_handler< events::on_play_sound >::remove_handler(on_sound);
 		event_handler< events::on_buff_gain >::remove_handler(on_buff_gain);
 		event_handler< events::on_buff_lose >::remove_handler(on_buff_lose);
 		event_handler< events::on_teleport >::remove_handler(on_teleport);
