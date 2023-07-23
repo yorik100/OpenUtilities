@@ -1828,19 +1828,19 @@ namespace utilities {
 		srand(time(NULL));
 
 		// Get enemy spawnpoint
-		const auto& spawnPointIt = std::find_if(entitylist->get_all_spawnpoints().begin(), entitylist->get_all_spawnpoints().end(), [](const game_object_script& x) {
+		const auto spawnPointIt = std::find_if(entitylist->get_all_spawnpoints().begin(), entitylist->get_all_spawnpoints().end(), [](const game_object_script& x) {
 			return x->is_valid() && x->is_enemy();
 			}
 		);
-		if (*spawnPointIt != nullptr)
+		if (spawnPointIt != entitylist->get_all_spawnpoints().end())
 		{
 			const auto& spawnPointObj = *spawnPointIt;
 			if (spawnPointObj->is_valid())
 				spawnPoint = spawnPointObj->get_position();
 		}
 		// Get enemy Nexus pos
-		const auto& nexusPosIt = std::find_if(entitylist->get_all_nexus().begin(), entitylist->get_all_nexus().end(), [](const game_object_script& x) { return x != nullptr && x->is_valid() && x->is_enemy(); });
-		if (*nexusPosIt != nullptr)
+		const auto nexusPosIt = std::find_if(entitylist->get_all_nexus().begin(), entitylist->get_all_nexus().end(), [](const game_object_script& x) { return x != nullptr && x->is_valid() && x->is_enemy(); });
+		if (nexusPosIt != entitylist->get_all_nexus().end())
 		{
 			const auto& nexusEntity = *nexusPosIt;
 			if (nexusEntity->is_valid())
@@ -1848,11 +1848,11 @@ namespace utilities {
 		}
 
 		// Get enemy Nexus turret pos
-		const auto& nexusTurretPosIt = std::find_if(entitylist->get_enemy_turrets().begin(), entitylist->get_enemy_turrets().end(), [](const game_object_script& x) {
+		const auto nexusTurretPosIt = std::find_if(entitylist->get_enemy_turrets().begin(), entitylist->get_enemy_turrets().end(), [](const game_object_script& x) {
 			return x->is_valid() && x->get_name().find("Shrine") != std::string::npos;
 			}
 		);
-		if (*nexusPosIt != nullptr)
+		if (nexusTurretPosIt != entitylist->get_enemy_turrets().end())
 		{
 			const auto& nexusTurret = *nexusTurretPosIt;
 			if (nexusTurret->is_valid())
