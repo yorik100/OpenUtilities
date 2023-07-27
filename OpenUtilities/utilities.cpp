@@ -79,6 +79,58 @@ namespace utilities {
 	//	vector position;
 	//};
 
+	static constexpr uint32_t badParticles[]
+	{
+		spell_hash("SRU_Dragon_idle1_aggro4_sound.troy"),
+		spell_hash("SRU_Dragon_idle1_aggro6_sound.troy"),
+		spell_hash("SRU_Dragon_idle1_ag2al_sound.troy"),
+		spell_hash("SRU_Dragon_idle1_al2ag_sound.troy"),
+		spell_hash("sru_dragon_hextech_Base_Emote_WingsFX_02"),
+		spell_hash("SRU_Dragon_idle1_alert2_sound.troy"),
+		spell_hash("SRU_Dragon_Spawn_ReadyFlash.troy"),
+		spell_hash("SRU_Dragon_Drool_Spawn.troy"),
+		spell_hash("SRU_Plant_Vision_Pollen_Debuff.troy"),
+		spell_hash("SRU_Baron_idle2_sound.troy"),
+		spell_hash("SRU_Baron_idle1_sound.troy"),
+		spell_hash("SRU_Dragon_idle1_alert3_sound.troy"),
+		spell_hash("SRU_Dragon_idle1_hover_sound.troy"),
+		spell_hash("SRE_Dragon_Chemtech_Mutated_Scryer_Revealed"),
+		spell_hash("SRU_Dragon_spawn_sound.troy"),
+		spell_hash("SRU_Baron_Idle.troy"),
+		spell_hash("SRU_Dragon_idle1_aggro3_sound.troy"),
+		spell_hash("SRU_Dragon_idle1_aggro1_sound.troy"),
+		spell_hash("SRU_Dragon_idle1_aggro2_sound.troy"),
+		spell_hash("SRU_Dragon_idle1_aggro5_sound.troy"),
+		spell_hash("SRU_Dragon_idle1_aggro7_sound.troy"),
+		spell_hash("SRU_Dragon_idle1_aggro8_sound.troy"),
+		spell_hash("sru_dragon_hextech_Base_Emote_GemShine"),
+		spell_hash("sru_dragon_hextech_Base_Emote_IdleAgro_BodyBurst"),
+		spell_hash("sru_dragon_hextech_Base_Emote_IdleAgro_HeadShaking"),
+		spell_hash("sru_dragon_hextech_Base_Emote_WingsFX"),
+		spell_hash("sru_dragon_hextech_Base_Emote_BodyShine"),
+		spell_hash("SRU_Dragon_Spawn_FootDust.troy"),
+		spell_hash("sru_dragon_chemtech_Base_Emote_Agro_BodyMap_01"),
+		spell_hash("sru_dragon_chemtech_Base_Emote_Agro_BodyMap_02"),
+		spell_hash("sru_dragon_chemtech_Base_Emote_Agro_BodyBurst_03"),
+		spell_hash("sru_dragon_chemtech_Base_Emote_Agro_BodyMap_03_Charge"),
+		spell_hash("sru_dragon_chemtech_Base_Emote_Agro_BodyBurst_02"),
+		spell_hash("sru_dragon_chemtech_Base_Emote_Agro_BodyMap_02_Charge"),
+		spell_hash("sru_dragon_chemtech_Base_Emote_Agro_BodyBurst_01"),
+		spell_hash("sru_dragon_chemtech_Base_Emote_Agro_BodyMap_01_Charge"),
+		spell_hash("sru_dragon_chemtech_Base_Emote_Agro_SpineFX_01"),
+		spell_hash("sru_dragon_chemtech_Base_Emote_Agro_SpineFX_02"),
+		spell_hash("sru_dragon_chemtech_Base_Emote_Agro_GroundBurst_01"),
+		spell_hash("SRU_Dragon_idle1_n2al_sound.troy"),
+		spell_hash("SRU_Baron_idle1_aggro_sound.troy"),
+		spell_hash("SRU_Baron_idle1_aggro2_sound.troy"),
+		spell_hash("SRU_Baron_idle1_aggro3_sound.troy"),
+		spell_hash("SRU_Baron_idle1_aggro4_sound.troy"),
+		spell_hash("SRU_Baron_idle1_aggro5_sound.troy"),
+		spell_hash("SRU_Baron_idle1_aggro6_sound.troy"),
+		spell_hash("SRU_Baron_idle1_aggro7_sound.troy"),
+		spell_hash("SRU_Baron_idle1_aggro8_sound.troy")
+	};
+
 	pingableParticles pingableWards;
 	std::vector<particleStruct> particlePredList;
 	std::vector<trapInfo> traps;
@@ -1305,7 +1357,7 @@ namespace utilities {
 		if (!epicAttachment)
 			epicAttachment = create_data.second_emitter_object ? create_data.second_emitter_object : nullptr;
 		const auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
-		if (epicParticleAttachment && object_hash != spell_hash("SRU_Plant_Vision_Pollen_Debuff.troy") && object_hash != spell_hash("SRU_Dragon_idle1_alert3_sound.troy") && object_hash != spell_hash("SRU_Dragon_idle1_hover_sound.troy") && object_hash != spell_hash("SRE_Dragon_Chemtech_Mutated_Scryer_Revealed") && object_hash != spell_hash("SRU_Dragon_spawn_sound.troy") && object_hash != spell_hash("SRU_Baron_Idle.troy") && (!emitterHash || emitterHash != buff_hash("Nunu_P_Enemy_Flute_Mark")))
+		if (epicParticleAttachment && std::find(std::begin(badParticles), std::end(badParticles), object_hash) == std::end(badParticles) && (!emitterHash || emitterHash != buff_hash("Nunu_P_Enemy_Flute_Mark")))
 		{
 			const auto& owner = epicAttachment;
 			if (owner->get_name().find("Baron") != std::string::npos)
