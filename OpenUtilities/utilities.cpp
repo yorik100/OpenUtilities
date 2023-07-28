@@ -128,7 +128,8 @@ namespace utilities {
 		spell_hash("SRU_Baron_idle1_aggro5_sound.troy"),
 		spell_hash("SRU_Baron_idle1_aggro6_sound.troy"),
 		spell_hash("SRU_Baron_idle1_aggro7_sound.troy"),
-		spell_hash("SRU_Baron_idle1_aggro8_sound.troy")
+		spell_hash("SRU_Baron_idle1_aggro8_sound.troy"),
+		spell_hash("SRU_Baron_BaronAcidBall_Cast_sound.troy")
 	};
 
 	pingableParticles pingableWards;
@@ -142,7 +143,7 @@ namespace utilities {
 	std::vector<glowStruct> glowObjects;
 	std::unordered_map<uint32_t, teleportStruct> teleportList;
 	//std::unordered_map<uint32_t, fowTracker> fowList;
-	std::unordered_map<uint32_t, float> guardianReviveTime;
+	//std::unordered_map<uint32_t, float> guardianReviveTime;
 
 	//static constexpr uint32_t godBuffList[]
 	//{
@@ -206,6 +207,7 @@ namespace utilities {
 		namespace fow {
 			TreeEntry* scuttleRemove;
 			TreeEntry* updatePos;
+			TreeEntry* fiddleUltNotify;
 		}
 		namespace corewalker {
 			TreeEntry* windupPlus;
@@ -254,6 +256,8 @@ namespace utilities {
 	game_object_script lastBaron;
 	game_object_script lastDragon;
 	game_object_script lastHerald;
+
+	buff_instance_script fiddleBuff;
 
 	void debugPrint(const std::string& str, ...)
 	{
@@ -396,6 +400,7 @@ namespace utilities {
 		const auto fowTab = mainMenu->add_tab("open.utilities.fow", "FoW");
 		settings::fow::scuttleRemove = fowTab->add_checkbox("open.utilities.fow.scuttleremove", "Remove scuttle on minimap on death", true);
 		settings::fow::updatePos = fowTab->add_checkbox("open.utilities.fow.updatepos", "Update enemy positions if info about position is given", true);
+		settings::fow::fiddleUltNotify = fowTab->add_checkbox("open.utilities.fow.fiddleultnotify", "Fiddle ult notification", true);
 
 		//Corewalker settings
 		const auto walkTab = mainMenu->add_tab("open.utilities.corewalker", "CoreWalkerPlus");
@@ -830,8 +835,10 @@ namespace utilities {
 					const auto size = vector(60.f, 60.f);
 					const auto sizeMod = size / 2;
 					draw_manager->add_image(lastDragon->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto positionText = vector(520 + sizeMod.x + 25 + settings::epic::xOffset->get_int() - settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
-					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, "Dragon is under attack!");
+					const auto text = "Dragon is under attack!";
+					const auto textSize = draw_manager->calc_text_size(25, text);
+					const auto positionText = vector(520 + sizeMod.x + 25 + settings::epic::xOffset->get_int() - settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int() + sizeMod.y - textSize.y);
+					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, text);
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
 				{
@@ -853,7 +860,7 @@ namespace utilities {
 					draw_manager->add_image(lastBaron->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
 					const auto text = "Baron is under attack!";
 					const auto textSize = draw_manager->calc_text_size(25, text);
-					const auto positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
+					const auto positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int() + sizeMod.y - textSize.y);
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, text);
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
@@ -872,7 +879,7 @@ namespace utilities {
 					const auto text = "Herald is under attack!";
 					const auto textSize = draw_manager->calc_text_size(25, text);
 					draw_manager->add_image(lastHerald->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
-					const auto positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int());
+					const auto positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int() + sizeMod.y - textSize.y);
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, text);
 				}
 				if (settings::epic::epicTrackerMap->get_bool())
@@ -1025,6 +1032,27 @@ namespace utilities {
 				//const auto percentage = timeElapsed / obj.castTime;
 				//const auto radius = 12 - (12 * percentage);
 				draw_manager->add_circle_on_screen(minimapPos, 13, MAKE_COLOR(138, 43, 226, 255));
+			}
+		}
+
+		// Fiddle ult manager
+		if (settings::fow::fiddleUltNotify->get_bool())
+		{
+			if (fiddleBuff && fiddleBuff->is_valid())
+			{
+				const auto startTime = fiddleBuff->get_start();
+				const auto duration = 1.3f;
+				const auto endTime = startTime + duration;
+				const auto remainingTime = endTime - gametime->get_time();
+				if (remainingTime > 0)
+				{
+					char rgBuffer[100];
+					std::snprintf(rgBuffer, sizeof(rgBuffer), "Fiddle ult in : %.1f seconds", std::ceil(remainingTime*10)/10);
+					const char* text = rgBuffer;
+					const auto textSize = draw_manager->calc_text_size(35, text);
+					const auto positionText = vector(1100 - textSize.x, 140 - textSize.y);
+					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 165, 0, 255), 35, text);
+				}
 			}
 		}
 
@@ -1591,10 +1619,21 @@ namespace utilities {
 		//	myhero->print_chat(0, "Buff %s : %s", gain ? "gained" : "lost", buff->get_name_cstr());
 		//	console->print("Buff %s : %s", gain ? "gained" : "lost", buff->get_name_cstr());
 		//}
-		if (!gain && sender->is_valid() && !sender->is_targetable() && buff->get_hash_name() == buff_hash("willrevive") && sender->has_item(ItemId::Guardian_Angel) != spellslot::invalid)
+		//if (!gain && sender->is_valid() && !sender->is_targetable() && buff->get_hash_name() == buff_hash("willrevive") && sender->has_item(ItemId::Guardian_Angel) != spellslot::invalid)
+		//{
+		//	guardianReviveTime[sender->get_handle()] = gametime->get_time() + 4;
+		//	return;
+		//}
+		if (buff->is_valid() && sender->is_me() && buff->get_caster() && buff->get_caster()->is_valid() && buff->get_caster()->is_enemy() && buff->get_hash_name() == buff_hash("fiddlerevealedvfx"))
 		{
-			guardianReviveTime[sender->get_handle()] = gametime->get_time() + 4;
-			return;
+			if (gain && buff->is_alive())
+			{
+				fiddleBuff = buff;
+			}
+			else
+			{
+				fiddleBuff = nullptr;
+			}
 		}
 	}
 
