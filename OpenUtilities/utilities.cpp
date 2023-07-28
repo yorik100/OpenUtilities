@@ -578,7 +578,7 @@ namespace utilities {
 			}
 			else if (obj.isZed)
 			{
-				obj.castingPos = obj.target->get_position() + (obj.owner->get_direction() * 125);
+				obj.castingPos = obj.target->get_position() + (obj.owner->get_direction() * 75);
 				if (obj.castingPos.is_wall() || obj.castingPos.is_building())
 					obj.castingPos = navmesh->get_nearest_passable_cell_center(obj.castingPos);
 			}
