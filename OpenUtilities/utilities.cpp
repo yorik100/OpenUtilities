@@ -129,7 +129,14 @@ namespace utilities {
 		spell_hash("SRU_Baron_idle1_aggro6_sound.troy"),
 		spell_hash("SRU_Baron_idle1_aggro7_sound.troy"),
 		spell_hash("SRU_Baron_idle1_aggro8_sound.troy"),
-		spell_hash("SRU_Baron_BaronAcidBall_Cast_sound.troy")
+		spell_hash("SRU_Baron_BaronAcidBall_Cast_sound.troy"),
+		spell_hash("SRU_Bluebuff_Spawn_Debris.troy"),
+		spell_hash("SRU_BlueBuff_Spawn_ReadyFlash.troy"),
+		spell_hash("SRU_Baron_Spawn_ReadyFlash.troy"),
+		spell_hash("SRU_Baron_Spawn.troy"),
+		spell_hash("SRU_Baron_spawn_out_sound.troy"),
+		spell_hash("SRU_Baron_spawnvox_out_sound.troy"),
+		spell_hash("SRU_Baron_idle_a2n_sound.troy")
 	};
 
 	pingableParticles pingableWards;
