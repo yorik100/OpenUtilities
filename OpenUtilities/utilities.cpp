@@ -1051,6 +1051,7 @@ namespace utilities {
 		// Fiddle ult manager
 		if (settings::fow::fiddleUltNotify->get_bool())
 		{
+			fiddleBuff = myhero->get_buff(buff_hash("fiddlerevealedvfx"));
 			if (fiddleBuff && fiddleBuff->is_valid())
 			{
 				const auto startTime = fiddleBuff->get_start();
@@ -1063,7 +1064,7 @@ namespace utilities {
 					std::snprintf(rgBuffer, sizeof(rgBuffer), "Fiddle ult in : %.1f seconds", std::ceil(remainingTime*10)/10);
 					const char* text = rgBuffer;
 					const auto textSize = draw_manager->calc_text_size(35, text);
-					const auto positionText = vector(1100 - textSize.x, 140 - textSize.y);
+					const auto positionText = vector(1100 - textSize.x, 140 - textSize.y) * renderer->get_dpi_factor();
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 165, 0, 255), 35, text);
 				}
 			}
@@ -1637,17 +1638,17 @@ namespace utilities {
 		//	guardianReviveTime[sender->get_handle()] = gametime->get_time() + 4;
 		//	return;
 		//}
-		if (buff->is_valid() && sender->is_me() && buff->get_caster() && buff->get_caster()->is_valid() && buff->get_caster()->is_enemy() && buff->get_hash_name() == buff_hash("fiddlerevealedvfx"))
-		{
-			if (gain && buff->is_alive())
-			{
-				fiddleBuff = buff;
-			}
-			else
-			{
-				fiddleBuff = nullptr;
-			}
-		}
+		//if (buff->is_valid() && sender->is_me() && buff->get_caster() && buff->get_caster()->is_valid() && buff->get_caster()->is_enemy() && buff->get_hash_name() == buff_hash("fiddlerevealedvfx"))
+		//{
+		//	if (gain && buff->is_alive())
+		//	{
+		//		fiddleBuff = buff;
+		//	}
+		//	else
+		//	{
+		//		fiddleBuff = nullptr;
+		//	}
+		//}
 	}
 
 	void on_buff_gain(game_object_script sender, buff_instance_script buff)
