@@ -578,7 +578,7 @@ namespace utilities {
 				}
 				else
 				{
-					obj.castingPos = obj.obj->get_position();
+					obj.castingPos = obj.obj->get_position().extend(nexusPos, 100);
 				}
 				if (obj.castingPos.is_wall() || obj.castingPos.is_building())
 					obj.castingPos = navmesh->get_nearest_passable_cell_center(obj.castingPos);
@@ -1049,6 +1049,7 @@ namespace utilities {
 		// Fiddle ult manager
 		if (settings::fow::fiddleUltNotify->get_bool())
 		{
+			fiddleBuff = myhero->get_buff(buff_hash("fiddlerevealedvfx"));
 			if (fiddleBuff && fiddleBuff->is_valid())
 			{
 				const auto startTime = fiddleBuff->get_start();
@@ -1635,17 +1636,17 @@ namespace utilities {
 		//	guardianReviveTime[sender->get_handle()] = gametime->get_time() + 4;
 		//	return;
 		//}
-		if (buff->is_valid() && sender->is_me() && buff->get_caster() && buff->get_caster()->is_valid() && buff->get_caster()->is_enemy() && buff->get_hash_name() == buff_hash("fiddlerevealedvfx"))
-		{
-			if (gain && buff->is_alive())
-			{
-				fiddleBuff = buff;
-			}
-			else
-			{
-				fiddleBuff = nullptr;
-			}
-		}
+		//if (buff->is_valid() && sender->is_me() && buff->get_caster() && buff->get_caster()->is_valid() && buff->get_caster()->is_enemy() && buff->get_hash_name() == buff_hash("fiddlerevealedvfx"))
+		//{
+		//	if (gain && buff->is_alive())
+		//	{
+		//		fiddleBuff = buff;
+		//	}
+		//	else
+		//	{
+		//		fiddleBuff = nullptr;
+		//	}
+		//}
 	}
 
 	void on_buff_gain(game_object_script sender, buff_instance_script buff)
