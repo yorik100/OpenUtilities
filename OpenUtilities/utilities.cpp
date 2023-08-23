@@ -923,8 +923,6 @@ namespace utilities {
 				if (!trap.obj || !trap.obj->is_valid()) continue;
 				vector4 dummy;
 				vector4 barpos;
-				trap.obj->get_health_bar_position(dummy, barpos);
-				const auto hppos = vector(barpos.x, barpos.y);
 				if (!trap.obj->is_visible())
 				{
 					const auto colour = trap.trapType == 0 ? MAKE_COLOR(255, 127, 0, 255) : MAKE_COLOR(0, 127, 0, 255);
@@ -935,12 +933,12 @@ namespace utilities {
 						draw_manager->add_circle(trap.obj->get_position(), size, colour, 2);
 					const int timeLeft = (int)std::ceil(trap.remainingTime - gametime->get_time());
 					const auto textSize = draw_manager->calc_text_size(22, "%i", timeLeft);
-					const auto remainingTimePos = vector(hppos.x - textSize.x / 2 + 30, hppos.y - textSize.y / 2 + 55);
+					const auto remainingTimePos = vector(trap.obj->get_hpbar_pos().x - textSize.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize.y / 2 + 55, trap.obj->get_hpbar_pos().z);
 					if (timeLeft > 0 && settings::hidden::drawRemaining->get_bool())
 						draw_manager->add_text_on_screen(remainingTimePos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
 				}
 				const auto textSize2 = draw_manager->calc_text_size(22, "%s", trap.owner->get_model_cstr());
-				const auto ownerPos = vector(hppos.x - textSize2.x / 2 + 30, hppos.y - textSize2.y / 2 + 80);
+				const auto ownerPos = vector(trap.obj->get_hpbar_pos().x - textSize2.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize2.y / 2 + 80, trap.obj->get_hpbar_pos().z);
 				if (settings::hidden::drawOwner->get_bool())
 					draw_manager->add_text_on_screen(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_model_cstr());
 			}
