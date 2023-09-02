@@ -531,7 +531,7 @@ namespace utilities {
 		// Removing now unneeded wards
 		realWards.erase(std::remove_if(realWards.begin(), realWards.end(), [](const game_object_script& x)
 			{
-				return !x->is_valid() || !x->has_buff(buff_hash("sharedwardbuff"));
+				return !x->is_valid() || x->has_buff(buff_hash("sharedwardbuff"));
 			}
 		),
 			realWards.end());
