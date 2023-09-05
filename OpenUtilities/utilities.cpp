@@ -932,15 +932,27 @@ namespace utilities {
 					if (settings::hidden::drawCircle->get_bool())
 						draw_manager->add_circle(trap.obj->get_position(), size, colour, 2);
 					const int timeLeft = (int)std::ceil(trap.remainingTime - gametime->get_time());
-					const auto textSize = draw_manager->calc_text_size(22, "%i", timeLeft);
-					const auto remainingTimePos = vector(trap.obj->get_hpbar_pos().x - textSize.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize.y / 2 + 55, trap.obj->get_hpbar_pos().z);
 					if (timeLeft > 0 && settings::hidden::drawRemaining->get_bool())
+					{
+						const auto textSize = draw_manager->calc_text_size(22, "%i", timeLeft);
+						const auto timeLeftPos = trap.obj->get_position();
+						vector screenPos;
+						renderer->world_to_screen(timeLeftPos, screenPos);
+						const auto finalPos = vector(screenPos.x - textSize.x / 2, screenPos.y - textSize.y / 2 + 10, screenPos.z);
+						draw_manager->add_text_on_screen(finalPos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
+						const auto remainingTimePos = vector(trap.obj->get_hpbar_pos().x - textSize.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize.y / 2 + 55, trap.obj->get_hpbar_pos().z);
 						draw_manager->add_text_on_screen(remainingTimePos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
+					}
 				}
-				const auto textSize2 = draw_manager->calc_text_size(22, "%s", trap.owner->get_model_cstr());
-				const auto ownerPos = vector(trap.obj->get_hpbar_pos().x - textSize2.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize2.y / 2 + 80, trap.obj->get_hpbar_pos().z);
 				if (settings::hidden::drawOwner->get_bool())
+				{
+					const auto textSize2 = draw_manager->calc_text_size(22, "%s", trap.owner->get_model_cstr());
+					const auto ownerPos = trap.obj->get_position();
+					vector screenPos;
+					renderer->world_to_screen(ownerPos, screenPos);
+					const auto finalPos = vector(screenPos.x - textSize2.x / 2, screenPos.y - textSize2.y / 2 + 30, screenPos.z);
 					draw_manager->add_text_on_screen(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_model_cstr());
+				}
 			}
 
 		// Maokai E manager
