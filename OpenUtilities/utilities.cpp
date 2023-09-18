@@ -697,7 +697,7 @@ namespace utilities {
 		if (attackFinishTime - getPing() < gametime->get_time())
 		{
 			autoReset = false;
-			debugPrint("Auto finished %f", attackFinishTime);
+			//debugPrint("Auto finished %f", attackFinishTime);
 			lastAutoTime = gametime->get_time();
 		}
 
@@ -722,7 +722,7 @@ namespace utilities {
 				}
 				autoReset = false;
 				cancelBuffer = false;
-				debugPrint("Forced windup %f", gametime->get_time());
+				//debugPrint("Forced windup %f", gametime->get_time());
 			}
 		}
 	}
@@ -940,8 +940,6 @@ namespace utilities {
 						renderer->world_to_screen(timeLeftPos, screenPos);
 						const auto finalPos = vector(screenPos.x - textSize.x / 2, screenPos.y - textSize.y / 2 + 10, screenPos.z);
 						draw_manager->add_text_on_screen(finalPos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
-						const auto remainingTimePos = vector(trap.obj->get_hpbar_pos().x - textSize.x / 2 + 30, trap.obj->get_hpbar_pos().y - textSize.y / 2 + 55, trap.obj->get_hpbar_pos().z);
-						draw_manager->add_text_on_screen(remainingTimePos, MAKE_COLOR(255, 255, 255, 255), 22, "%i", timeLeft);
 					}
 				}
 				if (settings::hidden::drawOwner->get_bool())
@@ -951,7 +949,7 @@ namespace utilities {
 					vector screenPos;
 					renderer->world_to_screen(ownerPos, screenPos);
 					const auto finalPos = vector(screenPos.x - textSize2.x / 2, screenPos.y - textSize2.y / 2 + 30, screenPos.z);
-					draw_manager->add_text_on_screen(ownerPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_model_cstr());
+					draw_manager->add_text_on_screen(finalPos, MAKE_COLOR(255, 255, 255, 255), 22, "%s", trap.owner->get_model_cstr());
 				}
 			}
 
@@ -1098,8 +1096,8 @@ namespace utilities {
 		//	myhero->print_chat(0, "Particle from player %s at %f (%s) %i", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_attachment_object()->get_name_cstr(), obj->get_emitter_resources_hash());
 		//	console->print("Particle from player %s at %f (%s) %i", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_attachment_object()->get_name_cstr(), obj->get_emitter_resources_hash());
 		//}
-		//if (obj->get_emitter() && obj->get_emitter()->is_me() && obj->get_particle_target_attachment_object())
-		//	myhero->print_chat(0, "Particle from player %s at %f (%s) 2", obj->get_name_cstr(), gametime->get_time(), obj->get_particle_target_attachment_object()->get_name_cstr());
+		//if (obj->get_emitter() && obj->get_emitter()->is_me())
+		//	myhero->print_chat(0, "Particle from player %s at %f", obj->get_name_cstr(), gametime->get_time());
 		
 		//if (obj->is_missile())
 		//console->print("Name : %s Model : %s", obj->get_name_cstr(), obj->get_model_cstr());
@@ -1517,7 +1515,7 @@ namespace utilities {
 		{
 			if (settings::corewalker::cancelReset->get_bool())
 				orbwalker->reset_auto_attack_timer();
-			debugPrint("Auto cancel %f", gametime->get_time());
+			//debugPrint("Auto cancel %f", gametime->get_time());
 			cancelBuffer = false;
 			autoReset = false;
 		}
@@ -1567,7 +1565,7 @@ namespace utilities {
 			lastIssuedOrder = 0.f;
 			if (spell->is_auto_attack())
 			{
-				debugPrint("Auto started %f and ends at %f", spell->get_time(), spell->get_time() + spell->get_attack_cast_delay());
+				//debugPrint("Auto started %f and ends at %f", spell->get_time(), spell->get_time() + spell->get_attack_cast_delay());
 				attackFinishTime = spell->get_time() + spell->get_attack_cast_delay();
 				autoReset = true;
 			}
