@@ -136,8 +136,7 @@ namespace utilities {
 		spell_hash("SRU_Baron_Spawn.troy"),
 		spell_hash("SRU_Baron_spawn_out_sound.troy"),
 		spell_hash("SRU_Baron_spawnvox_out_sound.troy"),
-		spell_hash("SRU_Baron_idle_a2n_sound.troy"),
-		spell_hash("Kindred_P_Mark_Persistent")
+		spell_hash("SRU_Baron_idle_a2n_sound.troy")
 	};
 
 	pingableParticles pingableWards;
@@ -1408,7 +1407,7 @@ namespace utilities {
 		if (!epicAttachment)
 			epicAttachment = create_data.second_emitter_object ? create_data.second_emitter_object : nullptr;
 		const auto epicParticleAttachment = epicAttachment && !epicAttachment->is_dead() && epicAttachment->is_epic_monster() && !epicAttachment->get_owner();
-		if (epicParticleAttachment && std::find(std::begin(badParticles), std::end(badParticles), object_hash) == std::end(badParticles) && (!emitterHash || emitterHash != buff_hash("Nunu_P_Enemy_Flute_Mark")))
+		if (epicParticleAttachment && std::find(std::begin(badParticles), std::end(badParticles), object_hash) == std::end(badParticles) && (!emitterHash || (emitterHash != buff_hash("Nunu_P_Enemy_Flute_Mark") && emitterHash != buff_hash("Kindred_P_Mark_Persistent"))))
 		{
 			const auto& owner = epicAttachment;
 			if (owner->get_name().find("Baron") != std::string::npos)
