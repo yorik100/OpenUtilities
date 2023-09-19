@@ -136,7 +136,8 @@ namespace utilities {
 		spell_hash("SRU_Baron_Spawn.troy"),
 		spell_hash("SRU_Baron_spawn_out_sound.troy"),
 		spell_hash("SRU_Baron_spawnvox_out_sound.troy"),
-		spell_hash("SRU_Baron_idle_a2n_sound.troy")
+		spell_hash("SRU_Baron_idle_a2n_sound.troy"),
+		spell_hash("Kindred_P_Mark_Persistent")
 	};
 
 	pingableParticles pingableWards;
