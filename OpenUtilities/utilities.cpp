@@ -228,6 +228,7 @@ namespace utilities {
 		namespace surrender {
 			TreeEntry* showSurrend;
 		}
+		TreeEntry* ferrisMode;
 		TreeEntry* lowSpec;
 		TreeEntry* debugPrint;
 	}
@@ -428,6 +429,7 @@ namespace utilities {
 		settings::surrender::showSurrend = surrenderTab->add_checkbox("open.utilities.surrender.showsurrend", "Show surrender votes", false);
 
 		// Misc
+		settings::ferrisMode = mainMenu->add_checkbox("open.utilities.ferrismode", "FerrisUtility compatibility", false);
 		settings::lowSpec = mainMenu->add_checkbox("open.utilities.lowspec", "Low spec mode (tick limiter)", false);
 		settings::debugPrint = mainMenu->add_checkbox("open.utilities.debugprint", "Debug print in console (dev)", false);
 
@@ -812,7 +814,7 @@ namespace utilities {
 		}
 
 		// Wards manager
-		if (settings::hidden::enable->get_bool())
+		if (!settings::ferrisMode->get_bool() && settings::hidden::enable->get_bool())
 		{
 			for (const auto& ward : wards)
 			{
@@ -847,7 +849,7 @@ namespace utilities {
 					const auto positionText = vector(520 + sizeMod.x + 25 + settings::epic::xOffset->get_int() - settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int() + sizeMod.y - textSize.y);
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, text);
 				}
-				if (settings::epic::epicTrackerMap->get_bool())
+				if (!settings::ferrisMode->get_bool() && settings::epic::epicTrackerMap->get_bool())
 				{
 					const auto circleColour = isAggroed ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
 					draw_manager->draw_circle_on_minimap(dragonPos, 550, circleColour, 2);
@@ -870,7 +872,7 @@ namespace utilities {
 					const auto positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int() + sizeMod.y - textSize.y);
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, text);
 				}
-				if (settings::epic::epicTrackerMap->get_bool())
+				if (!settings::ferrisMode->get_bool() && settings::epic::epicTrackerMap->get_bool())
 				{
 					const auto circleColour = !isIdle ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
 					draw_manager->draw_circle_on_minimap(baronPos, 550, circleColour, 2);
@@ -889,7 +891,7 @@ namespace utilities {
 					const auto positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int() + sizeMod.y - textSize.y);
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, text);
 				}
-				if (settings::epic::epicTrackerMap->get_bool())
+				if (!settings::ferrisMode->get_bool() && settings::epic::epicTrackerMap->get_bool())
 				{
 					const auto circleColour = !isIdle ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
 					draw_manager->draw_circle_on_minimap(baronPos, 500, circleColour, 2);
@@ -917,7 +919,7 @@ namespace utilities {
 		//}
 
 		// Traps manager
-		if (settings::hidden::enable->get_bool())
+		if (!settings::ferrisMode->get_bool() && settings::hidden::enable->get_bool())
 			for (const auto& trap : traps)
 			{
 				if (!trap.obj || !trap.obj->is_valid()) continue;
@@ -966,7 +968,7 @@ namespace utilities {
 			}
 
 		// Wards manager
-		if (settings::hidden::enable->get_bool())
+		if (!settings::ferrisMode->get_bool() && settings::hidden::enable->get_bool())
 			for (const auto& ward : wards)
 			{
 				const auto colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 255) : MAKE_COLOR(0, 255, 255, 255);
@@ -1719,7 +1721,7 @@ namespace utilities {
 			}
 			case spell_hash("KatarinaR"):
 			{
-				if (*spell->get_icon_texture() == (unsigned long long int)-971980824)
+				if (*spell->get_icon_texture() == (uint32_t)-971980824)
 					lastChannelCast = gametime->get_time() + getPing() + 0.15f;
 				break;
 			}
