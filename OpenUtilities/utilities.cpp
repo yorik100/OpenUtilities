@@ -149,6 +149,7 @@ namespace utilities {
 	std::vector<game_object_script> glowObjectsActive;
 	std::vector<glowStruct> glowObjects;
 	std::unordered_map<uint32_t, teleportStruct> teleportList;
+	std::unordered_map<uint32_t, float> lastPath;
 	//std::unordered_map<uint32_t, fowTracker> fowList;
 	//std::unordered_map<uint32_t, float> guardianReviveTime;
 
@@ -204,6 +205,7 @@ namespace utilities {
 			TreeEntry* drawRemaining;
 			TreeEntry* drawOwner;
 			TreeEntry* glow;
+			TreeEntry* drawOnMinimap;
 		}
 		namespace ping {
 			TreeEntry* enable;
@@ -396,6 +398,7 @@ namespace utilities {
 		settings::hidden::drawRemaining = hiddenTab->add_checkbox("open.utilities.hidden.drawremaining", "Draw remaining time", true);
 		settings::hidden::drawOwner = hiddenTab->add_checkbox("open.utilities.hidden.drawowner", "Draw owner name", true);
 		settings::hidden::glow = hiddenTab->add_checkbox("open.utilities.hidden.glow", "Use glow", true);
+		settings::hidden::drawOnMinimap = hiddenTab->add_checkbox("open.utilities.hidden.drawonminimap", "Draw on minimap", true);
 
 		// Ping settings
 		const auto pingTab = mainMenu->add_tab("open.utilities.ping", "Ping");
@@ -824,7 +827,7 @@ namespace utilities {
 				if (!renderer->is_on_screen(screenPos, 50 + 40)) continue;
 
 				const auto colour = ward.wardType == 0 ? MAKE_COLOR(255, 255, 0, 64) : MAKE_COLOR(0, 255, 255, 64);
-				if (settings::hidden::drawCircle->get_bool())
+				if (settings::hidden::glow->get_bool())
 					draw_manager->add_filled_circle(ward.position, 40, colour);
 			}
 		}
@@ -976,9 +979,11 @@ namespace utilities {
 				vector minimapPos;
 				vector wardPos = ward.position;
 				gui->get_tactical_map()->to_map_coord(wardPos, minimapPos);
-				if (settings::hidden::glow->get_bool())
+				if (settings::hidden::drawOnMinimap->get_bool())
+				{
 					draw_manager->add_filled_circle_on_screen(minimapPos, 5, insideColour);
-				draw_manager->add_circle_on_screen(minimapPos, 6, colour);
+					draw_manager->add_circle_on_screen(minimapPos, 6, colour);
+				}
 				if (settings::hidden::drawCircle->get_bool())
 					draw_manager->add_circle(ward.position, 40, colour, 2);
 				const int timeLeft = (int)std::ceil(ward.remainingTime - gametime->get_time());
@@ -1109,6 +1114,10 @@ namespace utilities {
 
 		// Get emitter hash if there is any
 		const auto emitterHash = obj->get_emitter_resources_hash();
+
+		// Entity created so it just pathed
+		if (obj->is_ai_base())
+			lastPath[obj->get_handle()] = gametime->get_time();
 
 		// Register trapsobj->get_particle_target_attachment_object()
 		if (obj->is_enemy() && object_hash == spell_hash("Noxious Trap"))
@@ -1331,6 +1340,14 @@ namespace utilities {
 		// Get emitter hash if there is any
 		const auto emitterHash = obj->get_emitter_resources_hash();
 
+		// Entity deleted, must remove from unordered map
+		if (obj->is_ai_base())
+		{
+			const auto iterator = lastPath.find(obj->get_handle());
+			if (lastPath.end() != iterator)
+				lastPath.erase(iterator);
+		}
+
 		// Get possible valid particles
 		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero() || obj->get_emitter()->is_visible() || obj->get_emitter()->is_dead()) return;
 
@@ -1363,12 +1380,12 @@ namespace utilities {
 		// Update position if object created from entity's position
 		if (settings::fow::updatePos->get_bool())
 		{
-			if (create_data.character_attachment && create_data.character_attachment->is_valid() && create_data.character_attachment->is_ai_base() && !create_data.character_attachment->is_moving() && (!create_data.character_attachment->get_path_controller() || create_data.character_attachment->get_path_controller()->get_path_count() != 1) && !create_data.character_attachment->is_visible() && !create_data.character_attachment->is_hpbar_recently_rendered() && !create_data.character_attachment->is_dead() && create_data.character_attachment->get_position().is_valid() && obj->get_position().is_valid())
+			if (create_data.character_attachment && create_data.character_attachment->is_valid() && create_data.character_attachment->is_ai_base() && (!create_data.character_attachment->get_path_controller() || create_data.character_attachment->get_path_controller()->get_path_count() == 0 || lastPath[create_data.character_attachment->get_handle()] < gametime->get_time() - 0.05f) && !create_data.character_attachment->is_visible() && !create_data.character_attachment->is_hpbar_recently_rendered() && !create_data.character_attachment->is_dead() && create_data.character_attachment->get_position().is_valid() && obj->get_position().is_valid())
 			{
 				create_data.character_attachment->set_position(obj->get_position());
 				debugPrint("[%i:%02d] Object updating position for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, create_data.character_attachment->get_model().c_str(), create_data.character_attachment->get_name().c_str(), obj->get_name().c_str());
 			}
-			else if ( create_data.second_emitter_object && create_data.second_emitter_object->is_valid() && create_data.second_emitter_object->is_ai_base() && !create_data.second_emitter_object->is_moving() && (!create_data.second_emitter_object->get_path_controller() || create_data.second_emitter_object->get_path_controller()->get_path_count() != 1) && !create_data.second_emitter_object->is_visible() && !create_data.second_emitter_object->is_hpbar_recently_rendered() && !create_data.second_emitter_object->is_dead() && create_data.second_emitter_object->get_position().is_valid())
+			else if ( create_data.second_emitter_object && create_data.second_emitter_object->is_valid() && create_data.second_emitter_object->is_ai_base() && (!create_data.second_emitter_object->get_path_controller() || create_data.second_emitter_object->get_path_controller()->get_path_count() == 0 || lastPath[create_data.second_emitter_object->get_handle()] < gametime->get_time() - 0.05f) && !create_data.second_emitter_object->is_visible() && !create_data.second_emitter_object->is_hpbar_recently_rendered() && !create_data.second_emitter_object->is_dead() && create_data.second_emitter_object->get_position().is_valid())
 			{
 				// create_data.second_emitter_object->set_position(create_data.second_emitter_object->get_position());
 				debugPrint("[%i:%02d] Object updating position on self for %s (%s) : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, create_data.second_emitter_object->get_model().c_str(), create_data.second_emitter_object->get_name().c_str(), obj->get_name().c_str());
@@ -1448,6 +1465,12 @@ namespace utilities {
 		//	myhero->print_chat(0, "Sound Target : %s %s", args.target->get_name_cstr(), args.sound_name);
 		//	console->print("Sound Target : %s %s", args.target->get_name_cstr(), args.sound_name);
 		//}
+	}
+
+	void on_path(game_object_script sender, const std::vector<vector>& path, bool is_dash, float dash_speed)
+	{
+		if (sender->is_ai_base())
+			lastPath[sender->get_handle()] = gametime->get_time();
 	}
 
 	void on_do_cast(game_object_script sender, spell_instance_script spell)
@@ -2020,6 +2043,7 @@ namespace utilities {
 		event_handler<events::on_delete_object>::add_callback(on_delete, event_prority::low);
 		event_handler<events::on_create_client_effect>::add_callback(on_emitter, event_prority::low);
 		event_handler<events::on_play_sound>::add_callback(on_sound, event_prority::low);
+		event_handler<events::on_new_path>::add_callback(on_path, event_prority::low);
 		event_handler<events::on_buff_gain>::add_callback(on_buff_gain, event_prority::low);
 		event_handler<events::on_buff_lose>::add_callback(on_buff_lose, event_prority::low);
 		event_handler<events::on_teleport>::add_callback(on_teleport, event_prority::low);
@@ -2047,6 +2071,7 @@ namespace utilities {
 		event_handler< events::on_delete_object >::remove_handler(on_delete);
 		event_handler< events::on_create_client_effect >::remove_handler(on_emitter);
 		event_handler< events::on_play_sound >::remove_handler(on_sound);
+		event_handler< events::on_new_path >::remove_handler(on_path);
 		event_handler< events::on_buff_gain >::remove_handler(on_buff_gain);
 		event_handler< events::on_buff_lose >::remove_handler(on_buff_lose);
 		event_handler< events::on_teleport >::remove_handler(on_teleport);

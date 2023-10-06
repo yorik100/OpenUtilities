@@ -23,6 +23,9 @@ namespace utilities
 	void on_draw_real();
 	void on_create(const game_object_script obj);
 	void on_delete(const game_object_script obj);
+	void on_emitter(game_object_script obj, const effect_create_data_client& create_data);
+	void on_sound(const on_play_sound_args& args);
+	void on_path(game_object_script sender, const std::vector<vector>& path, bool is_dash, float dash_speed);
 	void on_do_cast(game_object_script sender, spell_instance_script spell);
 	void on_network_packet(game_object_script sender, std::uint32_t network_id, pkttype_e type, void* args);
 	void on_stop_cast(game_object_script sender, spell_instance_script spell);
