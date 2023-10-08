@@ -1109,10 +1109,6 @@ namespace utilities {
 		//if (obj->is_missile())
 		//console->print("Name : %s Model : %s", obj->get_name_cstr(), obj->get_model_cstr());
 
-		// Idiot proof
-		if (!obj->is_valid())
-			return;
-
 		// Get object name hash
 		const auto object_hash = spell_hash_real(obj->get_name_cstr());
 
@@ -1198,7 +1194,7 @@ namespace utilities {
 		}
 
 		// Get possible valid particles
-		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero()) return;
+		if (!obj->get_emitter() || !obj->get_emitter()->is_valid() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero()) return;
 
 		// Register blue wards
 		//if (object_hash == spell_hash("Global_Trinket_ItemClairvoyance_Red.troy"))
@@ -1341,10 +1337,6 @@ namespace utilities {
 
 	void on_delete(const game_object_script obj)
 	{
-		// Idiot proof
-		if (!obj->is_valid())
-			return;
-
 		// Get emitter hash if there is any
 		const auto emitterHash = obj->get_emitter_resources_hash();
 
@@ -1357,7 +1349,7 @@ namespace utilities {
 		}
 
 		// Get possible valid particles
-		if (!obj->get_emitter() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero() || obj->get_emitter()->is_visible() || obj->get_emitter()->is_dead()) return;
+		if (!obj->get_emitter() || !obj->get_emitter()->is_valid() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero() || obj->get_emitter()->is_visible() || obj->get_emitter()->is_dead()) return;
 
 		// Update position with teleport or position particles
 		switch (emitterHash)
@@ -1379,10 +1371,6 @@ namespace utilities {
 
 	void on_emitter(game_object_script obj, const effect_create_data_client& create_data)
 	{
-		// Idiot proof
-		if (!obj->is_valid())
-			return;
-
 		// Get object name hash
 		const auto object_hash = spell_hash_real(obj->get_name_cstr());
 
