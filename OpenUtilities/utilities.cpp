@@ -1109,6 +1109,10 @@ namespace utilities {
 		//if (obj->is_missile())
 		//console->print("Name : %s Model : %s", obj->get_name_cstr(), obj->get_model_cstr());
 
+		// Idiot proof
+		if (!obj->is_valid())
+			return;
+
 		// Get object name hash
 		const auto object_hash = spell_hash_real(obj->get_name_cstr());
 
@@ -1337,6 +1341,10 @@ namespace utilities {
 
 	void on_delete(const game_object_script obj)
 	{
+		// Idiot proof
+		if (!obj->is_valid())
+			return;
+
 		// Get emitter hash if there is any
 		const auto emitterHash = obj->get_emitter_resources_hash();
 
@@ -1371,6 +1379,10 @@ namespace utilities {
 
 	void on_emitter(game_object_script obj, const effect_create_data_client& create_data)
 	{
+		// Idiot proof
+		if (!obj->is_valid())
+			return;
+
 		// Get object name hash
 		const auto object_hash = spell_hash_real(obj->get_name_cstr());
 
