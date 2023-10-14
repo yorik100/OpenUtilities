@@ -1066,21 +1066,25 @@ namespace utilities {
 		// Fiddle ult manager
 		if (settings::fow::fiddleUltNotify->get_bool())
 		{
-			fiddleBuff = myhero->get_buff(buff_hash("fiddlerevealedvfx"));
-			if (fiddleBuff && fiddleBuff->is_valid())
+			for (const auto& ally : entitylist->get_ally_heroes())
 			{
-				const auto startTime = fiddleBuff->get_start();
-				const auto duration = 1.3f;
-				const auto endTime = startTime + duration;
-				const auto remainingTime = endTime - gametime->get_time();
-				if (remainingTime > 0)
+				fiddleBuff = ally->get_buff(buff_hash("fiddlerevealedvfx"));
+				if (fiddleBuff && fiddleBuff->is_valid())
 				{
-					char rgBuffer[100];
-					std::snprintf(rgBuffer, sizeof(rgBuffer), "Fiddle ult in : %.1f seconds", std::ceil(remainingTime*10)/10);
-					const char* text = rgBuffer;
-					const auto textSize = draw_manager->calc_text_size(35, text);
-					const auto positionText = vector(1100 - textSize.x, 140 - textSize.y);
-					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 165, 0, 255), 35, text);
+					const auto startTime = fiddleBuff->get_start();
+					const auto duration = 1.3f;
+					const auto endTime = startTime + duration;
+					const auto remainingTime = endTime - gametime->get_time();
+					if (remainingTime > 0)
+					{
+						char rgBuffer[100];
+						std::snprintf(rgBuffer, sizeof(rgBuffer), "Fiddle ult in : %.1f seconds", std::ceil(remainingTime * 10) / 10);
+						const char* text = rgBuffer;
+						const auto textSize = draw_manager->calc_text_size(35, text);
+						const auto positionText = vector(1100 - textSize.x, 140 - textSize.y);
+						draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 165, 0, 255), 35, text);
+					}
+					break;
 				}
 			}
 		}
