@@ -1083,8 +1083,8 @@ namespace utilities {
 						const auto textSize = draw_manager->calc_text_size(35, text);
 						const auto positionText = vector(1100 - textSize.x, 140 - textSize.y);
 						draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 165, 0, 255), 35, text);
+						break;
 					}
-					break;
 				}
 			}
 		}
