@@ -754,7 +754,7 @@ namespace utilities {
 	void on_draw()
 	{
 		// Draw particle teleport positions
-		if (settings::teleport::teleportEnable->get_bool())
+		if (!settings::ferrisMode->get_bool() && settings::teleport::teleportEnable->get_bool())
 		{
 			for (const auto& obj : particlePredList)
 			{
@@ -770,7 +770,7 @@ namespace utilities {
 		}
 
 		// Recall and Teleport indicators
-		if (settings::teleport::teleportEnable->get_bool()) {
+		if (!settings::ferrisMode->get_bool() && settings::teleport::teleportEnable->get_bool()) {
 			for (const auto& target : entitylist->get_enemy_heroes())
 			{
 				if (target->is_visible()) continue;
@@ -959,7 +959,7 @@ namespace utilities {
 			}
 
 		// Maokai E manager
-		if (settings::hidden::enable->get_bool())
+		if (!settings::ferrisMode->get_bool() && settings::hidden::enable->get_bool())
 			for (const auto& obj : maokaiE)
 			{
 				if (!obj || !obj->is_valid()) continue;
@@ -1008,7 +1008,7 @@ namespace utilities {
 			}
 
 		// Recall and Teleport indicators
-		if (settings::teleport::teleportEnable->get_bool()) {
+		if (!settings::ferrisMode->get_bool() && settings::teleport::teleportEnable->get_bool()) {
 			for (const auto& target : entitylist->get_enemy_heroes())
 			{
 				if (target->is_visible()) continue;
