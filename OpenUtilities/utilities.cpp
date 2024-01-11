@@ -136,7 +136,33 @@ namespace utilities {
 		spell_hash("SRU_Baron_Spawn.troy"),
 		spell_hash("SRU_Baron_spawn_out_sound.troy"),
 		spell_hash("SRU_Baron_spawnvox_out_sound.troy"),
-		spell_hash("SRU_Baron_idle_a2n_sound.troy")
+		spell_hash("SRU_Baron_idle_a2n_sound.troy"),
+		spell_hash("SRU_Horde_Base_Passive_Base"),
+		spell_hash("SRU_RiftHerald_Base_Gaze_Debuff"),
+		spell_hash("SRU_Baron_Base_Spawn_BotRiver"),
+		spell_hash("SRU_Baron_Base_Spawn_TopRiver"),
+		spell_hash("SRU_Baron_Base_Spawn_Upgraded_WarmUp"),
+		spell_hash("SRU_Baron_Base_Spawn_Upgraded"),
+		spell_hash("SRU_Baron_Base_Terrain_Walled"),
+		spell_hash("SRU_Baron_Base_Idle"),
+		spell_hash("SRU_Baron_idle_n2a_sound.troy"),
+		spell_hash("SRU_RiftHerald_Base_Eye_CD_Timer"),
+		spell_hash("SRU_Dragon_idle1_al2n_sound.troy")
+	};
+
+	static constexpr uint32_t badGameDesign[]
+	{
+		spell_hash("SRU_Baron_Base_Spawn_BotRiver"),
+		spell_hash("SRU_Baron_Base_Spawn_TopRiver"),
+		spell_hash("SRU_Baron_Base_Spawn_Upgraded_WarmUp"),
+		spell_hash("SRU_Baron_Base_Spawn_Upgraded"),
+		spell_hash("SRU_Baron_Base_Terrain_Walled"),
+		spell_hash("SRU_RiftHerald_Base_Gaze_Debuff"),
+		spell_hash("sru_dragon_chemtech_Base_BA_Overcharge_Spine_01"),
+		spell_hash("TEMP_Jungle_Monster_AoE_Nova_Indicator"),
+		spell_hash("TEMP_Jungle_Monster_AoE_Nova_Indicator_linger"),
+		spell_hash("SRU_Red_Base_BA_Void_Transform"),
+		spell_hash("SRU_Blue_Base_BA_Void_Transform")
 	};
 
 	pingableParticles pingableWards;
@@ -238,11 +264,13 @@ namespace utilities {
 	static constexpr float SERVER_TICKRATE = 1000.f / 30.f;
 
 	float last_tick = 0;
-	float baronAttackTime = 0;
-	float dragonAttackTime = 0;
-	float heraldAttackTime = 0;
-	float baronIdleTime = 0;
-	float heraldIdleTime = 0;
+	float baronAttackTime = -100;
+	float dragonAttackTime = -100;
+	float heraldAttackTime = -100;
+	float baronIdleTime = -100;
+	float heraldIdleTime = -100;
+	float voidFuckerIdleTime = -100;
+	float voidFuckerAttackTime = -100;
 	float lastAutoTime = 0;
 	float lastChannelCast = 0;
 	float lastNoAttackCast = 0;
@@ -266,6 +294,7 @@ namespace utilities {
 	game_object_script lastBaron;
 	game_object_script lastDragon;
 	game_object_script lastHerald;
+	game_object_script lastVoidFucker;
 
 	buff_instance_script fiddleBuff;
 
@@ -881,7 +910,7 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(baronPos, 550, circleColour, 2);
 				}
 			}
-			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && (gametime->get_time() - heraldAttackTime < 15 || gametime->get_time() - heraldIdleTime < 2))
+			else if (camp_manager->get_camp_alive_status(18) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && (gametime->get_time() - heraldAttackTime < 15 || gametime->get_time() - heraldIdleTime < 2))
 			{
 				const auto isIdle = gametime->get_time() - heraldIdleTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
@@ -891,6 +920,25 @@ namespace utilities {
 					const auto text = "Herald is under attack!";
 					const auto textSize = draw_manager->calc_text_size(25, text);
 					draw_manager->add_image(lastHerald->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
+					const auto positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int() + sizeMod.y - textSize.y);
+					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, text);
+				}
+				if (!settings::ferrisMode->get_bool() && settings::epic::epicTrackerMap->get_bool())
+				{
+					const auto circleColour = !isIdle ? MAKE_COLOR(255, 0, 0, 255) : MAKE_COLOR(255, 200, 0, 255);
+					draw_manager->draw_circle_on_minimap(baronPos, 500, circleColour, 2);
+				}
+			}
+			else if (camp_manager->get_camp_alive_status(17) && lastVoidFucker && lastVoidFucker->is_valid() && (!lastVoidFucker->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && (gametime->get_time() - voidFuckerAttackTime < 15 || gametime->get_time() - voidFuckerIdleTime < 2))
+			{
+				const auto isIdle = gametime->get_time() - voidFuckerIdleTime < 2;
+				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
+					const auto position = vector(1330 + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 150 + settings::epic::yOffset->get_int());
+					const auto size = vector(60.f, 60.f);
+					const auto sizeMod = size / 2;
+					const auto text = "Voidgrubs are under attack!";
+					const auto textSize = draw_manager->calc_text_size(25, text);
+					draw_manager->add_image(lastVoidFucker->get_square_icon_portrait(), { position.x - sizeMod.x, position.y - sizeMod.y }, size);
 					const auto positionText = vector(1330 - sizeMod.x - 25 - textSize.x + settings::epic::xOffset->get_int() + settings::epic::distanceBetween->get_int(), 140 + settings::epic::yOffset->get_int() + sizeMod.y - textSize.y);
 					draw_manager->add_text_on_screen(positionText, MAKE_COLOR(255, 255, 255, 255), 25, text);
 				}
@@ -1142,7 +1190,7 @@ namespace utilities {
 		// Get if an epic monster is attacking someone
 		const game_object_script& epicOwner = obj->is_missile() ? entitylist->get_object(obj->missile_get_sender_id()) : nullptr;
 		const auto epicMissile = epicOwner && !epicOwner->is_dead() && epicOwner->is_epic_monster() && !epicOwner->get_owner();
-		if (epicMissile && object_hash != spell_hash("sru_dragon_chemtech_Base_BA_Overcharge_Spine_01"))
+		if (epicMissile)
 		{
 			const auto& owner = epicOwner;
 			if (owner->get_name().find("Baron") != std::string::npos)
@@ -1159,11 +1207,18 @@ namespace utilities {
 				lastDragon = owner;
 				return;
 			}
-			else if (owner->get_name().find("Herald") != std::string::npos)
+			else if (owner->get_character_name_hash() == character_hash("SRU_RiftHerald"))
 			{
 				debugPrint("[%i:%02d] Object from Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = owner;
+				return;
+			}
+			else if (owner->get_character_name_hash() == character_hash("SRU_Horde"))
+			{
+				debugPrint("[%i:%02d] Object from Voidgrub : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name_cstr());
+				voidFuckerAttackTime = gametime->get_time();
+				lastVoidFucker = owner;
 				return;
 			}
 		}
@@ -1188,11 +1243,18 @@ namespace utilities {
 				lastDragon = owner;
 				return;
 			}
-			else if (owner->get_name().find("Herald") != std::string::npos)
+			else if (owner->get_character_name_hash() == character_hash("SRU_RiftHerald"))
 			{
 				debugPrint("[%i:%02d] Object on Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = owner;
+				return;
+			}
+			else if (owner->get_character_name_hash() == character_hash("SRU_Horde"))
+			{
+				debugPrint("[%i:%02d] Object on Voidgrub : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
+				voidFuckerAttackTime = gametime->get_time();
+				lastVoidFucker = owner;
 				return;
 			}
 		}
@@ -1399,7 +1461,7 @@ namespace utilities {
 		// Get if an epic monster is attacking someone
 		const game_object_script& epicEmitter = create_data.emitter_object ? create_data.emitter_object : nullptr;
 		const auto epicParticle = epicEmitter && !epicEmitter->is_dead() && epicEmitter->is_epic_monster() && !epicEmitter->get_owner();
-		if (epicParticle && object_hash != spell_hash("sru_dragon_chemtech_Base_BA_Overcharge_Spine_01") && object_hash != spell_hash("TEMP_Jungle_Monster_AoE_Nova_Indicator"))
+		if (epicParticle && std::find(std::begin(badGameDesign), std::end(badGameDesign), object_hash) == std::end(badGameDesign))
 		{
 			const auto& owner = epicEmitter;
 			if (owner->get_name().find("Baron") != std::string::npos)
@@ -1416,11 +1478,18 @@ namespace utilities {
 				lastDragon = owner;
 				return;
 			}
-			else if (owner->get_name().find("Herald") != std::string::npos)
+			else if (owner->get_character_name_hash() == character_hash("SRU_RiftHerald"))
 			{
 				debugPrint("[%i:%02d] Object from Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = owner;
+				return;
+			}
+			else if (owner->get_character_name_hash() == character_hash("SRU_Horde"))
+			{
+				debugPrint("[%i:%02d] Object from Voidgrub : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
+				voidFuckerAttackTime = gametime->get_time();
+				lastVoidFucker = owner;
 				return;
 			}
 		}
@@ -1447,11 +1516,18 @@ namespace utilities {
 				lastDragon = owner;
 				return;
 			}
-			else if (owner->get_name().find("Herald") != std::string::npos)
+			else if (owner->get_character_name_hash() == character_hash("SRU_RiftHerald"))
 			{
 				debugPrint("[%i:%02d] Object on Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = owner;
+				return;
+			}
+			else if (owner->get_character_name_hash() == character_hash("SRU_Horde"))
+			{
+				debugPrint("[%i:%02d] Object on Voidgrub : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, obj->get_name().c_str());
+				voidFuckerAttackTime = gametime->get_time();
+				lastVoidFucker = owner;
 				return;
 			}
 		}
@@ -1501,11 +1577,18 @@ namespace utilities {
 				lastDragon = target;
 				return;
 			}
-			else if (target->get_name().find("Herald") != std::string::npos)
+			else if (target->get_character_name_hash() == character_hash("SRU_RiftHerald"))
 			{
 				debugPrint("[%i:%02d] Cast on Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, spell->get_spell_data()->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = target;
+				return;
+			}
+			else if (target->get_character_name_hash() == character_hash("SRU_Horde"))
+			{
+				debugPrint("[%i:%02d] Cast on Voidgrub : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, spell->get_spell_data()->get_name().c_str());
+				voidFuckerAttackTime = gametime->get_time();
+				lastVoidFucker = target;
 				return;
 			}
 		}
@@ -1528,11 +1611,18 @@ namespace utilities {
 				lastDragon = sender;
 				return;
 			}
-			else if (sender->get_name().find("Herald") != std::string::npos)
+			else if (sender->get_character_name_hash() == character_hash("SRU_RiftHerald"))
 			{
 				debugPrint("[%i:%02d] Cast from Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, spell->get_spell_data()->get_name().c_str());
 				heraldAttackTime = gametime->get_time();
 				lastHerald = sender;
+				return;
+			}
+			else if (sender->get_character_name_hash() == character_hash("SRU_Horde"))
+			{
+				debugPrint("[%i:%02d] Cast from Voidgrub : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, spell->get_spell_data()->get_name().c_str());
+				voidFuckerAttackTime = gametime->get_time();
+				lastVoidFucker = sender;
 				return;
 			}
 		}
@@ -1609,7 +1699,7 @@ namespace utilities {
 		const auto& data = (PKT_S2C_PlayAnimationArgs*)args;
 		if (!data) return;
 
-		//myhero->print_chat(0, "Name : %s Q : %s W : %s E : %s R : %s", data->animation_name, myhero->get_spell(spellslot::q)->get_name().c_str(), myhero->get_spell(spellslot::w)->get_name().c_str(), myhero->get_spell(spellslot::e)->get_name().c_str(), myhero->get_spell(spellslot::r)->get_name().c_str());
+		//myhero->print_chat(0, "Name : %s Owner : %s", data->animation_name, sender->get_model_cstr());
 
 		const auto isEpicSender = !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 		const auto isCrab = sender->is_monster() && strcmp(data->animation_name, "crab_hide") == 0;
@@ -1652,11 +1742,18 @@ namespace utilities {
 				lastDragon = sender;
 				return;
 			}
-			else if (sender->get_name().find("Herald") != std::string::npos && strcmp(data->animation_name, "Dance") != 0)
+			else if (sender->get_character_name_hash() == character_hash("SRU_RiftHerald") && strcmp(data->animation_name, "Dance") != 0)
 			{
 				debugPrint("[%i:%02d] Animation from Herald : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, data->animation_name);
 				heraldAttackTime = gametime->get_time();
 				lastHerald = sender;
+				return;
+			}
+			else if (sender->get_character_name_hash() == character_hash("SRU_Horde"))
+			{
+				debugPrint("[%i:%02d] Animation from Voidgrub : %s", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60, data->animation_name);
+				voidFuckerAttackTime = gametime->get_time();
+				lastVoidFucker = sender;
 				return;
 			}
 		}
@@ -1942,13 +2039,21 @@ namespace utilities {
 					lastDragon = sender;
 					return;
 				}
-				else if (sender->get_name().find("Herald") != std::string::npos)
+				else if (sender->get_character_name_hash() == character_hash("SRU_RiftHerald"))
 				{
 					if (!heraldAttackTime) return;
 					debugPrint("[%i:%02d] Herald lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 					heraldAttackTime = 0;
 					heraldIdleTime = gametime->get_time();
 					lastHerald = sender;
+					return;
+				}
+				else if (sender->get_character_name_hash() == character_hash("SRU_Horde"))
+				{
+					debugPrint("[%i:%02d] Voidgrub lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+					voidFuckerAttackTime = 0;
+					voidFuckerIdleTime = gametime->get_time();
+					lastVoidFucker = sender;
 					return;
 				}
 			}
@@ -2005,7 +2110,7 @@ namespace utilities {
 		}
 
 		// Get epic monster camp positions
-		auto tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Baron);
+		auto tempPos = camp_manager->get_camp_position(17);
 		baronPos = vector(tempPos.x - 25, tempPos.y + 100);
 		tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Dragon);
 		dragonPos = vector(tempPos.x + 50, tempPos.y);
