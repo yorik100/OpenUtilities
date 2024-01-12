@@ -163,7 +163,8 @@ namespace utilities {
 		spell_hash("TEMP_Jungle_Monster_AoE_Nova_Indicator"),
 		spell_hash("TEMP_Jungle_Monster_AoE_Nova_Indicator_linger"),
 		spell_hash("SRU_Red_Base_BA_Void_Transform"),
-		spell_hash("SRU_Blue_Base_BA_Void_Transform")
+		spell_hash("SRU_Blue_Base_BA_Void_Transform"),
+		spell_hash("SRU_Baron_Base_Terrain_Tunnel")
 	};
 
 	pingableParticles pingableWards;
