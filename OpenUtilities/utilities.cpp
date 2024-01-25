@@ -912,7 +912,7 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(baronPos, 550, circleColour, 2);
 				}
 			}
-			else if (camp_manager->get_camp_alive_status(18) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && (gametime->get_time() - heraldAttackTime < 15 || gametime->get_time() - heraldIdleTime < 2))
+			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && (gametime->get_time() - heraldAttackTime < 15 || gametime->get_time() - heraldIdleTime < 2))
 			{
 				const auto isIdle = gametime->get_time() - heraldIdleTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
@@ -931,7 +931,7 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(baronPos, 500, circleColour, 2);
 				}
 			}
-			else if (camp_manager->get_camp_alive_status(17) && lastVoidFucker && lastVoidFucker->is_valid() && (!lastVoidFucker->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && (gametime->get_time() - voidFuckerAttackTime < 15 || gametime->get_time() - voidFuckerIdleTime < 2))
+			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Voidgrubs) && lastVoidFucker && lastVoidFucker->is_valid() && (!lastVoidFucker->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && (gametime->get_time() - voidFuckerAttackTime < 15 || gametime->get_time() - voidFuckerIdleTime < 2))
 			{
 				const auto isIdle = gametime->get_time() - voidFuckerIdleTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
@@ -2149,7 +2149,7 @@ namespace utilities {
 		}
 
 		// Get epic monster camp positions
-		auto tempPos = camp_manager->get_camp_position(17);
+		auto tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Baron);
 		baronPos = vector(tempPos.x - 25, tempPos.y + 100);
 		tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Dragon);
 		dragonPos = vector(tempPos.x + 50, tempPos.y);
