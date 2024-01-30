@@ -1710,13 +1710,13 @@ namespace utilities {
 		{
 			if (sender->get_name() == "Sru_Crab16.1.1")
 			{
-				camp_manager->update_camp_alive_status((int)neutral_camp_id::Crab_Top, false);
+				camp_manager->update_camp_alive_status(16, false);
 				debugPrint("[%i:%02d] Top crab ded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 				return;
 			}
 			else if (sender->get_name() == "Sru_Crab15.1.1")
 			{
-				camp_manager->update_camp_alive_status((int)neutral_camp_id::Crab_Bottom, false);
+				camp_manager->update_camp_alive_status(15, false);
 				debugPrint("[%i:%02d] Bot crab ded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 				return;
 			}
