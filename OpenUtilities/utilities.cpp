@@ -870,7 +870,7 @@ namespace utilities {
 		// Epic monster indicators
 		if (settings::epic::epicTrackerNotifications->get_bool() || settings::epic::epicTrackerMap->get_bool())
 		{
-			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 5))
+			if (camp_manager->get_camp_alive_status(17) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 5))
 			{
 				const auto isAggroed = isDragonAttacked || gametime->get_time() - dragonAttackTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && isAggroed) {
@@ -889,10 +889,10 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(dragonPos, 550, circleColour, 2);
 				}
 			}
-			else if (!camp_manager->get_camp_alive_status((int)neutral_camp_id::Dragon))
+			else if (!camp_manager->get_camp_alive_status(17))
 				isDragonAttacked = false;
 
-			if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Baron) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && (gametime->get_time() - baronAttackTime < 8 || gametime->get_time() - baronIdleTime < 2))
+			if (camp_manager->get_camp_alive_status(13) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && (gametime->get_time() - baronAttackTime < 8 || gametime->get_time() - baronIdleTime < 2))
 			{
 				const auto isIdle = gametime->get_time() - baronIdleTime < 2;
 				if (gametime->get_time() - baronIdleTime < 1) baronAttackTime = 0;
@@ -912,7 +912,7 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(baronPos, 550, circleColour, 2);
 				}
 			}
-			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && (gametime->get_time() - heraldAttackTime < 15 || gametime->get_time() - heraldIdleTime < 2))
+			else if (camp_manager->get_camp_alive_status(18) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && (gametime->get_time() - heraldAttackTime < 15 || gametime->get_time() - heraldIdleTime < 2))
 			{
 				const auto isIdle = gametime->get_time() - heraldIdleTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
@@ -931,7 +931,7 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(baronPos, 500, circleColour, 2);
 				}
 			}
-			else if (camp_manager->get_camp_alive_status((int)neutral_camp_id::Voidgrubs) && lastVoidFucker && lastVoidFucker->is_valid() && (!lastVoidFucker->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && (gametime->get_time() - voidFuckerAttackTime < 15 || gametime->get_time() - voidFuckerIdleTime < 2))
+			else if (camp_manager->get_camp_alive_status(14) && lastVoidFucker && lastVoidFucker->is_valid() && (!lastVoidFucker->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && (gametime->get_time() - voidFuckerAttackTime < 15 || gametime->get_time() - voidFuckerIdleTime < 2))
 			{
 				const auto isIdle = gametime->get_time() - voidFuckerIdleTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
@@ -2149,9 +2149,9 @@ namespace utilities {
 		}
 
 		// Get epic monster camp positions
-		auto tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Baron);
+		auto tempPos = camp_manager->get_camp_position(13);
 		baronPos = vector(tempPos.x - 25, tempPos.y + 100);
-		tempPos = camp_manager->get_camp_position((int)neutral_camp_id::Dragon);
+		tempPos = camp_manager->get_camp_position(17);
 		dragonPos = vector(tempPos.x + 50, tempPos.y);
 
 		// Get URF cannon pos
