@@ -167,6 +167,28 @@ namespace utilities {
 		spell_hash("SRU_Baron_Base_Terrain_Tunnel")
 	};
 
+	enum real_neutral_camp_ids
+	{
+		Blue_Order = 2,
+		Blue_Chaos = 3,
+		Red_Order = 4,
+		Red_Chaos = 5,
+		Dragon = 6,
+		Gromp_Order = 7,
+		Gromp_Chaos = 8,
+		Wolves_Order = 9,
+		Wolves_Chaos = 10,
+		Raptors_Order = 11,
+		Raptors_Chaos = 12,
+		Krugs_Order = 13,
+		Krugs_Chaos = 14,
+		Baron = 15,
+		Voidgrubs = 16,
+		Crab_Bottom = 17,
+		Crab_Top = 18,
+		Herlad = 19
+	};
+
 	pingableParticles pingableWards;
 	std::vector<particleStruct> particlePredList;
 	std::vector<trapInfo> traps;
@@ -870,7 +892,7 @@ namespace utilities {
 		// Epic monster indicators
 		if (settings::epic::epicTrackerNotifications->get_bool() || settings::epic::epicTrackerMap->get_bool())
 		{
-			if (camp_manager->get_camp_alive_status(17) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 5))
+			if (camp_manager->get_camp_alive_status((int)real_neutral_camp_ids::Dragon) && lastDragon && lastDragon->is_valid() && (!lastDragon->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastDragon->is_dead() && (isDragonAttacked || gametime->get_time() - dragonAttackTime < 5))
 			{
 				const auto isAggroed = isDragonAttacked || gametime->get_time() - dragonAttackTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && isAggroed) {
@@ -889,10 +911,10 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(dragonPos, 550, circleColour, 2);
 				}
 			}
-			else if (!camp_manager->get_camp_alive_status(17))
+			else if (!camp_manager->get_camp_alive_status((int)real_neutral_camp_ids::Dragon))
 				isDragonAttacked = false;
 
-			if (camp_manager->get_camp_alive_status(13) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && (gametime->get_time() - baronAttackTime < 8 || gametime->get_time() - baronIdleTime < 2))
+			if (camp_manager->get_camp_alive_status((int)real_neutral_camp_ids::Baron) && lastBaron && lastBaron->is_valid() && (!lastBaron->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastBaron->is_dead() && (gametime->get_time() - baronAttackTime < 8 || gametime->get_time() - baronIdleTime < 2))
 			{
 				const auto isIdle = gametime->get_time() - baronIdleTime < 2;
 				if (gametime->get_time() - baronIdleTime < 1) baronAttackTime = 0;
@@ -912,7 +934,7 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(baronPos, 550, circleColour, 2);
 				}
 			}
-			else if (camp_manager->get_camp_alive_status(18) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && (gametime->get_time() - heraldAttackTime < 15 || gametime->get_time() - heraldIdleTime < 2))
+			else if (camp_manager->get_camp_alive_status((int)real_neutral_camp_ids::Herlad) && lastHerald && lastHerald->is_valid() && (!lastHerald->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && !lastHerald->is_dead() && (gametime->get_time() - heraldAttackTime < 15 || gametime->get_time() - heraldIdleTime < 2))
 			{
 				const auto isIdle = gametime->get_time() - heraldIdleTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
@@ -931,7 +953,7 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(baronPos, 500, circleColour, 2);
 				}
 			}
-			else if (camp_manager->get_camp_alive_status(14) && lastVoidFucker && lastVoidFucker->is_valid() && (!lastVoidFucker->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && (gametime->get_time() - voidFuckerAttackTime < 15 || gametime->get_time() - voidFuckerIdleTime < 2))
+			else if (camp_manager->get_camp_alive_status((int)real_neutral_camp_ids::Voidgrubs) && lastVoidFucker && lastVoidFucker->is_valid() && (!lastVoidFucker->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && (gametime->get_time() - voidFuckerAttackTime < 15 || gametime->get_time() - voidFuckerIdleTime < 2))
 			{
 				const auto isIdle = gametime->get_time() - voidFuckerIdleTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
@@ -1710,13 +1732,13 @@ namespace utilities {
 		{
 			if (sender->get_name() == "Sru_Crab16.1.1")
 			{
-				camp_manager->update_camp_alive_status(16, false);
+				camp_manager->update_camp_alive_status((int)real_neutral_camp_ids::Crab_Top, false);
 				debugPrint("[%i:%02d] Top crab ded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 				return;
 			}
 			else if (sender->get_name() == "Sru_Crab15.1.1")
 			{
-				camp_manager->update_camp_alive_status(15, false);
+				camp_manager->update_camp_alive_status((int)real_neutral_camp_ids::Crab_Bottom, false);
 				debugPrint("[%i:%02d] Bot crab ded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 				return;
 			}
@@ -2149,9 +2171,9 @@ namespace utilities {
 		}
 
 		// Get epic monster camp positions
-		auto tempPos = camp_manager->get_camp_position(13);
+		auto tempPos = camp_manager->get_camp_position((int)real_neutral_camp_ids::Baron);
 		baronPos = vector(tempPos.x - 25, tempPos.y + 100);
-		tempPos = camp_manager->get_camp_position(17);
+		tempPos = camp_manager->get_camp_position((int)real_neutral_camp_ids::Dragon);
 		dragonPos = vector(tempPos.x + 50, tempPos.y);
 
 		// Get URF cannon pos
