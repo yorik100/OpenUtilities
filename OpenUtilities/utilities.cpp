@@ -1746,7 +1746,7 @@ namespace utilities {
 		// If it is an epic monster then update the tracker based off the animations
 		else if (isEpicSender)
 		{
-			if (sender->get_name().find("Baron") != std::string::npos)
+			if (sender->get_name().find("Baron") != std::string::npos && strcmp(data->animation_name, "Dance") != 0)
 			{
 				const auto isIdle = strcmp(data->animation_name, "Idle1_a2n_PAR") == 0;
 				if (isIdle && gametime->get_time() - baronAttackTime >= 8) return;
