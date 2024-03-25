@@ -2105,28 +2105,28 @@ namespace utilities {
 				{
 					debugPrint("[%i:%02d] Baron got shielded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 					baronAttackTime = gametime->get_time();
-					lastBaron = target;
+					lastBaron = sender;
 					return;
 				}
 				else if (sender->get_name().find("Dragon") != std::string::npos)
 				{
 					debugPrint("[%i:%02d] Dragon got shielded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 					dragonAttackTime = gametime->get_time();
-					lastDragon = target;
+					lastDragon = sender;
 					return;
 				}
 				else if (sender->get_character_name_hash() == character_hash("SRU_RiftHerald"))
 				{
 					debugPrint("[%i:%02d] Herald got shielded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 					heraldAttackTime = gametime->get_time();
-					lastHerald = target;
+					lastHerald = sender;
 					return;
 				}
 				else if (sender->get_character_name_hash() == character_hash("SRU_Horde"))
 				{
 					debugPrint("[%i:%02d] Voidgrub got shielded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 					voidFuckerAttackTime = gametime->get_time();
-					lastVoidFucker = target;
+					lastVoidFucker = sender;
 					return;
 				}
 			}
