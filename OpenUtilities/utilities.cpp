@@ -2076,6 +2076,7 @@ namespace utilities {
 					}
 					else if (sender->get_character_name_hash() == character_hash("SRU_Horde"))
 					{
+						if (!voidFuckerAttackTime) return;
 						debugPrint("[%i:%02d] Voidgrub lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 						voidFuckerAttackTime = 0;
 						voidFuckerIdleTime = gametime->get_time();
@@ -2109,7 +2110,6 @@ namespace utilities {
 				}
 				else if (sender->get_name().find("Dragon") != std::string::npos)
 				{
-					if (!isDragonAttacked) return;
 					debugPrint("[%i:%02d] Dragon got shielded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 					dragonAttackTime = gametime->get_time();
 					lastDragon = target;
@@ -2117,7 +2117,6 @@ namespace utilities {
 				}
 				else if (sender->get_character_name_hash() == character_hash("SRU_RiftHerald"))
 				{
-					if (!heraldAttackTime) return;
 					debugPrint("[%i:%02d] Herald got shielded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 					heraldAttackTime = gametime->get_time();
 					lastHerald = target;
