@@ -2035,49 +2035,62 @@ namespace utilities {
 			const auto isEpicSender = sender && sender->is_valid() && !sender->is_dead() && sender->is_epic_monster() && !sender->get_owner();
 			if (isEpicSender && target && target->is_valid() && sender->get_handle() && target->get_handle())
 			{
-				if (sender->get_name().find("Baron") != std::string::npos)
+				if (sender->get_handle() == target->get_handle())
 				{
-					const auto tempBaronHeal = lastBaronHeal;
-					lastBaronHeal = gametime->get_time();
-					if (gametime->get_time() - tempBaronHeal < 0.25)
+					if (sender->get_name().find("Baron") != std::string::npos)
 					{
-						if (!baronAttackTime) return;
-						debugPrint("[%i:%02d] Baron lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
-						baronAttackTime = 0;
-						baronIdleTime = gametime->get_time();
-						lastBaron = sender;
+						const auto tempBaronHeal = lastBaronHeal;
+						lastBaronHeal = gametime->get_time();
+						if (gametime->get_time() - tempBaronHeal < 0.25)
+						{
+							if (!baronAttackTime) return;
+							debugPrint("[%i:%02d] Baron lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+							baronAttackTime = 0;
+							baronIdleTime = gametime->get_time();
+							lastBaron = sender;
+						}
+						else
+						{
+							debugPrint("[%i:%02d] Baron swapped aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+							baronAttackTime = gametime->get_time();
+							lastBaron = sender;
+						}
+						return;
 					}
-					else
+					else if (sender->get_name().find("Dragon") != std::string::npos)
 					{
-						debugPrint("[%i:%02d] Baron swapped aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
-						baronAttackTime = gametime->get_time();
-						lastBaron = sender;
+						if (!isDragonAttacked) return;
+						debugPrint("[%i:%02d] Dragon lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+						dragonAttackTime = gametime->get_time();
+						lastDragon = sender;
+						return;
 					}
-					return;
+					else if (sender->get_character_name_hash() == character_hash("SRU_RiftHerald"))
+					{
+						if (!heraldAttackTime) return;
+						debugPrint("[%i:%02d] Herald lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+						heraldAttackTime = 0;
+						heraldIdleTime = gametime->get_time();
+						lastHerald = sender;
+						return;
+					}
+					else if (sender->get_character_name_hash() == character_hash("SRU_Horde"))
+					{
+						debugPrint("[%i:%02d] Voidgrub lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+						voidFuckerAttackTime = 0;
+						voidFuckerIdleTime = gametime->get_time();
+						lastVoidFucker = sender;
+						return;
+					}
 				}
-				else if (sender->get_name().find("Dragon") != std::string::npos)
+			}
+			else
+			{
+				if (sender->get_character_name_hash() == character_hash("SRU_Horde"))
 				{
-					if (!isDragonAttacked) return;
-					debugPrint("[%i:%02d] Dragon lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
-					dragonAttackTime = gametime->get_time();
-					lastDragon = sender;
-					return;
-				}
-				else if (sender->get_character_name_hash() == character_hash("SRU_RiftHerald"))
-				{
-					if (!heraldAttackTime) return;
-					debugPrint("[%i:%02d] Herald lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
-					heraldAttackTime = 0;
-					heraldIdleTime = gametime->get_time();
-					lastHerald = sender;
-					return;
-				}
-				else if (sender->get_character_name_hash() == character_hash("SRU_Horde"))
-				{
-					debugPrint("[%i:%02d] Voidgrub lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
-					voidFuckerAttackTime = 0;
-					voidFuckerIdleTime = gametime->get_time();
-					lastVoidFucker = sender;
+					debugPrint("[%i:%02d] Voidgrub got healed", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+					voidFuckerAttackTime = gametime->get_time();
+					lastVoidFucker = target;
 					return;
 				}
 			}
@@ -2091,7 +2104,7 @@ namespace utilities {
 				{
 					debugPrint("[%i:%02d] Baron got shielded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 					baronAttackTime = gametime->get_time();
-					lastBaron = sender;
+					lastBaron = target;
 					return;
 				}
 				else if (sender->get_name().find("Dragon") != std::string::npos)
@@ -2099,7 +2112,7 @@ namespace utilities {
 					if (!isDragonAttacked) return;
 					debugPrint("[%i:%02d] Dragon got shielded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 					dragonAttackTime = gametime->get_time();
-					lastDragon = sender;
+					lastDragon = target;
 					return;
 				}
 				else if (sender->get_character_name_hash() == character_hash("SRU_RiftHerald"))
@@ -2107,14 +2120,14 @@ namespace utilities {
 					if (!heraldAttackTime) return;
 					debugPrint("[%i:%02d] Herald got shielded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 					heraldAttackTime = gametime->get_time();
-					lastHerald = sender;
+					lastHerald = target;
 					return;
 				}
 				else if (sender->get_character_name_hash() == character_hash("SRU_Horde"))
 				{
 					debugPrint("[%i:%02d] Voidgrub got shielded", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 					voidFuckerAttackTime = gametime->get_time();
-					lastVoidFucker = sender;
+					lastVoidFucker = target;
 					return;
 				}
 			}
