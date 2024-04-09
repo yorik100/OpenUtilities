@@ -2076,7 +2076,7 @@ namespace utilities {
 					}
 					else if (sender->get_character_name_hash() == character_hash("SRU_Horde"))
 					{
-						debugPrint("[%i:%02d] Voidgrub healed %i %i", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+						debugPrint("[%i:%02d] Voidgrub healed", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 						voidFuckerAttackTime = gametime->get_time();
 						lastVoidFucker = sender;
 						return;
