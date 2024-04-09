@@ -953,7 +953,7 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(baronPos, 500, circleColour, 2);
 				}
 			}
-			else if (camp_manager->get_camp_alive_status((int)real_neutral_camp_ids::Voidgrubs) && lastVoidFucker && lastVoidFucker->is_valid() && (!lastVoidFucker->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && (gametime->get_time() - voidFuckerAttackTime < 13 || gametime->get_time() - voidFuckerIdleTime < 2))
+			else if (camp_manager->get_camp_alive_status((int)real_neutral_camp_ids::Voidgrubs) && lastVoidFucker && lastVoidFucker->is_valid() && (!lastVoidFucker->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && (gametime->get_time() - voidFuckerAttackTime < 14 || gametime->get_time() - voidFuckerIdleTime < 2))
 			{
 				const auto isIdle = gametime->get_time() - voidFuckerIdleTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
