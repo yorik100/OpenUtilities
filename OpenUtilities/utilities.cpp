@@ -953,7 +953,7 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(baronPos, 500, circleColour, 2);
 				}
 			}
-			else if (camp_manager->get_camp_alive_status((int)real_neutral_camp_ids::Voidgrubs) && lastVoidFucker && lastVoidFucker->is_valid() && (!lastVoidFucker->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && (gametime->get_time() - voidFuckerAttackTime < 15 || gametime->get_time() - voidFuckerIdleTime < 2))
+			else if (camp_manager->get_camp_alive_status((int)real_neutral_camp_ids::Voidgrubs) && lastVoidFucker && lastVoidFucker->is_valid() && (!lastVoidFucker->is_visible() || settings::epic::epicTrackerVisible->get_bool()) && (gametime->get_time() - voidFuckerAttackTime < 13 || gametime->get_time() - voidFuckerIdleTime < 2))
 			{
 				const auto isIdle = gametime->get_time() - voidFuckerIdleTime < 2;
 				if (settings::epic::epicTrackerNotifications->get_bool() && !isIdle) {
@@ -2043,7 +2043,7 @@ namespace utilities {
 						lastBaronHeal = gametime->get_time();
 						if (gametime->get_time() - tempBaronHeal < 0.25)
 						{
-							if (!baronAttackTime) return;
+							if (baronAttackTime <= 0) return;
 							debugPrint("[%i:%02d] Baron lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 							baronAttackTime = 0;
 							baronIdleTime = gametime->get_time();
@@ -2067,7 +2067,7 @@ namespace utilities {
 					}
 					else if (sender->get_character_name_hash() == character_hash("SRU_RiftHerald"))
 					{
-						if (!heraldAttackTime) return;
+						if (heraldAttackTime <= 0) return;
 						debugPrint("[%i:%02d] Herald lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
 						heraldAttackTime = 0;
 						heraldIdleTime = gametime->get_time();
@@ -2076,23 +2076,11 @@ namespace utilities {
 					}
 					else if (sender->get_character_name_hash() == character_hash("SRU_Horde"))
 					{
-						if (!voidFuckerAttackTime) return;
-						debugPrint("[%i:%02d] Voidgrub lost aggro", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
-						voidFuckerAttackTime = 0;
-						voidFuckerIdleTime = gametime->get_time();
+						debugPrint("[%i:%02d] Voidgrub healed %i %i", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
+						voidFuckerAttackTime = gametime->get_time();
 						lastVoidFucker = sender;
 						return;
 					}
-				}
-			}
-			else
-			{
-				if (sender->get_character_name_hash() == character_hash("SRU_Horde"))
-				{
-					debugPrint("[%i:%02d] Voidgrub got healed", (int)gametime->get_time() / 60, (int)gametime->get_time() % 60);
-					voidFuckerAttackTime = gametime->get_time();
-					lastVoidFucker = target;
-					return;
 				}
 			}
 		}
