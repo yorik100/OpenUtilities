@@ -972,6 +972,8 @@ namespace utilities {
 					draw_manager->draw_circle_on_minimap(baronPos, 500, circleColour, 2);
 				}
 			}
+			else if (!camp_manager->get_camp_alive_status((int)real_neutral_camp_ids::Voidgrubs))
+				lastVoidFucker = nullptr;
 		}
 
 		// Last killed entity position
