@@ -6,7 +6,7 @@ on:
 env:
   BUILD_CONFIGURATION: Release
 
-  OUTPUT_DIR: /Users/runner/work/0411952ef3b4c3797cd12de3a06660f1/plugins/x64
+  OUTPUT_DIR: ./
 jobs:
   build:
     runs-on: macos-latest
