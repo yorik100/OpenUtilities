@@ -1,0 +1,28 @@
+name: Mac Build
+
+on:
+  workflow_dispatch: 
+
+env:
+  BUILD_CONFIGURATION: Release
+
+  OUTPUT_DIR: /Users/runner/work/0411952ef3b4c3797cd12de3a06660f1/plugins/x64
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_CONFIGURATION }}
+      working-directory: ${{ env.GITHUB_WORKSPACE }}
+    - name: Build
+      run: cmake --build build --config ${{ env.BUILD_CONFIGURATION }}
+      working-directory: ${{ env.GITHUB_WORKSPACE }}
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: compiled-dylibs
+        path: ${{env.OUTPUT_DIR}}
