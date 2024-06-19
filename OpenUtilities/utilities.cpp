@@ -1891,6 +1891,8 @@ namespace utilities {
 			case spell_hash("AkshanR"):
 			case spell_hash("GragasW"):
 			case spell_hash("PantheonE"):
+			case spell_hash("SmolderE"):
+			case spell_hash("BriarE"):
 			{
 				lastNoAttackCast = gametime->get_time() + getPing() + 0.15f;
 				break;
