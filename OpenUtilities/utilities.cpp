@@ -1871,7 +1871,7 @@ namespace utilities {
 			}
 			case spell_hash("KatarinaR"):
 			{
-				if (spell->get_icon_texture() && *spell && *spell->get_icon_texture() && *spell->get_icon_texture() == (uint32_t)-971980824)
+				if (spell->get_icon_texture() && *spell->get_icon_texture() == (uint32_t)-971980824)
 					lastChannelCast = gametime->get_time() + getPing() + 0.15f;
 				break;
 			}
