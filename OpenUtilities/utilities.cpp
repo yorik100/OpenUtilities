@@ -1434,11 +1434,7 @@ namespace utilities {
 
 		// Entity deleted, must remove from unordered map
 		if (obj->is_ai_base())
-		{
-			const auto iterator = lastPath.find(obj->get_handle());
-			if (lastPath.end() != iterator)
-				lastPath.erase(iterator);
-		}
+			lastPath.erase(obj->get_handle());
 
 		// Get possible valid particles
 		if (!obj->get_emitter() || !obj->get_emitter()->is_valid() || !obj->get_emitter()->is_enemy() || !obj->get_emitter()->is_ai_hero() || obj->get_emitter()->is_visible() || obj->get_emitter()->is_dead()) return;
