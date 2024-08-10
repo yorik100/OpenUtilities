@@ -1837,7 +1837,7 @@ namespace utilities {
 
 	void on_cast_spell(spellslot spellSlot, game_object_script target, vector& pos, vector& pos2, bool isCharge, bool* process)
 	{
-		if (dontCancel) return;
+		if (dontCancel || !process) return;
 
 		const auto spell = myhero->get_spell(spellSlot);
 
